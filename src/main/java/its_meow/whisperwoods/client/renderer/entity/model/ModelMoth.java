@@ -11,7 +11,7 @@ import net.minecraft.client.renderer.entity.model.RendererModel;
 public class ModelMoth extends EntityModel<EntityMoth> {
     public RendererModel thorax;
     public RendererModel head;
-    public RendererModel abdomin;
+    public RendererModel abdomen;
     public RendererModel lLeg00;
     public RendererModel lLeg01;
     public RendererModel lLeg02;
@@ -63,10 +63,10 @@ public class ModelMoth extends EntityModel<EntityMoth> {
         this.lLeg02.setRotationPoint(0.9F, 1.2F, 0.5F);
         this.lLeg02.addBox(-0.5F, 0.0F, -0.0F, 1, 4, 0, 0.0F);
         this.setRotateAngle(lLeg02, 1.0471975511965976F, 0.8726646259971648F, 0.0F);
-        this.abdomin = new RendererModel(this, 0, 16);
-        this.abdomin.setRotationPoint(0.0F, 0.2F, 1.8F);
-        this.abdomin.addBox(-1.5F, -1.5F, 0.0F, 3, 3, 6, 0.0F);
-        this.setRotateAngle(abdomin, -0.12217304763960307F, 0.0F, 0.0F);
+        this.abdomen = new RendererModel(this, 0, 16);
+        this.abdomen.setRotationPoint(0.0F, 0.2F, 1.8F);
+        this.abdomen.addBox(-1.5F, -1.5F, 0.0F, 3, 3, 6, 0.0F);
+        this.setRotateAngle(abdomen, -0.12217304763960307F, 0.0F, 0.0F);
         this.head = new RendererModel(this, 0, 0);
         this.head.setRotationPoint(0.0F, 0.2F, -1.4F);
         this.head.addBox(-1.5F, -3.0F, -3.0F, 3, 3, 3, 0.0F);
@@ -88,7 +88,7 @@ public class ModelMoth extends EntityModel<EntityMoth> {
         this.thorax.addChild(this.rLeg01);
         this.thorax.addChild(this.rWing);
         this.thorax.addChild(this.lLeg02);
-        this.thorax.addChild(this.abdomin);
+        this.thorax.addChild(this.abdomen);
         this.thorax.addChild(this.head);
         this.head.addChild(this.lAntenna);
         this.thorax.addChild(this.rLeg00);
@@ -97,6 +97,27 @@ public class ModelMoth extends EntityModel<EntityMoth> {
     @Override
     public void render(EntityMoth entity, float f, float f1, float f2, float f3, float f4, float f5) { 
         this.thorax.render(f5);
+    }
+    
+    @Override
+    public void setRotationAngles(EntityMoth entityIn, float limbSwing, float limbSwingAmount, float ageInTicks, float netHeadYaw, float headPitch, float scaleFactor) {
+        if(entityIn.isLanded()) {
+            this.setRotateAngle(lLeg00, -1.0471975511965976F, -0.8726646259971648F, 0.0F);
+            this.setRotateAngle(rAntenna, -0.7853981633974483F, 0.2792526803190927F, 0.0F);
+            this.setRotateAngle(lLeg01, 0.0F, 0.0F, -1.0471975511965976F);
+            this.setRotateAngle(rLeg02, 1.0471975511965976F, -0.8726646259971648F, 0.0F);
+            this.setRotateAngle(rLeg01, 0.0F, 0.0F, 1.0471975511965976F);
+            this.setRotateAngle(lLeg02, 1.0471975511965976F, 0.8726646259971648F, 0.0F);
+            this.setRotateAngle(abdomen, -0.12217304763960307F, 0.0F, 0.0F);
+            this.setRotateAngle(head, 0.7853981633974483F, 0.0F, 0.0F);
+            this.setRotateAngle(lAntenna, -0.7853981633974483F, -0.2792526803190927F, 0.0F);
+            this.setRotateAngle(rLeg00, -1.0471975511965976F, 0.8726646259971648F, 0.0F);
+        } else {
+            this.rWing.rotateAngleZ = (float) Math.sin(ageInTicks);
+            this.lWing.rotateAngleZ = (float) -Math.sin(ageInTicks);
+            this.rWing.rotateAngleY = 0;
+            this.lWing.rotateAngleY = 0;
+        }
     }
 
     /**
