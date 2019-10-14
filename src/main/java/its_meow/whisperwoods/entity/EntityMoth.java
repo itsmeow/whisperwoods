@@ -11,13 +11,18 @@ import net.minecraft.block.TorchBlock;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityPredicate;
 import net.minecraft.entity.EntityType;
+import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.SharedMonsterAttributes;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.item.Item;
+import net.minecraft.item.Items;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.network.datasync.DataParameter;
 import net.minecraft.network.datasync.DataSerializers;
 import net.minecraft.network.datasync.EntityDataManager;
 import net.minecraft.util.DamageSource;
+import net.minecraft.util.Direction;
+import net.minecraft.util.Hand;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
@@ -27,9 +32,10 @@ import net.minecraft.world.World;
 
 public class EntityMoth extends EntityAnimalWithTypesAndSize {
 
-    private static final DataParameter<Byte> LANDED = EntityDataManager.createKey(EntityMoth.class, DataSerializers.BYTE);
-    private static final EntityPredicate playerPredicate = (new EntityPredicate()).setDistance(4.0D).allowFriendlyFire();
+    private static final DataParameter<Integer> LANDED = EntityDataManager.createKey(EntityMoth.class, DataSerializers.VARINT);
+    private static final EntityPredicate playerPredicate = (new EntityPredicate()).setDistance(4.0D).allowFriendlyFire().allowInvulnerable();
     private BlockPos targetPosition;
+    public static int MOTHS_REQUIRED_TO_DESTROY = 5;
 
     public EntityMoth(World worldIn) {
         super(ModEntities.MOTH.entityType, worldIn);
@@ -41,7 +47,7 @@ public class EntityMoth extends EntityAnimalWithTypesAndSize {
 
     protected void registerData() {
         super.registerData();
-        this.dataManager.register(LANDED, (byte)0);
+        this.dataManager.register(LANDED, 1);
     }
 
     public boolean canBePushed() {
@@ -58,17 +64,22 @@ public class EntityMoth extends EntityAnimalWithTypesAndSize {
     }
 
     public boolean isLanded() {
-        return (this.dataManager.get(LANDED) & 1) != 0;
+        return this.dataManager.get(LANDED) != 1;
     }
 
-    public void setLanded(boolean landed) {
-        byte b0 = this.dataManager.get(LANDED);
-        if (landed) {
-            this.dataManager.set(LANDED, (byte)(b0 | 1));
-        } else {
-            this.dataManager.set(LANDED, (byte)(b0 & -2));
-        }
+    public int getLandedInteger() {
+        return this.dataManager.get(LANDED);
+    }
 
+    public void setLanded(Direction direction) {
+        if(direction == Direction.UP) {
+            throw new RuntimeException("Invalid landing direction!");
+        }
+        this.dataManager.set(LANDED, direction.ordinal());
+    }
+
+    public void setNotLanded() {
+        this.dataManager.set(LANDED, 1);
     }
 
     /**
@@ -78,7 +89,20 @@ public class EntityMoth extends EntityAnimalWithTypesAndSize {
         super.tick();
         if (this.isLanded()) {
             this.setMotion(Vec3d.ZERO);
-            this.posY = (double)MathHelper.floor(this.posY) + 1.0D - (double)this.getHeight();
+            if(Direction.byIndex(this.getLandedInteger()) != Direction.DOWN) {
+                double x = Math.floor(this.posX) + 0.5D;
+                double z = Math.floor(this.posZ) + 0.5D;
+                this.posY = Math.floor(this.posY) + 0.5D;
+                BlockPos pos = new BlockPos(x, posY, z);
+                BlockPos offset = pos.offset(Direction.byIndex(this.getLandedInteger()));
+                BlockPos diff = pos.subtract(offset);
+                this.posX = x - ((double) diff.getX()) / 2.778D;
+                this.posZ = z - ((double) diff.getZ()) / 2.778D;
+                this.rotationYaw = 0;
+                this.rotationYawHead = 0;
+            } else {
+                this.posY = Math.floor(this.posY);
+            }
         } else {
             this.setMotion(this.getMotion().mul(1.0D, 0.6D, 1.0D));
         }
@@ -88,90 +112,91 @@ public class EntityMoth extends EntityAnimalWithTypesAndSize {
     protected void updateAITasks() {
         super.updateAITasks();
         BlockPos blockpos = new BlockPos(this);
-        BlockPos blockpos1 = blockpos.add(this.getRNG().nextInt(3) - 1, 0, this.getRNG().nextInt(3) - 1);
         if (this.isLanded()) {
-            if (this.world.getBlockState(blockpos1).isNormalCube(this.world, blockpos)) {
-                if (this.rand.nextInt(200) == 0) {
-                    this.rotationYawHead = (float)this.rand.nextInt(360);
-                }
-
-                if (this.world.getClosestPlayer(playerPredicate, this) != null) {
-                    this.setLanded(false);
+            BlockPos offset = blockpos.offset(Direction.byIndex(this.getLandedInteger()));
+            if(this.world.getBlockState(offset).isNormalCube(this.world, offset)) {
+                if(this.world.getClosestPlayer(playerPredicate, this) != null || this.getRNG().nextInt(this.isAttractedToLight() ? 500 : 1000) == 0) {
+                    this.setNotLanded();
                 }
             } else {
-                this.setLanded(false);
+                this.setNotLanded();
             }
-        } else {
-            if (this.targetPosition != null && (!this.world.isAirBlock(this.targetPosition) || this.targetPosition.getY() < 1)) {
-                this.targetPosition = null;
-            }
-
-            if (this.targetPosition == null || this.rand.nextInt(30) == 0 || (this.targetPosition.withinDistance(this.getPositionVec(), 1.0D) && !isLightBlock(world.getBlockState(this.targetPosition)))) {
-                /* Map<BlockPos, Integer> lightValues = new HashMap<BlockPos, Integer>();
-                for(Direction direction : Direction.values()) {
-                    BlockPos pos = blockpos.offset(direction);
-                    pos = pos.subtract(blockpos).add(pos.subtract(blockpos)).add(blockpos);
-                    lightValues.put(pos, world.getLightValue(pos));
-                }
-
-                Map.Entry<BlockPos, Integer> maxEntry = null;
-                for(Map.Entry<BlockPos, Integer> entry : lightValues.entrySet()) {
-                    if(maxEntry == null || entry.getValue().compareTo(maxEntry.getValue()) > 0 || isLightBlock(world.getBlockState(entry.getKey())) && !isLightBlock(world.getBlockState(maxEntry.getKey()))) {
-                        maxEntry = entry;
-                    }
-                }
-                if(maxEntry != null && maxEntry.getValue() > 0 && maxEntry.getValue() > world.getLightValue(blockpos)) {
-                    this.targetPosition = maxEntry.getKey().subtract(blockpos).add(maxEntry.getKey().subtract(blockpos)).add(blockpos);
-                } else {
-                    this.targetPosition = new BlockPos(this.posX + (double)this.rand.nextInt(5) - (double)this.rand.nextInt(5), this.posY + (double)this.rand.nextInt(4) - 1.0D, this.posZ + (double)this.rand.nextInt(5) - (double)this.rand.nextInt(5));
-                }*/
-                int i = 12;
-                int j = 2;
-                BlockPos.MutableBlockPos blockpos$mutableblockpos = new BlockPos.MutableBlockPos();
-                BlockPos destinationBlock = null;
-                long time = this.world.getDayTime() % 24000L;
-                if(world.getLightFor(LightType.SKY, this.getPosition()) < 10 || (time >= 13000L && time <= 23000L)) {
-                    for(int k = 0; k <= j; k = k > 0 ? -k : 1 - k) {
-                        for(int l = 0; l < i; ++l) {
-                            for(int i1 = 0; i1 <= l; i1 = i1 > 0 ? -i1 : 1 - i1) {
-                                for(int j1 = i1 < l && i1 > -l ? l : 0; j1 <= l; j1 = j1 > 0 ? -j1 : 1 - j1) {
-                                    blockpos$mutableblockpos.setPos(this.getPosition()).move(i1, k - 1, j1);
-                                    if(isLightBlock(world.getBlockState(blockpos$mutableblockpos))) {
-                                        destinationBlock = blockpos$mutableblockpos.toImmutable();
-                                    }
+        }
+        if (this.targetPosition == null || this.rand.nextInt(30) == 0 || (this.targetPosition.withinDistance(this.getPositionVec(), 1.0D) && !isLightBlock(world.getBlockState(this.targetPosition)))) {
+            int i = 12;
+            int j = 2;
+            BlockPos.MutableBlockPos blockpos$mutableblockpos = new BlockPos.MutableBlockPos();
+            BlockPos destinationBlock = null;
+            if(this.isAttractedToLight()) {
+                for(int k = 0; k <= j; k = k > 0 ? -k : 1 - k) {
+                    for(int l = 0; l < i; ++l) {
+                        for(int i1 = 0; i1 <= l; i1 = i1 > 0 ? -i1 : 1 - i1) {
+                            for(int j1 = i1 < l && i1 > -l ? l : 0; j1 <= l; j1 = j1 > 0 ? -j1 : 1 - j1) {
+                                blockpos$mutableblockpos.setPos(this.getPosition()).move(i1, k - 1, j1);
+                                if(isLightBlock(world.getBlockState(blockpos$mutableblockpos))) {
+                                    destinationBlock = blockpos$mutableblockpos.toImmutable();
                                 }
                             }
                         }
                     }
                 }
-                if(destinationBlock != null) {
-                    this.targetPosition = destinationBlock;
-                } else {
+            }
+            if(destinationBlock != null) {
+                this.targetPosition = destinationBlock;
+                this.setNotLanded();
+            } else {
+                boolean found = false;
+                if(this.isAttractedToLight()) {
+                    for(LivingEntity entity : world.getEntitiesWithinAABB(LivingEntity.class, this.getBoundingBox().grow(10))) {
+                        for(Hand hand : Hand.values()) {
+                            Item held = entity.getHeldItem(hand).getItem();
+                            if(held == Items.TORCH || held == Items.LANTERN) {
+                                this.targetPosition = entity.getPosition().add(0, 1.5, 0);
+                                found = true;
+                                this.setNotLanded();
+                            }
+                        }
+                    }
+                }
+                if(!found && this.world.getClosestPlayer(playerPredicate, this) == null && this.getRNG().nextInt(this.isAttractedToLight() ? 80 : 30) == 0) {
+                    for(Direction direction : Direction.values()) {
+                        if(direction != Direction.UP) {
+                            BlockPos offset = blockpos.offset(direction);
+                            if(world.getBlockState(offset).isNormalCube(world, offset)) {
+                                this.setLanded(direction);
+                                this.targetPosition = null;
+                                found = true;
+                            }
+                        }
+                    }
+                }
+                if(!found) {
                     this.targetPosition = new BlockPos(this.posX + (double)this.rand.nextInt(5) - (double)this.rand.nextInt(5), this.posY + (double)this.rand.nextInt(4) - 1.0D, this.posZ + (double)this.rand.nextInt(5) - (double)this.rand.nextInt(5));
                 }
             }
-            if(targetPosition != null) {
-                double d0 = (double)this.targetPosition.getX() + 0.5D - this.posX;
-                double d1 = (double)this.targetPosition.getY() + 0.1D - this.posY;
-                double d2 = (double)this.targetPosition.getZ() + 0.5D - this.posZ;
-                Vec3d vec3d = this.getMotion();
-                Vec3d vec3d1 = vec3d.add((Math.signum(d0) * 0.5D - vec3d.x) * (double)0.1F, (Math.signum(d1) * (double)0.7F - vec3d.y) * (double)0.1F, (Math.signum(d2) * 0.5D - vec3d.z) * (double)0.1F);
-                this.setMotion(vec3d1);
-                float f = (float)(MathHelper.atan2(vec3d1.z, vec3d1.x) * (double)(180F / (float)Math.PI)) - 90.0F;
-                float f1 = MathHelper.wrapDegrees(f - this.rotationYaw);
-                this.moveForward = 0.5F;
-                this.rotationYaw += f1;
-                if (this.rand.nextInt(100) == 0 && this.world.getBlockState(blockpos1).isNormalCube(this.world, blockpos1)) {
-                    this.setLanded(true);
-                }
-            }
-            if(world.getBlockState(this.getPosition()).getBlock() instanceof TorchBlock && net.minecraftforge.event.ForgeEventFactory.getMobGriefingEvent(this.world, this) && world.getEntitiesWithinAABB(EntityMoth.class, this.getBoundingBox()).size() >= 5) {
-                BlockState state = world.getBlockState(this.getPosition());
-                Block.spawnDrops(state,  world, this.getPosition());
-                world.setBlockState(this.getPosition(), Blocks.AIR.getDefaultState());
-            }
         }
+        if(!this.isLanded() && targetPosition != null) {
+            double d0 = (double)this.targetPosition.getX() + 0.5D - this.posX;
+            double d1 = (double)this.targetPosition.getY() + 0.1D - this.posY;
+            double d2 = (double)this.targetPosition.getZ() + 0.5D - this.posZ;
+            Vec3d vec3d = this.getMotion();
+            Vec3d vec3d1 = vec3d.add((Math.signum(d0) * 0.5D - vec3d.x) * (double)0.1F, (Math.signum(d1) * (double)0.7F - vec3d.y) * (double)0.1F, (Math.signum(d2) * 0.5D - vec3d.z) * (double)0.1F);
+            this.setMotion(vec3d1);
+            float f = (float)(MathHelper.atan2(vec3d1.z, vec3d1.x) * (double)(180F / (float)Math.PI)) - 90.0F;
+            float f1 = MathHelper.wrapDegrees(f - this.rotationYaw);
+            this.moveForward = 0.5F;
+            this.rotationYaw += f1;
+        }
+        if(MOTHS_REQUIRED_TO_DESTROY != 0 && world.getBlockState(this.getPosition()).getBlock() instanceof TorchBlock && world.getEntitiesWithinAABB(EntityMoth.class, this.getBoundingBox()).size() >= MOTHS_REQUIRED_TO_DESTROY && net.minecraftforge.event.ForgeEventFactory.getMobGriefingEvent(this.world, this)) {
+            BlockState state = world.getBlockState(this.getPosition());
+            Block.spawnDrops(state,  world, this.getPosition());
+            world.setBlockState(this.getPosition(), Blocks.AIR.getDefaultState());
+        }
+    }
 
+    public boolean isAttractedToLight() {
+        long time = this.world.getDayTime() % 24000L;
+        return world.getLightFor(LightType.SKY, this.getPosition()) < 10 || (time >= 13000L && time <= 23000L);
     }
 
     private static boolean isLightBlock(BlockState blockState) {
@@ -196,7 +221,7 @@ public class EntityMoth extends EntityAnimalWithTypesAndSize {
             return false;
         } else {
             if (!this.world.isRemote && this.isLanded()) {
-                this.setLanded(false);
+                this.setNotLanded();
             }
             return super.attackEntityFrom(source, amount);
         }
@@ -204,12 +229,12 @@ public class EntityMoth extends EntityAnimalWithTypesAndSize {
 
     public void readAdditional(CompoundNBT compound) {
         super.readAdditional(compound);
-        this.dataManager.set(LANDED, compound.getByte("Landed"));
+        this.dataManager.set(LANDED, compound.getInt("Landed"));
     }
 
     public void writeAdditional(CompoundNBT compound) {
         super.writeAdditional(compound);
-        compound.putByte("Landed", this.dataManager.get(LANDED));
+        compound.putInt("Landed", this.dataManager.get(LANDED));
     }
 
     @Override

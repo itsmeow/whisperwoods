@@ -7,6 +7,8 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
+import javax.annotation.Nullable;
+
 import com.google.common.collect.Lists;
 
 import net.minecraft.entity.EntityClassification;
@@ -19,7 +21,7 @@ import net.minecraftforge.common.BiomeDictionary;
 import net.minecraftforge.common.ForgeConfigSpec;
 
 public class EntityTypeContainer<T extends LivingEntity> {
-    
+
     public EntityType<T> entityType;
     public SpawnEggItem egg;
 
@@ -37,21 +39,23 @@ public class EntityTypeContainer<T extends LivingEntity> {
     public final float width;
     public final float height;
     public boolean despawn;
-    
+
     private Biome[] spawnBiomes;
-    
+
     private EntityConfiguration config;
 
+    private final CustomConfigurationHolder customConfig;
+
     public EntityTypeContainer(Class<T> EntityClass, Function<World, T> func,
-    String entityNameIn, EntityClassification type, int solidColorIn, int spotColorIn, int prob, int min, int max, float width, float height, boolean despawn, BiomeDictionary.Type... biomeTypes) {
-        this(EntityClass, func, entityNameIn, type, solidColorIn, spotColorIn, prob, min, max, width, height, despawn, toBiomes(biomeTypes));
+    String entityNameIn, EntityClassification type, int solidColorIn, int spotColorIn, int prob, int min, int max, float width, float height, boolean despawn, @Nullable CustomConfigurationHolder customConfig, BiomeDictionary.Type... biomeTypes) {
+        this(EntityClass, func, entityNameIn, type, solidColorIn, spotColorIn, prob, min, max, width, height, despawn, customConfig, toBiomes(biomeTypes));
     }
 
-    public EntityTypeContainer(Class<T> EntityClass, Function<World, T> func, String entityNameIn, EntityClassification type, int solidColorIn, int spotColorIn, int prob, int min, int max, float width, float height, boolean despawn, Biome... biomes) {
-        this(EntityClass, func, entityNameIn, type, solidColorIn, spotColorIn, prob, min, max, width, height, despawn, toBiomes(biomes));
+    public EntityTypeContainer(Class<T> EntityClass, Function<World, T> func, String entityNameIn, EntityClassification type, int solidColorIn, int spotColorIn, int prob, int min, int max, float width, float height, boolean despawn, @Nullable CustomConfigurationHolder customConfig, Biome... biomes) {
+        this(EntityClass, func, entityNameIn, type, solidColorIn, spotColorIn, prob, min, max, width, height, despawn, customConfig, toBiomes(biomes));
     }
 
-    public EntityTypeContainer(Class<T> EntityClass, Function<World, T> func, String entityNameIn, EntityClassification type, int solidColorIn, int spotColorIn, int prob, int min, int max, float width, float height, boolean despawn, Set<Biome> biomes) {
+    public EntityTypeContainer(Class<T> EntityClass, Function<World, T> func, String entityNameIn, EntityClassification type, int solidColorIn, int spotColorIn, int prob, int min, int max, float width, float height, boolean despawn, @Nullable CustomConfigurationHolder customConfig, Set<Biome> biomes) {
         this.entityClass = EntityClass;
         this.factory = func;
         this.entityName = entityNameIn;
@@ -64,25 +68,26 @@ public class EntityTypeContainer<T extends LivingEntity> {
         this.width = width;
         this.height = height;
         this.despawn = despawn;
+        this.customConfig = customConfig;
         this.biomes.addAll(biomes);
     }
-    
+
     public void initConfiguration(ForgeConfigSpec.Builder builder) {
         this.config = new EntityConfiguration(builder);
     }
-    
+
     public EntityConfiguration getConfiguration() {
         return this.config;
     }
-    
+
     public void setBiomes(Biome... biomes) {
         this.spawnBiomes = biomes;
     }
-    
+
     public Biome[] getBiomes() {
         return spawnBiomes;
     }
-    
+
     public class EntityConfiguration {
         public ForgeConfigSpec.BooleanValue doSpawning;
         public ForgeConfigSpec.IntValue spawnMinGroup;
@@ -91,7 +96,7 @@ public class EntityTypeContainer<T extends LivingEntity> {
         public ForgeConfigSpec.ConfigValue<List<? extends String>> biomesList;
         public List<String> biomeStrings;
         public ForgeConfigSpec.BooleanValue doDespawn;
-        
+
         protected EntityConfiguration(ForgeConfigSpec.Builder builder) {
             EntityTypeContainer<T> container = EntityTypeContainer.this;
             builder.push(container.entityName);
@@ -99,7 +104,7 @@ public class EntityTypeContainer<T extends LivingEntity> {
             this.loadSpawning(builder);
             this.loadSpawnValues(builder, container);
             doDespawn = builder.comment("True if this entity can despawn freely when no players are nearby.").worldRestart().define("doDespawn", container.despawn);
-            
+            EntityTypeContainer.this.customConfigurationInit(builder);
             builder.pop();
         }
 
@@ -109,13 +114,13 @@ public class EntityTypeContainer<T extends LivingEntity> {
 
         public void loadSpawnValues(ForgeConfigSpec.Builder builder, EntityTypeContainer<T> container) {
             spawnWeight = builder.comment("The spawn chance compared to other entities (typically between 6-20)").worldRestart()
-                    .defineInRange("weight", container.spawnWeight, 1, 9999);
+            .defineInRange("weight", container.spawnWeight, 1, 9999);
             spawnMinGroup = builder.comment("Must be greater than 0").worldRestart().defineInRange("minGroup", container.spawnMinGroup, 1,
-                    9999);
+            9999);
             spawnMaxGroup = builder.comment("Must be greater or equal to min value!").worldRestart().defineInRange("maxGroup",
-                    container.spawnMaxGroup, 1, 9999);
+            container.spawnMaxGroup, 1, 9999);
             biomesList = builder.comment("Enter biome Resource Locations. Supports modded biomes.").worldRestart()
-                    .defineList("spawnBiomes", biomeStrings, (Predicate<Object>) input -> input instanceof String);
+            .defineList("spawnBiomes", biomeStrings, (Predicate<Object>) input -> input instanceof String);
         }
     }
 
@@ -132,7 +137,7 @@ public class EntityTypeContainer<T extends LivingEntity> {
         biomes.addAll(Lists.newArrayList(biomes2));
         return biomes;
     }
-    
+
     public String[] getBiomeIDs() {
         try {
             spawnBiomes = biomes.toArray(new Biome[0]);
@@ -144,6 +149,23 @@ public class EntityTypeContainer<T extends LivingEntity> {
             biomeStrings[i] = spawnBiomes[i].getRegistryName().toString();
         }
         return biomeStrings;
+    }
+
+    public void customConfigurationLoad() {
+        if(this.customConfig != null) {
+            this.customConfig.customConfigurationLoad();
+        }
+    }
+
+    public void customConfigurationInit(ForgeConfigSpec.Builder builder) {
+        if(this.customConfig != null) {
+            this.customConfig.customConfigurationInit(builder);
+        }
+    }
+
+    public static abstract class CustomConfigurationHolder {
+        protected abstract void customConfigurationInit(ForgeConfigSpec.Builder builder);
+        protected abstract void customConfigurationLoad();
     }
 
 }

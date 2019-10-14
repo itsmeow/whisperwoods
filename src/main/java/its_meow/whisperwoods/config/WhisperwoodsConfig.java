@@ -76,6 +76,7 @@ public class WhisperwoodsConfig {
                 container.spawnWeight = section.spawnWeight.get();
                 container.doSpawning = section.doSpawning.get();
                 container.despawn = section.doDespawn.get();
+                container.customConfigurationLoad();
 
                 // Parse biomes
 

@@ -8,12 +8,14 @@ import java.util.function.Function;
 import its_meow.whisperwoods.WhisperwoodsMod;
 import its_meow.whisperwoods.entity.EntityMoth;
 import its_meow.whisperwoods.util.EntityTypeContainer;
+import its_meow.whisperwoods.util.EntityTypeContainer.CustomConfigurationHolder;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityClassification;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.world.World;
 import net.minecraftforge.common.BiomeDictionary.Type;
+import net.minecraftforge.common.ForgeConfigSpec;
 import net.minecraftforge.fml.common.ObfuscationReflectionHelper;
 
 public class ModEntities {
@@ -26,7 +28,17 @@ public class ModEntities {
      * ##########################################################
      */
     
-    public static final EntityTypeContainer<EntityMoth> MOTH = setupContainer(new EntityTypeContainer<EntityMoth>(EntityMoth.class, EntityMoth::new, "moth", EntityClassification.AMBIENT, 0x442516, 0xc66121, 10, 1, 3, 0.35F, 0.35F, true, Type.FOREST, Type.SWAMP));
+    public static final EntityTypeContainer<EntityMoth> MOTH = setupContainer(new EntityTypeContainer<EntityMoth>(EntityMoth.class, EntityMoth::new, "moth", EntityClassification.AMBIENT, 0x442516, 0xc66121, 10, 1, 3, 0.35F, 0.35F, true, new CustomConfigurationHolder() {
+        private ForgeConfigSpec.IntValue requiredMoths;
+        @Override
+        protected void customConfigurationInit(ForgeConfigSpec.Builder builder) {
+            this.requiredMoths = builder.comment("How many moths required to destroy a torch - Disabled if set to 0").worldRestart().defineInRange("moths_to_destroy_torch", 5, 0, Integer.MAX_VALUE);
+        }
+        @Override
+        protected void customConfigurationLoad() {
+            EntityMoth.MOTHS_REQUIRED_TO_DESTROY = requiredMoths.get();
+        }
+    }, Type.FOREST, Type.SWAMP));
     
     
     /*

@@ -1,8 +1,13 @@
 package its_meow.whisperwoods.client.renderer.entity.model;
 
+import com.mojang.blaze3d.platform.GlStateManager;
+
 import its_meow.whisperwoods.entity.EntityMoth;
 import net.minecraft.client.renderer.entity.model.EntityModel;
 import net.minecraft.client.renderer.entity.model.RendererModel;
+import net.minecraft.entity.Pose;
+import net.minecraft.util.Direction;
+import net.minecraft.util.math.BlockPos;
 
 /**
  * moth - cybecat5555
@@ -112,11 +117,32 @@ public class ModelMoth extends EntityModel<EntityMoth> {
             this.setRotateAngle(head, 0.7853981633974483F, 0.0F, 0.0F);
             this.setRotateAngle(lAntenna, -0.7853981633974483F, -0.2792526803190927F, 0.0F);
             this.setRotateAngle(rLeg00, -1.0471975511965976F, 0.8726646259971648F, 0.0F);
+            this.rWing.rotateAngleZ = (float) Math.toRadians(3);
+            this.lWing.rotateAngleZ = (float) Math.toRadians(-3);
+            this.lWing.rotateAngleY = (float) Math.toRadians(-30);
+            this.rWing.rotateAngleY = (float) Math.toRadians(30);
+            if(Direction.byIndex(entityIn.getLandedInteger()) != Direction.DOWN) {
+                this.thorax.rotateAngleX = (float) Math.toRadians(-90);
+                this.thorax.rotateAngleY = (float) Math.toRadians(Direction.byIndex(entityIn.getLandedInteger()).getHorizontalAngle());
+                double x = Math.floor(entityIn.posX) + 0.5D;
+                double z = Math.floor(entityIn.posZ) + 0.5D;
+                BlockPos pos = new BlockPos(x, entityIn.posY, z);
+                BlockPos offset = pos.offset(Direction.byIndex(entityIn.getLandedInteger()));
+                BlockPos diff = pos.subtract(offset);
+                double xOff = ((double) diff.getX()) / (13D * entityIn.getSize(Pose.STANDING).width);
+                double zOff = ((double) diff.getZ()) / (13D * entityIn.getSize(Pose.STANDING).width);
+                GlStateManager.translated(-xOff, 0D, zOff);
+            } else {
+                this.thorax.rotateAngleX = 0;
+                this.thorax.rotateAngleY = 0;
+            }
         } else {
             this.rWing.rotateAngleZ = (float) Math.sin(ageInTicks);
             this.lWing.rotateAngleZ = (float) -Math.sin(ageInTicks);
-            this.rWing.rotateAngleY = 0;
             this.lWing.rotateAngleY = 0;
+            this.rWing.rotateAngleY = 0;
+            this.thorax.rotateAngleX = 0;
+            this.thorax.rotateAngleY = 0;
         }
     }
 
