@@ -6,6 +6,8 @@ import org.apache.logging.log4j.Logger;
 
 import its_meow.whisperwoods.client.init.ClientLifecycleHandler;
 import its_meow.whisperwoods.config.WhisperwoodsConfig;
+import its_meow.whisperwoods.init.ModEntities;
+import its_meow.whisperwoods.util.EntityTypeContainer;
 import net.minecraft.item.ItemGroup;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
@@ -46,10 +48,10 @@ public class WhisperwoodsMod {
         @Override
         public void fill(NonNullList<ItemStack> toDisplay) {
             super.fill(toDisplay);
-            /*for (SpawnEggItem egg : ModItems.eggs.keySet()) {
-                ItemStack stack = new ItemStack(egg);
+            for (EntityTypeContainer<?> cont : ModEntities.ENTITIES.values()) {
+                ItemStack stack = new ItemStack(cont.egg);
                 toDisplay.add(stack);
-            }*/
+            }
         }
     };
 

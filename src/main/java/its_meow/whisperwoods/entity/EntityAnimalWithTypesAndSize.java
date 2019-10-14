@@ -41,14 +41,14 @@ public abstract class EntityAnimalWithTypesAndSize extends EntityAnimalWithTypes
     }
 
     @Override
-    public boolean writeUnlessRemoved(CompoundNBT compound) {
+    public void writeAdditional(CompoundNBT compound) {
+        super.writeAdditional(compound);
         compound.putFloat("Size", this.getSize(Pose.STANDING).width);
-        return super.writeUnlessRemoved(compound);
     }
 
     @Override
-    public void read(CompoundNBT compound) {
-        super.read(compound);
+    public void readAdditional(CompoundNBT compound) {
+        super.readAdditional(compound);
         float size = compound.getFloat("Size");
         this.setSize(size, size);
     }

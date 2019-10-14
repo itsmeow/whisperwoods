@@ -6,6 +6,7 @@ import java.util.LinkedHashMap;
 import java.util.function.Function;
 
 import its_meow.whisperwoods.WhisperwoodsMod;
+import its_meow.whisperwoods.entity.EntityHidebehind;
 import its_meow.whisperwoods.entity.EntityMoth;
 import its_meow.whisperwoods.util.EntityTypeContainer;
 import its_meow.whisperwoods.util.EntityTypeContainer.CustomConfigurationHolder;
@@ -39,6 +40,8 @@ public class ModEntities {
             EntityMoth.MOTHS_REQUIRED_TO_DESTROY = requiredMoths.get();
         }
     }, Type.FOREST, Type.SWAMP));
+    
+    public static final EntityTypeContainer<EntityHidebehind> HIDEBEHIND = setupContainer(new EntityTypeContainer<EntityHidebehind>(EntityHidebehind.class, EntityHidebehind::new, "hidebehind", EntityClassification.MONSTER, 0x473123, 0xfff494, 6, 1, 1, 2F, 1F, true, null, Type.FOREST));
     
     
     /*

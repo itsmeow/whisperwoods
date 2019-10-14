@@ -1,6 +1,7 @@
 {
 	"itemGroup.whisperwoods": "Whisperwoods",
 	"entity.whisperwoods.moth": "Moth",
+	"entity.whisperwoods.hidebehind": "Hidebehind",
 	
 	"misc.whisperwoods.eggorder": "Spawn %s"
 }
