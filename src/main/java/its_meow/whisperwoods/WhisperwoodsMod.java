@@ -23,7 +23,7 @@ import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 @Mod.EventBusSubscriber(modid = WhisperwoodsMod.MODID)
 @Mod(value = WhisperwoodsMod.MODID)
 public class WhisperwoodsMod {
-    
+
     public static final String MODID = "whisperwoods";
     public static final Logger LOGGER = LogManager.getLogger();
 
@@ -31,11 +31,11 @@ public class WhisperwoodsMod {
 
         FMLJavaModLoadingContext.get().getModEventBus().addListener(this::setup);
         FMLJavaModLoadingContext.get().getModEventBus()
-                .<FMLClientSetupEvent>addListener(e -> new ClientLifecycleHandler().clientSetup(e));
-        
+        .<FMLClientSetupEvent>addListener(e -> new ClientLifecycleHandler().clientSetup(e));
+
         WhisperwoodsConfig.setupConfig();
         ModLoadingContext.get().registerConfig(ModConfig.Type.SERVER, WhisperwoodsConfig.SERVER_CONFIG);
-        
+
         LOGGER.log(Level.INFO, "Spooking you...");
     }
 
@@ -59,6 +59,5 @@ public class WhisperwoodsMod {
 
         LOGGER.log(Level.INFO, "Summoning a hidebehind to eat you...");
     }
-	
 
 }

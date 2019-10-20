@@ -22,13 +22,13 @@ import net.minecraftforge.fml.common.ObfuscationReflectionHelper;
 public class ModEntities {
 
     public static final LinkedHashMap<String, EntityTypeContainer<? extends LivingEntity>> ENTITIES = new LinkedHashMap<>();
-    
+
     /*
      * ##########################################################
      * 
      * ##########################################################
      */
-    
+
     public static final EntityTypeContainer<EntityMoth> MOTH = setupContainer(new EntityTypeContainer<EntityMoth>(EntityMoth.class, EntityMoth::new, "moth", EntityClassification.AMBIENT, 0x442516, 0xc66121, 10, 1, 3, 0.35F, 0.35F, true, new CustomConfigurationHolder() {
         private ForgeConfigSpec.IntValue requiredMoths;
         @Override
@@ -40,42 +40,42 @@ public class ModEntities {
             EntityMoth.MOTHS_REQUIRED_TO_DESTROY = requiredMoths.get();
         }
     }, Type.FOREST, Type.SWAMP));
-    
-    public static final EntityTypeContainer<EntityHidebehind> HIDEBEHIND = setupContainer(new EntityTypeContainer<EntityHidebehind>(EntityHidebehind.class, EntityHidebehind::new, "hidebehind", EntityClassification.MONSTER, 0x473123, 0xfff494, 6, 1, 1, 2F, 1F, true, null, Type.FOREST));
-    
-    
+
+    public static final EntityTypeContainer<EntityHidebehind> HIDEBEHIND = setupContainer(new EntityTypeContainer<EntityHidebehind>(EntityHidebehind.class, EntityHidebehind::new, "hidebehind", EntityClassification.MONSTER, 0x473123, 0xfff494, 6, 1, 1, 2F, 5.2F, true, null, Type.FOREST));
+
+
     /*
      * ##########################################################
      * 
      * ##########################################################
      */
-    
+
     @SuppressWarnings("unchecked")
     public static <T extends LivingEntity>EntityTypeContainer<T> getEntityTypeContainer(String name) {
         return (EntityTypeContainer<T>) ENTITIES.get(name);
     }
-    
+
     @SuppressWarnings("unchecked")
     public static <T extends LivingEntity>EntityType<T> getEntityType(String name) {
         return (EntityType<T>) ENTITIES.get(name).entityType;
     }
-    
+
     private static <T extends LivingEntity>EntityTypeContainer<T> setupContainer(EntityTypeContainer<T> c) {
         c.entityType = ModEntities.<T>createEntityType(c);
         ENTITIES.put(c.entityName, c);
         return c;
     }
-    
+
     private static Field type$serializable = null;
 
     public static <T extends LivingEntity> EntityType<T> createEntityType(EntityTypeContainer<T> container) {
         return createEntityType(container.entityClass, container.factory, container.entityName, container.spawnType, 64, 1, true, container.width, container.height);
     }
-    
+
     public static <T extends Entity> EntityType<T> createEntityType(Class<T> EntityClass, Function<World, T> func, String entityNameIn, EntityClassification classification, int trackingRange, int updateInterval, boolean velUpdates, float width, float height) {
         EntityType<T> type =  EntityType.Builder.<T>create((etype, world) -> func.apply(world), classification).setTrackingRange(trackingRange).setUpdateInterval(updateInterval).setShouldReceiveVelocityUpdates(velUpdates).size(width, height).setCustomClientFactory((e, world) -> func.apply(world)).disableSerialization().build(WhisperwoodsMod.MODID + ":" + entityNameIn.toLowerCase());
         type.setRegistryName(WhisperwoodsMod.MODID + ":" + entityNameIn.toLowerCase());
-        
+
         // Workaround for "no datafixer registered" log spam
         try {
             if(type$serializable == null) {
@@ -87,7 +87,7 @@ public class ModEntities {
         }
         return type;
     }
-    
+
     private static void setFinalField(Field field, Object object, Object newValue) throws Exception {
         field.setAccessible(true);
 
@@ -96,6 +96,6 @@ public class ModEntities {
         modifiersField.setInt(field, field.getModifiers() & ~Modifier.FINAL);
 
         field.set(object, newValue);
-     }
+    }
 
 }

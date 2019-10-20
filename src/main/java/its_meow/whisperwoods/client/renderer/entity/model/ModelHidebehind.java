@@ -310,7 +310,9 @@ public class ModelHidebehind extends EntityModel<EntityHidebehind> {
     }
 
     @Override
-    public void render(EntityHidebehind entity, float f, float f1, float f2, float f3, float f4, float f5) { 
+    public void render(EntityHidebehind entity, float f, float f1, float f2, float f3, float f4, float f5) {
+        this.lowerJawOpen.showModel = true;
+        this.lowerJawOpen.rotateAngleX = (float) Math.toRadians(45F);
         this.chest.render(f5);
     }
 
