@@ -1,5 +1,7 @@
 package its_meow.whisperwoods.client.renderer.entity.model;
 
+import com.mojang.blaze3d.platform.GlStateManager;
+
 import its_meow.whisperwoods.entity.EntityHidebehind;
 import net.minecraft.client.renderer.entity.model.EntityModel;
 import net.minecraft.client.renderer.entity.model.RendererModel;
@@ -225,6 +227,7 @@ public class ModelHidebehind extends EntityModel<EntityHidebehind> {
         this.lowerJawOpen = new RendererModel(this, 38, 41);
         this.lowerJawOpen.setRotationPoint(0.0F, 1.7F, -4.5F);
         this.lowerJawOpen.addBox(-5.0F, -1.9F, -8.4F, 10, 4, 9, 0.0F);
+        this.setRotateAngle(lowerJawOpen, 0.785398F, 0.0F, 0.0F);
         this.lLeg03 = new RendererModel(this, 0, 94);
         this.lLeg03.setRotationPoint(0.0F, -0.3F, 14.3F);
         this.lLeg03.addBox(-2.0F, -0.9F, -1.5F, 4, 9, 3, 0.0F);
@@ -311,14 +314,28 @@ public class ModelHidebehind extends EntityModel<EntityHidebehind> {
 
     @Override
     public void render(EntityHidebehind entity, float f, float f1, float f2, float f3, float f4, float f5) {
-        this.lowerJawOpen.showModel = true;
-        this.lowerJawOpen.rotateAngleX = (float) Math.toRadians(45F);
-        this.chest.render(f5);
+        this.lowerJawOpen.showModel = entity.getOpen();
+        GlStateManager.pushMatrix();
+        {
+            if(entity.getHiding() && f4 != 23) {
+                GlStateManager.enableBlend();
+                GlStateManager.enableAlphaTest();
+                GlStateManager.color4f(1F, 1F, 1F, 0.5F);
+                GlStateManager.blendFunc(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA);
+            }
+            this.chest.render(f5);
+            GlStateManager.disableAlphaTest();
+            GlStateManager.disableBlend();
+        }
+        GlStateManager.popMatrix();
     }
 
     @Override
     public void setRotationAngles(EntityHidebehind entity, float limbSwing, float limbSwingAmount, float ageInTicks, float netHeadYaw, float headPitch, float scaleFactor) {
-
+        this.lLeg01.rotateAngleX = (float) Math.cos(0.6F * limbSwing) * limbSwingAmount * 0.7F - 0.6108652381980153F;
+        this.rLeg01.rotateAngleX = (float) Math.cos(0.6F * limbSwing + (float) Math.PI) * limbSwingAmount * 0.7F - 0.6108652381980153F;
+        this.head.rotateAngleY = (float) Math.toRadians(netHeadYaw);
+        this.head.rotateAngleX = (float) Math.toRadians(headPitch);
     }
 
     /**

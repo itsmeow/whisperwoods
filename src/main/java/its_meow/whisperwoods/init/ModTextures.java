@@ -16,9 +16,11 @@ public class ModTextures {
     public static final ResourceLocation moth_8 = new ResourceLocation(WhisperwoodsMod.MODID, "textures/entities/moth_8.png");
     
     // Hidebehind
+    public static final ResourceLocation hidebehind_black_open = new ResourceLocation(WhisperwoodsMod.MODID, "textures/entities/hidebehind_black_open.png");
     public static final ResourceLocation hidebehind_black = new ResourceLocation(WhisperwoodsMod.MODID, "textures/entities/hidebehind_black.png");
     public static final ResourceLocation hidebehind_coniferous_open = new ResourceLocation(WhisperwoodsMod.MODID, "textures/entities/hidebehind_coniferous_open.png");
     public static final ResourceLocation hidebehind_coniferous = new ResourceLocation(WhisperwoodsMod.MODID, "textures/entities/hidebehind_coniferous.png");
+    public static final ResourceLocation hidebehind_darkforest_open = new ResourceLocation(WhisperwoodsMod.MODID, "textures/entities/hidebehind_darkforest_open.png");
     public static final ResourceLocation hidebehind_darkforest = new ResourceLocation(WhisperwoodsMod.MODID, "textures/entities/hidebehind_darkforest.png");
     public static final ResourceLocation hidebehind_forest_open = new ResourceLocation(WhisperwoodsMod.MODID, "textures/entities/hidebehind_forest_open.png");
     public static final ResourceLocation hidebehind_forest = new ResourceLocation(WhisperwoodsMod.MODID, "textures/entities/hidebehind_forest.png");

@@ -23,48 +23,66 @@ public class RenderHidebehind extends LivingRenderer<EntityHidebehind, ModelHide
 
     @Override
     protected ResourceLocation getEntityTexture(EntityHidebehind entity) {
-        return ModTextures.hidebehind_coniferous_open;
+        if(entity.getOpen()) {
+            switch(entity.getTypeNumber()) {
+            case 1: return ModTextures.hidebehind_black_open;
+            case 2: return ModTextures.hidebehind_coniferous_open;
+            case 3: return ModTextures.hidebehind_darkforest_open;
+            case 4: return ModTextures.hidebehind_forest_open;
+            case 5: return ModTextures.hidebehind_mega_taiga_open;
+            default: return ModTextures.hidebehind_black_open;
+            }
+        } else {
+            switch(entity.getTypeNumber()) {
+            case 1: return ModTextures.hidebehind_black;
+            case 2: return ModTextures.hidebehind_coniferous;
+            case 3: return ModTextures.hidebehind_darkforest;
+            case 4: return ModTextures.hidebehind_forest;
+            case 5: return ModTextures.hidebehind_mega_taiga;
+            default: return ModTextures.hidebehind_black;
+            }
+        }
     }
 
     protected boolean canRenderName(EntityHidebehind entity) {
         return entity.hasCustomName() && super.canRenderName(entity);
     }
-    
+
     public static class HidebehindEyesLayer extends LayerRenderer<EntityHidebehind, ModelHidebehind> {
 
         public HidebehindEyesLayer(IEntityRenderer<EntityHidebehind, ModelHidebehind> p_i50921_1_) {
-           super(p_i50921_1_);
+            super(p_i50921_1_);
         }
 
         public void render(EntityHidebehind entityIn, float p_212842_2_, float p_212842_3_, float p_212842_4_, float p_212842_5_, float p_212842_6_, float p_212842_7_, float p_212842_8_) {
-           this.bindTexture(ModTextures.hidebehind_open_glow);
-           GlStateManager.enableBlend();
-           GlStateManager.disableAlphaTest();
-           GlStateManager.blendFunc(GlStateManager.SourceFactor.ONE, GlStateManager.DestFactor.ONE);
-           GlStateManager.depthMask(false);
+            this.bindTexture(ModTextures.hidebehind_open_glow);
+            GlStateManager.enableBlend();
+            GlStateManager.disableAlphaTest();
+            GlStateManager.blendFunc(GlStateManager.SourceFactor.ONE, GlStateManager.DestFactor.ONE);
+            GlStateManager.depthMask(false);
 
-           int i = 240;
-           int j = i % 65536;
-           int k = i / 65536;
-           GLX.glMultiTexCoord2f(GLX.GL_TEXTURE1, (float)j, (float)k);
-           GlStateManager.color4f(1.0F, 1.0F, 1.0F, 1.0F);
-           GameRenderer gamerenderer = Minecraft.getInstance().gameRenderer;
-           gamerenderer.setupFogColor(true);
-           this.getEntityModel().render(entityIn, p_212842_2_, p_212842_3_, p_212842_5_, p_212842_6_, p_212842_7_, p_212842_8_);
-           gamerenderer.setupFogColor(false);
-           i = entityIn.getBrightnessForRender();
-           j = i % 65536;
-           k = i / 65536;
-           GLX.glMultiTexCoord2f(GLX.GL_TEXTURE1, (float)j, (float)k);
-           this.func_215334_a(entityIn);
-           GlStateManager.depthMask(true);
-           GlStateManager.disableBlend();
-           GlStateManager.enableAlphaTest();
+            int i = 240;
+            int j = i % 65536;
+            int k = i / 65536;
+            GLX.glMultiTexCoord2f(GLX.GL_TEXTURE1, (float)j, (float)k);
+            GlStateManager.color4f(1.0F, 1.0F, 1.0F, 1.0F);
+            GameRenderer gamerenderer = Minecraft.getInstance().gameRenderer;
+            gamerenderer.setupFogColor(true);
+            this.getEntityModel().render(entityIn, p_212842_2_, p_212842_3_, p_212842_5_, p_212842_6_, 23, p_212842_8_);
+            gamerenderer.setupFogColor(false);
+            i = entityIn.getBrightnessForRender();
+            j = i % 65536;
+            k = i / 65536;
+            GLX.glMultiTexCoord2f(GLX.GL_TEXTURE1, (float)j, (float)k);
+            this.func_215334_a(entityIn);
+            GlStateManager.depthMask(true);
+            GlStateManager.disableBlend();
+            GlStateManager.enableAlphaTest();
         }
 
         public boolean shouldCombineTextures() {
-           return false;
+            return false;
         }
-     }
+    }
 
 }
