@@ -9,6 +9,7 @@ import javax.annotation.Nullable;
 import com.google.common.collect.ImmutableSet;
 
 import its_meow.whisperwoods.init.ModEntities;
+import its_meow.whisperwoods.init.ModSounds;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
@@ -69,7 +70,7 @@ public class EntityHidebehind extends CreatureEntity implements IVariantTypes {
     protected static final DataParameter<Byte> HIDING = EntityDataManager.<Byte>createKey(EntityHidebehind.class, DataSerializers.BYTE);
     protected static final DataParameter<Byte> OPEN = EntityDataManager.<Byte>createKey(EntityHidebehind.class, DataSerializers.BYTE);
     protected float nextStepDistance = 1.0F;
-    public float attackSequenceTicks = 0F;
+    protected static final DataParameter<Integer> ATTACK_SEQUENCE_TICKS = EntityDataManager.<Integer>createKey(EntityHidebehind.class, DataSerializers.VARINT);
 
     protected EntityHidebehind(EntityType<? extends EntityHidebehind> type, World world) {
         super(type, world);
@@ -84,7 +85,7 @@ public class EntityHidebehind extends CreatureEntity implements IVariantTypes {
         super.registerAttributes();
         this.getAttribute(SharedMonsterAttributes.MAX_HEALTH).setBaseValue(20D);
         this.getAttributes().registerAttribute(SharedMonsterAttributes.ATTACK_DAMAGE);
-        this.getAttribute(SharedMonsterAttributes.ATTACK_DAMAGE).setBaseValue(11D);
+        this.getAttribute(SharedMonsterAttributes.ATTACK_DAMAGE).setBaseValue(15D);
     }
 
     @Override
@@ -92,58 +93,132 @@ public class EntityHidebehind extends CreatureEntity implements IVariantTypes {
         this.goalSelector.addGoal(0, new SwimGoal(this));
         this.goalSelector.addGoal(1, new HideFromTargetGoal(this));
         //this.goalSelector.addGoal(2, new LookAtGoal(this, PlayerEntity.class, 35F));
-        this.goalSelector.addGoal(3, new StalkTargetGoal(this, 0.7D, 35F));
+        this.goalSelector.addGoal(3, new StalkTargetGoal(this, 0.5D, 35F));
+    }
+    
+    public int attackSequenceTicks() {
+        return this.dataManager.get(ATTACK_SEQUENCE_TICKS);
+    }
+    
+    public void attackSequenceTicksDecrement() {
+        this.dataManager.set(ATTACK_SEQUENCE_TICKS, attackSequenceTicks() - 1);
+    }
+    
+    public void setAttackSequenceTicks(int value) {
+        this.dataManager.set(ATTACK_SEQUENCE_TICKS, value);
+    }
+
+    @Override
+    public boolean attackEntityFrom(DamageSource source, float amount) {
+        if(source.getTrueSource() == this.getAttackTarget() && this.attackSequenceTicks() > 0) {
+            this.setAttackSequenceTicks(0);
+        }
+        return super.attackEntityFrom(source, amount);
     }
 
     @Override
     public void tick() {
         super.tick();
+        if(this.getAttackTarget() != null && !this.getAttackTarget().isAlive()) {
+            this.setAttackTarget(null);
+        }
+        if(this.isInWater()) {
+            int i = 12;
+            int j = 2;
+            BlockPos.MutableBlockPos blockpos$mutableblockpos = new BlockPos.MutableBlockPos();
+            BlockPos destinationBlock = null;
+            for(int k = 0; k <= j; k = k > 0 ? -k : 1 - k) {
+                for(int l = 0; l < i; ++l) {
+                    for(int i1 = 0; i1 <= l; i1 = i1 > 0 ? -i1 : 1 - i1) {
+                        for(int j1 = i1 < l && i1 > -l ? l : 0; j1 <= l; j1 = j1 > 0 ? -j1 : 1 - j1) {
+                            blockpos$mutableblockpos.setPos(this.getPosition()).move(i1, k - 1, j1);
+                            if(this.world.getBlockState(blockpos$mutableblockpos).getBlock().isIn(BlockTags.LOGS)) {
+                                destinationBlock = blockpos$mutableblockpos.toImmutable();
+                            }
+                        }
+                    }
+                }
+            }
+            boolean fixed = false;
+            if(destinationBlock != null) {
+                for(Direction dir : Direction.values()) {
+                    if(!fixed) {
+                        if(this.world.isAirBlock(destinationBlock.offset(dir)) || this.world.getBlockState(destinationBlock.offset(dir)).getBlock().isIn(BlockTags.LEAVES)) {
+                            destinationBlock = destinationBlock.offset(dir);
+                            fixed = true;
+                        }
+                    }
+                }
+            }
+            if(fixed) {
+                this.setPosition(destinationBlock.getX(), destinationBlock.getY(), destinationBlock.getZ());
+            }
+        }
+        float atkTicks = attackSequenceTicks();
+        if(this.getHiding() && Math.abs(this.getTargetViewingAngle()) >= 70) {
+            this.setHiding(false);
+        }
         if(this.getAttackTarget() == null) {
             this.setAttackTarget(world.getClosestEntityWithinAABB(PlayerEntity.class, EntityPredicate.DEFAULT, null, this.posX, this.posY, this.posZ, this.getBoundingBox().grow(25)));
         }
-        if(this.getAttackTarget() != null && this.getAttackTarget().getDistanceSq(this) < 8D) {
+        if(this.getAttackTarget() != null && this.getAttackTarget().getDistanceSq(this) < 5D && atkTicks == 0 && !this.getHiding()) {
             if(this.getAttackTarget() instanceof PlayerEntity) {
                 PlayerEntity player = (PlayerEntity) this.getAttackTarget();
-                double d0 = this.posX - player.posX;
-                double d1 = this.posZ - player.posZ;
-                float angle = (float)(MathHelper.atan2(d1, d0) * (double)(180F / (float)Math.PI)) - 90.0F;
-                if(this.getRNG().nextInt(5) == 0) {
-                    player.setPositionAndRotation(player.posX, player.posY, player.posZ, angle, -30);
-                }
-                if(this.getRNG().nextInt(50) == 0) {
+                if(!this.world.isRemote && this.getRNG().nextInt(20) == 0) {
                     if(player.getHealth() > 11) {
                         this.attackEntityAsMob(player);
                     } else {
-                        attackSequenceTicks = 60;
+                        this.setAttackSequenceTicks(40);
                     }
                 }
             }
         }
-        if(attackSequenceTicks > 0) {
-            this.setOpen(true);
-            this.setNoAI(true);
-            this.attackSequenceTicks--;
-            if(attackSequenceTicks == 0) {
+        
+        if(atkTicks > 0) {
+            if(!this.getOpen()) {
+                this.setOpen(true);
+            }
+            if(this.getAttackTarget() != null) {
+                LivingEntity target = this.getAttackTarget();
+                target.setMotion(0,0,0);
+                double d0 = this.posX - target.posX;
+                double d1 = this.posZ - target.posZ;
+                float angle = (float)(MathHelper.atan2(d1, d0) * (double)(180F / (float)Math.PI)) - 90.0F;
+                target.setPositionAndRotation(target.posX, target.posY, target.posZ, angle, 0);
+                double e0 = target.posX - this.posX;
+                double e1 = target.posZ - this.posZ;
+                float angle1 = (float)(MathHelper.atan2(e1, e0) * (double)(180F / (float)Math.PI)) - 90.0F;
+                this.setPositionAndRotation(this.posX, this.posY, this.posZ, angle1, 0);
+                this.rotationYaw = angle1;
+                if(atkTicks == 20) {
+                    target.playSound(ModSounds.HIDEBEHIND_SOUND, 2F, 1F);
+                }
+                this.lookController.setLookPositionWithEntity(target, 360F, 360F);
+            }
+            this.attackSequenceTicksDecrement();
+            if(atkTicks - 1 == 0) {
                 this.setOpen(false);
-                this.setNoAI(false);
-                if(this.getAttackTarget() != null && this.getAttackTarget() instanceof PlayerEntity) {
-                    PlayerEntity player = (PlayerEntity) this.getAttackTarget();
-                    this.attackEntityAsMob(player);
+                if(this.getAttackTarget() != null) {
+                    LivingEntity target = this.getAttackTarget();
+                    this.attackEntityAsMob(target);
+                    this.setAttackTarget(null);
                 }
             }
         }
-        if(attackSequenceTicks == 0 && this.getOpen()) {
+        if(atkTicks == 0 && this.getOpen()) {
             this.setOpen(false);
-        }
-        if(attackSequenceTicks == 0 && this.isAIDisabled()) {
-            this.setNoAI(false);
         }
     }
 
     @Override
     public boolean canSpawn(IWorld world, SpawnReason spawnReasonIn) {
-        // prevent tree spawning
-        return !world.getBlockState(this.getPosition().down()).getBlock().isIn(BlockTags.LEAVES) && world.getBlockState(this.getPosition().down()).isSolid();
+        // prevent midair spawning
+        return true;//world.getBlockState(this.getPosition().down()).isSolid();
+    }
+
+    @Override
+    protected float getWaterSlowDown() {
+        return 1.0F;
     }
 
     @Override
@@ -178,8 +253,7 @@ public class EntityHidebehind extends CreatureEntity implements IVariantTypes {
     }
 
     /**
-     * @return The viewing angle of the attack target (0 when looking directly at
-     *         HB, 180 if opposite). If there is no target, returns -1000
+     * @return The viewing angle of the attack target (0 when looking directly at HB, 180 if opposite). If there is no target, returns -1000
      */
     public double getTargetViewingAngle() {
         LivingEntity target = this.getAttackTarget();
@@ -208,8 +282,7 @@ public class EntityHidebehind extends CreatureEntity implements IVariantTypes {
     }
     
     /**
-     * @return The viewing angle of the attack target (0 when looking directly at
-     *         HB, 180 if opposite). If there is no target, returns -1000
+     * @return The required viewing angle of the attack target to be looking at it. If there is no target, returns -1000
      */
     public double getRequiredViewingAngle() {
         LivingEntity target = this.getAttackTarget();
@@ -449,13 +522,13 @@ public class EntityHidebehind extends CreatureEntity implements IVariantTypes {
 
         public boolean shouldExecute() {
             this.target = this.hidebehind.getAttackTarget();
-            return target != null && Math.abs(hidebehind.getTargetViewingAngle()) < 70 && target.getDistanceSq(this.hidebehind) > 8D;
+            return target != null && Math.abs(hidebehind.getTargetViewingAngle()) < 70 && hidebehind.attackSequenceTicks() == 0;
 
         }
 
         public boolean shouldContinueExecuting() {
             this.target = this.hidebehind.getAttackTarget();
-            return target != null && Math.abs(hidebehind.getTargetViewingAngle()) < 70 && target.getDistanceSq(this.hidebehind) > 8D;
+            return target != null && Math.abs(hidebehind.getTargetViewingAngle()) < 70 && hidebehind.attackSequenceTicks() == 0;
         }
 
         public void resetTask() {
@@ -473,6 +546,9 @@ public class EntityHidebehind extends CreatureEntity implements IVariantTypes {
             for(Direction dir : Direction.values()) {
                 if(!nearTree) {
                     if(hidebehind.world.getBlockState(hidebehind.getPosition().offset(dir)).getBlock().isIn(BlockTags.LOGS)) {
+                        nearTree = true;
+                    }
+                    if(hidebehind.world.getBlockState(hidebehind.getPosition().up(3).offset(dir)).getBlock().isIn(BlockTags.LEAVES)) {
                         nearTree = true;
                     }
                 }
@@ -518,6 +594,7 @@ public class EntityHidebehind extends CreatureEntity implements IVariantTypes {
         this.registerTypeKey();
         this.dataManager.register(HIDING, (byte) 0);
         this.dataManager.register(OPEN, (byte) 0);
+        this.dataManager.register(ATTACK_SEQUENCE_TICKS, Integer.valueOf(0));
     }
 
     @Override
@@ -605,9 +682,6 @@ public class EntityHidebehind extends CreatureEntity implements IVariantTypes {
     public static class StalkTargetGoal extends Goal {
         private final EntityHidebehind hidebehind;
         private LivingEntity target;
-        private double movePosX;
-        private double movePosY;
-        private double movePosZ;
         private final double speed;
         private final float maxTargetDistance;
 
@@ -633,17 +707,16 @@ public class EntityHidebehind extends CreatureEntity implements IVariantTypes {
                     return false;
                 } else if(hidebehind.world.getLightValue(hidebehind.getPosition()) > 8) {
                     return false;
+                } else if(hidebehind.attackSequenceTicks() > 0 || hidebehind.getHiding()) {
+                    return false;
                 } else {
-                    this.movePosX = vec3d.x;
-                    this.movePosY = vec3d.y;
-                    this.movePosZ = vec3d.z;
                     return true;
                 }
             }
         }
 
         public boolean shouldContinueExecuting() {
-            return !this.hidebehind.getNavigator().noPath() && this.target.isAlive() && this.target.getDistanceSq(this.hidebehind) < (double) (this.maxTargetDistance * this.maxTargetDistance);
+            return !hidebehind.getHiding() && !this.hidebehind.getNavigator().noPath() && this.target.isAlive() && this.target.getDistanceSq(this.hidebehind) < (double) (this.maxTargetDistance * this.maxTargetDistance) && hidebehind.attackSequenceTicks() == 0;
         }
 
         public void resetTask() {
@@ -652,7 +725,7 @@ public class EntityHidebehind extends CreatureEntity implements IVariantTypes {
 
         public void startExecuting() {
             this.hidebehind.lookController.setLookPositionWithEntity(this.target, 1000, 1000);
-            this.hidebehind.getNavigator().tryMoveToXYZ(this.movePosX, this.movePosY, this.movePosZ, this.speed);
+            this.hidebehind.getNavigator().tryMoveToEntityLiving(this.hidebehind.getAttackTarget(), this.speed);
         }
     }
 

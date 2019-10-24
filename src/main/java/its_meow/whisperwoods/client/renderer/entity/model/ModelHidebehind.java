@@ -5,6 +5,8 @@ import com.mojang.blaze3d.platform.GlStateManager;
 import its_meow.whisperwoods.entity.EntityHidebehind;
 import net.minecraft.client.renderer.entity.model.EntityModel;
 import net.minecraft.client.renderer.entity.model.RendererModel;
+import net.minecraft.entity.LivingEntity;
+import net.minecraft.util.math.Vec3d;
 
 /**
  * hidebehind - cybercat5555
@@ -322,6 +324,14 @@ public class ModelHidebehind extends EntityModel<EntityHidebehind> {
                 GlStateManager.enableAlphaTest();
                 GlStateManager.color4f(1F, 1F, 1F, 0.5F);
                 GlStateManager.blendFunc(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA);
+            }
+            if(entity.attackSequenceTicks() > 0 && entity.getAttackTarget() != null) {
+                LivingEntity target = entity.getAttackTarget();
+                Vec3d targetEyes = target.getEyePosition(1F);
+                Vec3d entityEyes = entity.getEyePosition(1F);
+                this.head.rotateAngleY = 0;
+                this.head.rotateAngleX = 0;
+                GlStateManager.translated(0D, entityEyes.subtract(targetEyes).getY(), 0D);
             }
             this.chest.render(f5);
             GlStateManager.disableAlphaTest();

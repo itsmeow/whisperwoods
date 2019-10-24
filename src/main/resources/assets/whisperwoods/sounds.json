@@ -1,0 +1,11 @@
+{
+    "hidebehind": {
+        "replace": false,
+        "category": "entity",
+        "sounds": [
+        	{
+            	"name": "whisperwoods:hidebehind"
+            }
+        ]
+    }
+}

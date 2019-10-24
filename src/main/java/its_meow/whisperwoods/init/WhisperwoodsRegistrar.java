@@ -6,6 +6,7 @@ import its_meow.whisperwoods.item.ItemWhisperwoodsEgg;
 import its_meow.whisperwoods.util.EntityTypeContainer;
 import net.minecraft.entity.EntityType;
 import net.minecraft.item.Item;
+import net.minecraft.util.SoundEvent;
 import net.minecraftforge.event.RegistryEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
@@ -28,6 +29,11 @@ public class WhisperwoodsRegistrar {
         for(EntityTypeContainer<?> container : ModEntities.ENTITIES.values()) {
             event.getRegistry().register(container.entityType);
         }
+    }
+    
+    @SubscribeEvent
+    public static void registerSounds(final RegistryEvent.Register<SoundEvent> event) {
+        event.getRegistry().register(ModSounds.HIDEBEHIND_SOUND);
     }
 
 }

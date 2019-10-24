@@ -41,7 +41,7 @@ public class ModEntities {
         }
     }, Type.FOREST, Type.SWAMP));
 
-    public static final EntityTypeContainer<EntityHidebehind> HIDEBEHIND = setupContainer(new EntityTypeContainer<EntityHidebehind>(EntityHidebehind.class, EntityHidebehind::new, "hidebehind", EntityClassification.MONSTER, 0x473123, 0xfff494, 2, 1, 1, 1F, 5.2F, true, null, Type.FOREST));
+    public static final EntityTypeContainer<EntityHidebehind> HIDEBEHIND = setupContainer(new EntityTypeContainer<EntityHidebehind>(EntityHidebehind.class, EntityHidebehind::new, "hidebehind", EntityClassification.MONSTER, 0x473123, 0xfff494, 7, 1, 1, 1F, 5.2F, true, null, Type.FOREST));
 
 
     /*
