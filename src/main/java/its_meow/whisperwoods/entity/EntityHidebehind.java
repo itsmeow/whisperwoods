@@ -74,11 +74,11 @@ public class EntityHidebehind extends CreatureEntity implements IVariantTypes {
 
     protected EntityHidebehind(EntityType<? extends EntityHidebehind> type, World world) {
         super(type, world);
-        this.stepHeight = 3F;
+        this.stepHeight = 2F;
     }
 
     public EntityHidebehind(World world) {
-        super(ModEntities.HIDEBEHIND.entityType, world);
+        this(ModEntities.HIDEBEHIND.entityType, world);
     }
 
     protected void registerAttributes() {

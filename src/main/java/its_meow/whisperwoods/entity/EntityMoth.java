@@ -38,7 +38,7 @@ public class EntityMoth extends EntityAnimalWithTypesAndSize {
     public static int MOTHS_REQUIRED_TO_DESTROY = 5;
 
     public EntityMoth(World worldIn) {
-        super(ModEntities.MOTH.entityType, worldIn);
+        this(ModEntities.MOTH.entityType, worldIn);
     }
 
     protected EntityMoth(EntityType<? extends EntityAnimalWithTypesAndSize> type, World worldIn) {

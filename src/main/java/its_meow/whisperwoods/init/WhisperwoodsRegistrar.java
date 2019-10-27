@@ -6,6 +6,7 @@ import its_meow.whisperwoods.item.ItemWhisperwoodsEgg;
 import its_meow.whisperwoods.util.EntityTypeContainer;
 import net.minecraft.entity.EntityType;
 import net.minecraft.item.Item;
+import net.minecraft.particles.ParticleType;
 import net.minecraft.util.SoundEvent;
 import net.minecraftforge.event.RegistryEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -34,6 +35,11 @@ public class WhisperwoodsRegistrar {
     @SubscribeEvent
     public static void registerSounds(final RegistryEvent.Register<SoundEvent> event) {
         event.getRegistry().register(ModSounds.HIDEBEHIND_SOUND);
+    }
+    
+    @SubscribeEvent
+    public static void registerParticleTypes(final RegistryEvent.Register<ParticleType<?>> event) {
+        event.getRegistry().register(ModParticles.WISP);
     }
 
 }

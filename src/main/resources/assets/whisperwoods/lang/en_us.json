@@ -2,6 +2,7 @@
 	"itemGroup.whisperwoods": "Whisperwoods",
 	"entity.whisperwoods.moth": "Moth",
 	"entity.whisperwoods.hidebehind": "Hidebehind",
+	"entity.whisperwoods.wisp": "Wisp",
 	"death.attack.hidebehind": "%1$s disappeared in the woods",
 	
 	"misc.whisperwoods.eggorder": "Spawn %s"

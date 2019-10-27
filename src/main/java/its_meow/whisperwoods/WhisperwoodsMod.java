@@ -19,7 +19,6 @@ import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 
-
 @Mod.EventBusSubscriber(modid = WhisperwoodsMod.MODID)
 @Mod(value = WhisperwoodsMod.MODID)
 public class WhisperwoodsMod {
@@ -28,14 +27,10 @@ public class WhisperwoodsMod {
     public static final Logger LOGGER = LogManager.getLogger();
 
     public WhisperwoodsMod() {
-
         FMLJavaModLoadingContext.get().getModEventBus().addListener(this::setup);
-        FMLJavaModLoadingContext.get().getModEventBus()
-        .<FMLClientSetupEvent>addListener(e -> new ClientLifecycleHandler().clientSetup(e));
-
+        FMLJavaModLoadingContext.get().getModEventBus().<FMLClientSetupEvent>addListener(e -> new ClientLifecycleHandler().clientSetup(e));
         WhisperwoodsConfig.setupConfig();
         ModLoadingContext.get().registerConfig(ModConfig.Type.SERVER, WhisperwoodsConfig.SERVER_CONFIG);
-
         LOGGER.log(Level.INFO, "Spooking you...");
     }
 
@@ -48,7 +43,7 @@ public class WhisperwoodsMod {
         @Override
         public void fill(NonNullList<ItemStack> toDisplay) {
             super.fill(toDisplay);
-            for (EntityTypeContainer<?> cont : ModEntities.ENTITIES.values()) {
+            for(EntityTypeContainer<?> cont : ModEntities.ENTITIES.values()) {
                 ItemStack stack = new ItemStack(cont.egg);
                 toDisplay.add(stack);
             }
@@ -56,7 +51,6 @@ public class WhisperwoodsMod {
     };
 
     private void setup(final FMLCommonSetupEvent event) {
-
         LOGGER.log(Level.INFO, "Summoning a hidebehind to eat you...");
     }
 
