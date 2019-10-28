@@ -44,11 +44,11 @@ public class ModEntities {
 
     public static final EntityTypeContainer<EntityHidebehind> HIDEBEHIND = setupContainer(new EntityTypeContainer<EntityHidebehind>(EntityHidebehind.class, EntityHidebehind::new, "hidebehind", EntityClassification.MONSTER, 0x473123, 0xfff494, 7, 1, 1, 1F, 5.2F, true, null, Type.FOREST));
     
-    public static final EntityTypeContainer<EntityWisp> WISP = setupContainer(new EntityTypeContainer<EntityWisp>(EntityWisp.class, EntityWisp::new, "wisp", EntityClassification.CREATURE, 0xc36406, 0xffc008, 8, 1, 3, 0.75F, 0.75F, true, new CustomConfigurationHolder() {
+    public static final EntityTypeContainer<EntityWisp> WISP = setupContainer(new EntityTypeContainer<EntityWisp>(EntityWisp.class, EntityWisp::new, "wisp", EntityClassification.CREATURE, 0xc36406, 0xffc008, 10, 1, 3, 0.75F, 0.9F, true, new CustomConfigurationHolder() {
         private ForgeConfigSpec.IntValue hostileChance;
         @Override
         protected void customConfigurationInit(ForgeConfigSpec.Builder builder) {
-            this.hostileChance = builder.comment("Chance of wisp being hostile (soul stealer). Chance is 1/x, where x is the value specified. 0 is no chance, 1 is 100% chance, 2 is 50% chance, etc").worldRestart().defineInRange("hostile_chance", 10, 0, Integer.MAX_VALUE);
+            this.hostileChance = builder.comment("Chance of wisp being hostile (soul stealer). Chance is 1/x, where x is the value specified. 0 is no chance, 1 is 100% chance, 2 is 50% chance, etc").worldRestart().defineInRange("hostile_chance", 8, 0, Integer.MAX_VALUE);
         }
         @Override
         protected void customConfigurationLoad() {

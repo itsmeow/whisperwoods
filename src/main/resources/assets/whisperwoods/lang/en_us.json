@@ -4,6 +4,12 @@
 	"entity.whisperwoods.hidebehind": "Hidebehind",
 	"entity.whisperwoods.wisp": "Wisp",
 	"death.attack.hidebehind": "%1$s disappeared in the woods",
+	"death.attack.wisp": "%1$s was lost to the night",
+	"block.whisperwoods.ghost_light_electric_blue": "Electric Blue Ghost Light",
+	"block.whisperwoods.ghost_light_fiery_orange": "Fiery Orange Ghost Light",
+	"block.whisperwoods.ghost_light_gold": "Golden Ghost Light",
+	"block.whisperwoods.ghost_light_toxic_green": "Toxic Green Ghost Light",
+	"block.whisperwoods.ghost_light_magic_purple": "Magic Purple Ghost Light",
 	
 	"misc.whisperwoods.eggorder": "Spawn %s"
 }

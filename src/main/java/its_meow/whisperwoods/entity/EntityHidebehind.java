@@ -92,7 +92,6 @@ public class EntityHidebehind extends CreatureEntity implements IVariantTypes {
     protected void registerGoals() {
         this.goalSelector.addGoal(0, new SwimGoal(this));
         this.goalSelector.addGoal(1, new HideFromTargetGoal(this));
-        //this.goalSelector.addGoal(2, new LookAtGoal(this, PlayerEntity.class, 35F));
         this.goalSelector.addGoal(3, new StalkTargetGoal(this, 0.5D, 35F));
     }
     
@@ -208,12 +207,6 @@ public class EntityHidebehind extends CreatureEntity implements IVariantTypes {
         if(atkTicks == 0 && this.getOpen()) {
             this.setOpen(false);
         }
-    }
-
-    @Override
-    public boolean canSpawn(IWorld world, SpawnReason spawnReasonIn) {
-        // prevent midair spawning
-        return true;//world.getBlockState(this.getPosition().down()).isSolid();
     }
 
     @Override
@@ -429,7 +422,7 @@ public class EntityHidebehind extends CreatureEntity implements IVariantTypes {
                     block1.onEntityWalk(this.world, blockpos, this);
                 }
 
-                this.distanceWalkedModified = (float) ((double) this.distanceWalkedModified + (double) MathHelper.sqrt(func_213296_b(vec3d)) * 0.6D);
+                this.distanceWalkedModified = (float) ((double) this.distanceWalkedModified + (double) MathHelper.sqrt(horizontalMag(vec3d)) * 0.6D);
                 this.distanceWalkedOnStepModified = (float) ((double) this.distanceWalkedOnStepModified + (double) MathHelper.sqrt(d2 * d2 + d0 * d0 + d1 * d1) * 0.6D);
                 if(this.distanceWalkedOnStepModified > this.nextStepDistance && !blockstate.isAir(this.world, blockpos)) {
                     this.nextStepDistance = this.determineNextStepDistance();
@@ -484,12 +477,12 @@ public class EntityHidebehind extends CreatureEntity implements IVariantTypes {
             Vec3d vec3d2 = transformMove(this, new Vec3d(0.0D, (double) this.stepHeight, 0.0D), axisalignedbb.expand(vec.x, 0.0D, vec.z), this.world, iselectioncontext, reuseablestream);
             if(vec3d2.y < (double) this.stepHeight) {
                 Vec3d vec3d3 = transformMove(this, new Vec3d(vec.x, 0.0D, vec.z), axisalignedbb.offset(vec3d2), this.world, iselectioncontext, reuseablestream).add(vec3d2);
-                if(func_213296_b(vec3d3) > func_213296_b(vec3d1)) {
+                if(horizontalMag(vec3d3) > horizontalMag(vec3d1)) {
                     vec3d1 = vec3d3;
                 }
             }
 
-            if(func_213296_b(vec3d1) > func_213296_b(vec3d)) {
+            if(horizontalMag(vec3d1) > horizontalMag(vec3d)) {
                 return vec3d1.add(transformMove(this, new Vec3d(0.0D, -vec3d1.y + vec.y, 0.0D), axisalignedbb.offset(vec3d1), this.world, iselectioncontext, reuseablestream));
             }
         }

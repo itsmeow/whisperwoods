@@ -1,5 +1,6 @@
 package its_meow.whisperwoods.entity;
 
+import its_meow.whisperwoods.block.BlockGhostLight;
 import its_meow.whisperwoods.init.ModEntities;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
@@ -201,7 +202,7 @@ public class EntityMoth extends EntityAnimalWithTypesAndSize {
 
     private static boolean isLightBlock(BlockState blockState) {
         Block block = blockState.getBlock();
-        return block instanceof LanternBlock || block instanceof TorchBlock || (block instanceof CampfireBlock && blockState.get(CampfireBlock.LIT)) || block == Blocks.LAVA || block == Blocks.GLOWSTONE || block == Blocks.SEA_LANTERN || block == Blocks.JACK_O_LANTERN || block == Blocks.FIRE || (block instanceof RedstoneLampBlock && blockState.get(RedstoneLampBlock.LIT));
+        return block instanceof BlockGhostLight || block instanceof LanternBlock || block instanceof TorchBlock || (block instanceof CampfireBlock && blockState.get(CampfireBlock.LIT)) || block == Blocks.LAVA || block == Blocks.GLOWSTONE || block == Blocks.SEA_LANTERN || block == Blocks.JACK_O_LANTERN || block == Blocks.FIRE || (block instanceof RedstoneLampBlock && blockState.get(RedstoneLampBlock.LIT));
     }
 
     protected boolean canTriggerWalking() {

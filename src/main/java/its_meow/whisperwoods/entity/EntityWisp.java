@@ -1,8 +1,12 @@
 package its_meow.whisperwoods.entity;
 
+import java.util.UUID;
+
 import javax.annotation.Nullable;
 
+import its_meow.whisperwoods.init.ModBlocks;
 import its_meow.whisperwoods.init.ModEntities;
+import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.entity.AgeableEntity;
 import net.minecraft.entity.Entity;
@@ -13,7 +17,14 @@ import net.minecraft.entity.SharedMonsterAttributes;
 import net.minecraft.entity.SpawnReason;
 import net.minecraft.entity.passive.AnimalEntity;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.item.Item;
+import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.CompoundNBT;
+import net.minecraft.network.datasync.DataParameter;
+import net.minecraft.network.datasync.DataSerializers;
+import net.minecraft.network.datasync.EntityDataManager;
+import net.minecraft.util.DamageSource;
+import net.minecraft.util.EntityDamageSource;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
@@ -23,10 +34,16 @@ import net.minecraft.world.World;
 
 public class EntityWisp extends AnimalEntity {
 
-    public static int HOSTILE_CHANCE = 10;
+    public final DamageSource WISP = new EntityDamageSource("wisp", this).setDamageIsAbsolute().setDamageBypassesArmor();
+    public static int HOSTILE_CHANCE = 8;
     public boolean isHostile = false;
     public long lastSpawn = 0;
     private BlockPos targetPosition;
+    public static final DataParameter<Integer> ATTACK_STATE = EntityDataManager.createKey(EntityWisp.class, DataSerializers.VARINT);
+    public static final DataParameter<String> TARGET = EntityDataManager.createKey(EntityWisp.class, DataSerializers.STRING);
+    public static final DataParameter<String> TARGET_NAME = EntityDataManager.createKey(EntityWisp.class, DataSerializers.STRING);
+    public static final DataParameter<Float> PASSIVE_SCALE = EntityDataManager.createKey(EntityWisp.class, DataSerializers.FLOAT);
+    public static final DataParameter<Integer> COLOR_VARIANT = EntityDataManager.createKey(EntityWisp.class, DataSerializers.VARINT);
 
     protected EntityWisp(EntityType<? extends EntityWisp> entityType, World world) {
         super(entityType, world);
@@ -39,25 +56,86 @@ public class EntityWisp extends AnimalEntity {
     protected void registerAttributes() {
         super.registerAttributes();
         this.getAttribute(SharedMonsterAttributes.MAX_HEALTH).setBaseValue(4.5D);
-        // this.getAttribute(SharedMonsterAttributes.MOVEMENT_SPEED).setBaseValue(0.3D);
-        // this.getAttribute(SharedMonsterAttributes.FLYING_SPEED).setBaseValue(0.3D);
+    }
+
+    @Override
+    protected void registerData() {
+        super.registerData();
+        this.dataManager.register(ATTACK_STATE, Integer.valueOf(0));
+        this.dataManager.register(TARGET, "");
+        this.dataManager.register(TARGET_NAME, "");
+        this.dataManager.register(PASSIVE_SCALE, Float.valueOf(1.0F));
+        this.dataManager.register(COLOR_VARIANT, Integer.valueOf(0));
     }
 
     public void tick() {
         super.tick();
-        this.setMotion(this.getMotion().mul(0.5D, 0.6D, 0.5D));
+        int state = this.dataManager.get(ATTACK_STATE);
+        if(state == 0) {
+            this.setMotion(this.getMotion().mul(0.5D, 0.6D, 0.5D));
+            this.noClip = false;
+        } else {
+            this.setMotion(this.getMotion().mul(1D, 0.6D, 1D));
+            this.noClip = true;
+            this.dataManager.set(ATTACK_STATE, state + 1);
+        }
+        if(state == 400 && !world.isRemote) {
+            PlayerEntity soul = null;
+            if(this.getAttackTarget() instanceof PlayerEntity) {
+                soul = (PlayerEntity) this.getAttackTarget();
+            }
+            if(soul == null) {
+                soul = world.getServer().getPlayerList().getPlayerByUUID(UUID.fromString(this.dataManager.get(TARGET)));
+            }
+            if(soul == null) {
+                soul = world.getServer().getPlayerList().getPlayerByUsername(this.dataManager.get(TARGET_NAME));
+            }
+            this.dataManager.set(ATTACK_STATE, 0);
+            this.dataManager.set(TARGET, "");
+            this.dataManager.set(TARGET_NAME, "");
+            soul.attackEntityFrom(WISP, 3000F);
+            this.targetPosition = null;
+            this.setAttackTarget(null);
+        }
+        if(!this.isHostile && !world.isRemote) {
+            if(world.getEntitiesWithinAABB(PlayerEntity.class, this.getBoundingBox().grow(10)).size() > 0) {
+                PlayerEntity nearest = world.getClosestEntityWithinAABB(PlayerEntity.class, new EntityPredicate().allowInvulnerable().allowFriendlyFire().setSkipAttackChecks(), null, this.posX, this.posY, this.posZ, this.getBoundingBox().grow(10));
+                if(nearest != null) {
+                    this.dataManager.set(PASSIVE_SCALE, nearest.getDistance(this) / 12F);
+                } else {
+                    this.dataManager.set(PASSIVE_SCALE, 0.3F);
+                }
+            } else {
+                this.dataManager.set(PASSIVE_SCALE, 1.0F);
+            }
+        }
     }
 
     @Override
     protected void updateAITasks() {
         super.updateAITasks();
-        if(this.getAttackTarget() == null && this.isHostile) {
-            this.setAttackTarget(world.getClosestEntityWithinAABB(PlayerEntity.class, EntityPredicate.DEFAULT, null, this.posX, this.posY, this.posZ, this.getBoundingBox().grow(25)));
+        int state = this.dataManager.get(ATTACK_STATE);
+        if(this.getAttackTarget() != null && this.getAttackTarget().isInvulnerable()) {
+            this.setAttackTarget(null);
         }
-        if(this.isHostile && this.getAttackTarget() != null) {
-            this.targetPosition = this.getAttackTarget().getPosition();
-        } else {
-            this.targetPosition = new BlockPos(this.posX + (double)this.rand.nextInt(5) - (double)this.rand.nextInt(5), this.posY + (double)this.rand.nextInt(4), this.posZ + (double)this.rand.nextInt(5) - (double)this.rand.nextInt(5));
+        if(this.getAttackTarget() == null && this.isHostile) {
+            this.dataManager.set(ATTACK_STATE, Integer.valueOf(0));
+            this.dataManager.set(TARGET, "");
+            this.dataManager.set(TARGET_NAME, "");
+        }
+        if((this.targetPosition != null && this.getPosition().distanceSq(this.targetPosition) < 4) || this.targetPosition == null || !this.isHostile || (this.isHostile && state == 0)) {
+            if(this.getAttackTarget() == null && this.isHostile) {
+                this.setAttackTarget(world.getClosestEntityWithinAABB(PlayerEntity.class, EntityPredicate.DEFAULT, null, this.posX, this.posY, this.posZ, this.getBoundingBox().grow(25)));
+            }
+            if(this.isHostile && this.getAttackTarget() != null) {
+                this.targetPosition = this.getAttackTarget().getPosition();
+            } else {
+                this.targetPosition = new BlockPos(this.posX + (double)this.rand.nextInt(5) - (double)this.rand.nextInt(5), this.posY + (double)this.rand.nextInt(4) - 0.1D, this.posZ + (double)this.rand.nextInt(5) - (double)this.rand.nextInt(5));
+                
+            }
+            if(state > 0 && this.isHostile) {
+                this.targetPosition = new BlockPos(this.posX + (double)this.rand.nextInt(60) - (double)this.rand.nextInt(60), this.posY + (double)this.rand.nextInt(4), this.posZ + (double)this.rand.nextInt(60) - (double)this.rand.nextInt(60));
+            }
         }
         if(targetPosition != null) {
             double d0 = (double) this.targetPosition.getX() + 0.5D - this.posX;
@@ -102,8 +180,11 @@ public class EntityWisp extends AnimalEntity {
 
     @Override
     protected void collideWithEntity(Entity entity) {
-        if(entity == this.getAttackTarget() && this.getAttackTarget() != null && entity instanceof PlayerEntity) {
+        if(entity == this.getAttackTarget() && this.getAttackTarget() != null && entity instanceof PlayerEntity && this.dataManager.get(ATTACK_STATE) == 0) {
             PlayerEntity player = (PlayerEntity) entity;
+            this.dataManager.set(ATTACK_STATE, Integer.valueOf(1));
+            this.dataManager.set(TARGET, player.getGameProfile().getId().toString());
+            this.dataManager.set(TARGET_NAME, player.getGameProfile().getName());
         }
     }
 
@@ -113,19 +194,48 @@ public class EntityWisp extends AnimalEntity {
 
     @Override
     public boolean canDespawn(double range) {
-        return ModEntities.ENTITIES.containsKey("wisp") ? ModEntities.ENTITIES.get("wisp").despawn : false;
+        return ModEntities.ENTITIES.containsKey("wisp") ? ModEntities.ENTITIES.get("wisp").despawn && this.dataManager.get(ATTACK_STATE) == 0 : false;
     }
 
     @Override
     public void writeAdditional(CompoundNBT compound) {
         super.writeAdditional(compound);
         compound.putBoolean("is_hostile", isHostile);
+        compound.putInt("color_variant", this.dataManager.get(COLOR_VARIANT));
     }
 
     @Override
     public void readAdditional(CompoundNBT compound) {
         super.readAdditional(compound);
         this.isHostile = compound.getBoolean("is_hostile");
+        this.dataManager.set(COLOR_VARIANT, compound.getInt("color_variant"));
+    }
+
+    @Override
+    public void onDeath(DamageSource cause) {
+        super.onDeath(cause);
+        int variant = this.getDataManager().get(COLOR_VARIANT);
+        if (!world.isRemote && !this.isChild()) {
+            if (this.rand.nextInt(20) < 2 || this.dataManager.get(ATTACK_STATE) > 0) {
+                ItemStack stack = new ItemStack(getItemForVariant(variant));
+                this.entityDropItem(stack, 0.5F);
+            }
+        }
+    }
+
+    private static Item getItemForVariant(int variant) {
+        Block block = null;
+        switch(variant) {
+        case 1: block = ModBlocks.GHOST_LIGHT_ELECTRIC_BLUE; break;
+        case 2: block = ModBlocks.GHOST_LIGHT_FIERY_ORANGE; break;
+        case 3: block = ModBlocks.GHOST_LIGHT_GOLD; break;
+        case 4: block = ModBlocks.GHOST_LIGHT_TOXIC_GREEN; break;
+        case 5: block = ModBlocks.GHOST_LIGHT_MAGIC_PURPLE; break;
+        }
+        if(block == null) {
+            return null;
+        }
+        return block.asItem();
     }
 
     @Override
@@ -133,25 +243,30 @@ public class EntityWisp extends AnimalEntity {
     public ILivingEntityData onInitialSpawn(IWorld world, DifficultyInstance difficulty, SpawnReason reason, @Nullable ILivingEntityData livingdata, CompoundNBT compound) {
         if(!this.isChild()) {
             boolean hostile = this.getRNG().nextInt(HOSTILE_CHANCE) == 0;
+            int colorVariant = this.getRNG().nextInt(5) + 1;
 
-            if(livingdata instanceof HostileData) {
-                hostile = ((HostileData) livingdata).isHostile;
+            if(livingdata instanceof WispData) {
+                hostile = ((WispData) livingdata).isHostile;
+                colorVariant = ((WispData) livingdata).colorVariant;
             } else {
-                livingdata = new HostileData(hostile);
+                livingdata = new WispData(hostile, colorVariant);
             }
 
             this.isHostile = hostile;
+            this.dataManager.set(COLOR_VARIANT, colorVariant);
 
         }
 
         return livingdata;
     }
 
-    public static class HostileData implements ILivingEntityData {
+    public static class WispData implements ILivingEntityData {
         public boolean isHostile;
+        public int colorVariant;
 
-        public HostileData(boolean isHostile) {
+        public WispData(boolean isHostile, int colorVariant) {
             this.isHostile = isHostile;
+            this.colorVariant = colorVariant;
         }
     }
 

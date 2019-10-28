@@ -18,7 +18,7 @@ public class WispParticle extends SpriteTexturedParticle {
 
     private WispParticle(World world, double x, double y, double z, double moveX, double moveY, double moveZ, WispParticleData type, IAnimatedSprite sprites) {
         super(world, x, y, z);
-        this.multipleParticleScaleBy(1.5F);
+        this.multipleParticleScaleBy(1.5F * type.getScale());
         this.setSize(0.05F, 0.05F);
         this.maxAge = this.rand.nextInt(5) + 15;
         this.spriteSet = sprites;
@@ -30,7 +30,7 @@ public class WispParticle extends SpriteTexturedParticle {
         this.motionX = moveX;
         this.motionY = moveY + (double) (this.rand.nextFloat() / 500.0F);
         this.motionZ = moveZ;
-        this.particleAlpha = 0.8F;
+        this.particleAlpha = 0.4F;
     }
     
     @Override

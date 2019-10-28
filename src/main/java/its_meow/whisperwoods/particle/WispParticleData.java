@@ -22,32 +22,37 @@ public class WispParticleData implements IParticleData {
           float f1 = (float)reader.readDouble();
           reader.expect(' ');
           float f2 = (float)reader.readDouble();
-          return new WispParticleData(f, f1, f2);
+          reader.expect(' ');
+          float f3 = (float)reader.readDouble();
+          return new WispParticleData(f, f1, f2, f3);
        }
 
        public WispParticleData read(ParticleType<WispParticleData> particleTypeIn, PacketBuffer buffer) {
-          return new WispParticleData(buffer.readFloat(), buffer.readFloat(), buffer.readFloat());
+          return new WispParticleData(buffer.readFloat(), buffer.readFloat(), buffer.readFloat(), buffer.readFloat());
        }
     };
     private final float red;
     private final float green;
     private final float blue;
+    private final float scale;
 
-    public WispParticleData(float r, float g, float b) {
+    public WispParticleData(float r, float g, float b, float scale) {
        this.red = r;
        this.green = g;
        this.blue = b;
+       this.scale = scale;
     }
 
     public void write(PacketBuffer buffer) {
        buffer.writeFloat(this.red);
        buffer.writeFloat(this.green);
        buffer.writeFloat(this.blue);
+       buffer.writeFloat(this.scale);
     }
 
     @SuppressWarnings("deprecation")
     public String getParameters() {
-       return String.format(Locale.ROOT, "%s %.2f %.2f %.2f", Registry.PARTICLE_TYPE.getKey(this.getType()), this.red, this.green, this.blue);
+       return String.format(Locale.ROOT, "%s %.2f %.2f %.2f %.2f", Registry.PARTICLE_TYPE.getKey(this.getType()), this.red, this.green, this.blue, this.scale);
     }
 
     public ParticleType<WispParticleData> getType() {
@@ -67,6 +72,11 @@ public class WispParticleData implements IParticleData {
     @OnlyIn(Dist.CLIENT)
     public float getBlue() {
        return this.blue;
+    }
+    
+    @OnlyIn(Dist.CLIENT)
+    public float getScale() {
+       return this.scale;
     }
 
 }

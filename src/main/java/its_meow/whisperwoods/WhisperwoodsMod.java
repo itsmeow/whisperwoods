@@ -6,11 +6,11 @@ import org.apache.logging.log4j.Logger;
 
 import its_meow.whisperwoods.client.init.ClientLifecycleHandler;
 import its_meow.whisperwoods.config.WhisperwoodsConfig;
+import its_meow.whisperwoods.init.ModBlocks;
 import its_meow.whisperwoods.init.ModEntities;
 import its_meow.whisperwoods.util.EntityTypeContainer;
 import net.minecraft.item.ItemGroup;
 import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
 import net.minecraft.util.NonNullList;
 import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.common.Mod;
@@ -37,7 +37,7 @@ public class WhisperwoodsMod {
     public static final ItemGroup TAB = new ItemGroup(MODID) {
         @Override
         public ItemStack createIcon() {
-            return new ItemStack(Items.PUMPKIN);
+            return new ItemStack(ModBlocks.GHOST_LIGHT_FIERY_ORANGE.asItem());
         }
 
         @Override
