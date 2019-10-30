@@ -65,6 +65,10 @@ tasks.withType(JavaCompile) {
   ]
 }
 
+task('setupGithubActions') {
+    version = "${project.mc_version}-" + System.getenv('GITHUB_REF')
+}
+
 jar {
     manifest {
         attributes(["Specification-Title": archivesBaseName,
