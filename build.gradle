@@ -76,9 +76,10 @@ task setupGithubActions(type: Exec) {
         def hash = desc.remove(desc.size() - 1)
         def offset = desc.remove(desc.size() - 1)
         def tag = desc.join('-')
-        return "${project.mc_version}-${tag}.${offset}".toString() //Bake the response instead of making it dynamic
+        return "${tag}.${offset}".toString() //Bake the response instead of making it dynamic
     }
-    version = getVersion();
+    project.mod_version = getVersion();
+    version = "${project.mc_version}-${project.mod_version}";
     commandLine "echo", "##[set-output name=version;]${project.version}"
 }
 
