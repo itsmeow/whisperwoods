@@ -84,7 +84,7 @@ task setupGithubActions(type: Exec) {
         return "${project.mc_version}-${tag}.${offset}${t -> if (branch != null) t << '-' + branch}".toString() //Bake the response instead of making it dynamic
     }
     version = getVersion();
-    commandLine "echo '::set-output name=version::${project.version}'"
+    commandLine "echo", "::set-output name=version::${project.version}"
 }
 
 jar {
