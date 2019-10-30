@@ -34,6 +34,6 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: build/libs/whisperwoods-1.14.4-${{ github.ref }}.jar
-        asset_name: whisperwoods-1.14.4-${{ github.ref }}.jar
+        asset_path: build/libs/whisperwoods-${{ gradle.version }}.jar
+        asset_name: whisperwoods-${{ gradle.version }}.jar
         asset_content_type: application/java-archive

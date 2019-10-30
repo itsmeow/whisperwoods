@@ -8,6 +8,9 @@ buildscript {
         classpath group: 'net.minecraftforge.gradle', name: 'ForgeGradle', version: '3.+', changing: true
     }
 }
+plugins {
+    id 'org.ajoberstar.grgit' version '3.1.1'
+}
 apply plugin: 'net.minecraftforge.gradle'
 apply plugin: 'eclipse'
 
@@ -65,8 +68,24 @@ tasks.withType(JavaCompile) {
   ]
 }
 
-task('setupGithubActions') {
-    version = "${project.mc_version}-" + System.getenv('GITHUB_REF')
+task setupGithubActions(type: Exec) {
+    def getVersion = {
+        //TAG-offset-hash
+        def raw = grgit.describe(longDescr: true, tags:true)
+        def desc = (raw == null ? '0.0-0-unknown' : grgit.describe(longDescr: true, tags:true)).split('-') as List
+        def hash = desc.remove(desc.size() - 1)
+        def offset = desc.remove(desc.size() - 1)
+        def tag = desc.join('-')
+        def branch = grgit.branch.current().name
+        if (branch in ['master', 'HEAD', project.mc_version, project.mc_version + '.0'])
+            branch = null
+        if (branch != null && branch.endsWith('.x') && project.mc_version.startsWith(branch.substring(0, branch.length() - 2))) //1.13.x
+            branch = null
+        SPEC_VERSION = tag
+        return "${project.mc_version}-${tag}.${offset}${t -> if (branch != null) t << '-' + branch}".toString() //Bake the response instead of making it dynamic
+    }
+    version = getVersion();
+    environment "gradle.version", version
 }
 
 jar {
