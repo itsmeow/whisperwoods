@@ -71,7 +71,7 @@ tasks.withType(JavaCompile) {
 task setupGithubActions(type: Exec) {
     def getVersion = {
         //TAG-offset-hash
-        def raw = grgit.describe(longDescr: true, tags:true, match: ["*.[1234567890].[1234567890]"])
+        def raw = grgit.describe(longDescr: true, tags:true, match: ["[1-9].[0-9].[0-9]", "[1-9][0-9].[1-9][0-9].[1-9][0-9]", "[0-9].[1-9][0-9].[1-9][0-9]", "[0-9].[0-9].[1-9][0-9]", "[0-9].[1-9][0-9].[0-9]", "[1-9][0-9].[0-9].[0-9]"])
         def desc = (raw == null ? '0.0-0-unknown' : grgit.describe(longDescr: true, tags:true)).split('-') as List
         def hash = desc.remove(desc.size() - 1)
         def offset = desc.remove(desc.size() - 1)
