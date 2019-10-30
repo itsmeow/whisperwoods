@@ -14,8 +14,7 @@ jobs:
       with:
         java-version: 1.8
     - name: Build with Gradle
-      env:
-        GITHUB_REF: ${{ github.ref }}
+      id: buid
       run: ./gradlew setupGithubActions build
     - name: Create a Release
       id: create_release
@@ -34,6 +33,6 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: build/libs/whisperwoods-${{ gradle.version }}.jar
-        asset_name: whisperwoods-${{ gradle.version }}.jar
+        asset_path: build/libs/whisperwoods-${{ steps.build.outsputs.version }}.jar
+        asset_name: whisperwoods-${{ steps.build.outsputs.version }}.jar
         asset_content_type: application/java-archive
