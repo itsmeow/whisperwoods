@@ -13,12 +13,10 @@ jobs:
       uses: actions/setup-java@v1
       with:
         java-version: 1.8
-    - name: Setup Build
+    - name: Build with Gradle
       env:
         GITHUB_REF: ${{ github.ref }}
-      run: ./gradlew setupGithubActions
-    - name: Build with Gradle
-      run: ./gradlew build
+      run: ./gradlew setupGithubActions build
     - name: Create a Release
       id: create_release
       uses: actions/create-release@v1.0.0
