@@ -71,20 +71,15 @@ tasks.withType(JavaCompile) {
 task setupGithubActions(type: Exec) {
     def getVersion = {
         //TAG-offset-hash
-        def raw = grgit.describe(longDescr: true, tags:true)
+        def raw = grgit.describe(longDescr: true, tags:true, match: ["*.*.*"])
         def desc = (raw == null ? '0.0-0-unknown' : grgit.describe(longDescr: true, tags:true)).split('-') as List
         def hash = desc.remove(desc.size() - 1)
         def offset = desc.remove(desc.size() - 1)
         def tag = desc.join('-')
-        def branch = grgit.branch.current().name
-        if (branch in ['master', 'HEAD', project.mc_version, project.mc_version + '.0'])
-            branch = null
-        if (branch != null && branch.endsWith('.x') && project.mc_version.startsWith(branch.substring(0, branch.length() - 2))) //1.13.x
-            branch = null
-        return "${project.mc_version}-${tag}.${offset}${t -> if (branch != null) t << '-' + branch}".toString() //Bake the response instead of making it dynamic
+        return "${project.mc_version}-${tag}.${offset}".toString() //Bake the response instead of making it dynamic
     }
     version = getVersion();
-    commandLine "echo", "::set-output name=version::${project.version}"
+    commandLine "echo", "##[set-output name=version;]${project.version}"
 }
 
 jar {
