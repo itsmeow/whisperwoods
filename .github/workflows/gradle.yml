@@ -22,8 +22,8 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
-        tag_name: ${{ steps.build.outsputs.version }}
-        release_name: whisperwoods-1.14.4-${{ steps.build.outsputs.version }}
+        tag_name: ${{ steps.build.outputs.version }}
+        release_name: whisperwoods-1.14.4-${{ steps.build.outputs.version }}
         draft: false
         prerelease: true
     - name: Upload Release Asset
@@ -33,6 +33,6 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: build/libs/whisperwoods-${{ steps.build.outsputs.version }}.jar
-        asset_name: whisperwoods-${{ steps.build.outsputs.version }}.jar
+        asset_path: build/libs/whisperwoods-${{ steps.build.outputs.version }}.jar
+        asset_name: whisperwoods-${{ steps.build.outputs.version }}.jar
         asset_content_type: application/java-archive
