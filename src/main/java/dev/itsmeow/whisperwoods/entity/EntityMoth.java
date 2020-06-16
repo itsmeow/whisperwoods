@@ -10,6 +10,7 @@ import net.minecraft.block.CampfireBlock;
 import net.minecraft.block.LanternBlock;
 import net.minecraft.block.RedstoneLampBlock;
 import net.minecraft.block.TorchBlock;
+import net.minecraft.entity.CreatureAttribute;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityPredicate;
 import net.minecraft.entity.EntityType;
@@ -88,6 +89,11 @@ public class EntityMoth extends EntityAnimalWithTypesAndSize {
 
     public void setNotLanded() {
         this.dataManager.set(LANDED, 1);
+    }
+
+    @Override
+    public CreatureAttribute getCreatureAttribute() {
+        return CreatureAttribute.ARTHROPOD;
     }
 
     @Override
