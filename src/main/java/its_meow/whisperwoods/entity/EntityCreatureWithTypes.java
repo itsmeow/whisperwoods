@@ -3,19 +3,18 @@ package its_meow.whisperwoods.entity;
 import javax.annotation.Nullable;
 
 import dev.itsmeow.imdlib.entity.util.IVariantTypes;
-import net.minecraft.entity.AgeableEntity;
+import net.minecraft.entity.CreatureEntity;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.ILivingEntityData;
 import net.minecraft.entity.SpawnReason;
-import net.minecraft.entity.passive.AnimalEntity;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.world.DifficultyInstance;
 import net.minecraft.world.IWorld;
 import net.minecraft.world.World;
 
-public abstract class EntityAnimalWithTypes extends AnimalEntity implements IVariantTypes<EntityAnimalWithTypes> {
-    
-    public EntityAnimalWithTypes(EntityType<? extends AnimalEntity> entityType, World worldIn) {
+public abstract class EntityCreatureWithTypes extends CreatureEntity implements IVariantTypes<EntityCreatureWithTypes> {
+
+    public EntityCreatureWithTypes(EntityType<? extends CreatureEntity> entityType, World worldIn) {
         super(entityType, worldIn);
     }
 
@@ -44,24 +43,12 @@ public abstract class EntityAnimalWithTypes extends AnimalEntity implements IVar
     }
 
     @Override
-    public AgeableEntity createChild(AgeableEntity ageable) {
-        if(!(ageable instanceof IVariantTypes))
-            return null;
-        IVariantTypes<?> child = getBaseChild();
-        if(child == null)
-            return null;
-        return (AgeableEntity) child.setType(this.getOffspringType(this, (IVariantTypes<?>) ageable));
-    }
-
-    protected abstract EntityAnimalWithTypes getBaseChild();
-
-    @Override
     public boolean canDespawn(double range) {
         return despawn(range);
     }
 
     @Override
-    public EntityAnimalWithTypes getImplementation() {
+    public EntityCreatureWithTypes getImplementation() {
         return this;
     }
 

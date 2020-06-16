@@ -4,11 +4,11 @@ import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import dev.itsmeow.imdlib.entity.util.EntityTypeContainer;
 import its_meow.whisperwoods.client.init.ClientLifecycleHandler;
 import its_meow.whisperwoods.config.WhisperwoodsConfig;
 import its_meow.whisperwoods.init.ModBlocks;
 import its_meow.whisperwoods.init.ModEntities;
-import its_meow.whisperwoods.util.EntityTypeContainer;
 import net.minecraft.item.ItemGroup;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.NonNullList;
@@ -17,20 +17,20 @@ import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.config.ModConfig;
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
+import net.minecraftforge.fml.event.lifecycle.FMLLoadCompleteEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 
-@Mod.EventBusSubscriber(modid = WhisperwoodsMod.MODID)
 @Mod(value = WhisperwoodsMod.MODID)
 public class WhisperwoodsMod {
 
     public static final String MODID = "whisperwoods";
-    public static final Logger LOGGER = LogManager.getLogger();
+    private static final Logger LOGGER = LogManager.getLogger();
 
     public WhisperwoodsMod() {
         FMLJavaModLoadingContext.get().getModEventBus().addListener(this::setup);
+        FMLJavaModLoadingContext.get().getModEventBus().addListener(this::loadComplete);
         FMLJavaModLoadingContext.get().getModEventBus().<FMLClientSetupEvent>addListener(e -> new ClientLifecycleHandler().clientSetup(e));
-        WhisperwoodsConfig.setupConfig();
-        ModLoadingContext.get().registerConfig(ModConfig.Type.SERVER, WhisperwoodsConfig.SERVER_CONFIG);
+        ModLoadingContext.get().registerConfig(ModConfig.Type.CLIENT, WhisperwoodsConfig.getClientSpec());
         LOGGER.log(Level.INFO, "Spooking you...");
     }
 
@@ -43,7 +43,7 @@ public class WhisperwoodsMod {
         @Override
         public void fill(NonNullList<ItemStack> toDisplay) {
             super.fill(toDisplay);
-            for(EntityTypeContainer<?> cont : ModEntities.ENTITIES.values()) {
+            for(EntityTypeContainer<?> cont : ModEntities.getEntities().values()) {
                 ItemStack stack = new ItemStack(cont.egg);
                 toDisplay.add(stack);
             }
@@ -52,6 +52,10 @@ public class WhisperwoodsMod {
 
     private void setup(final FMLCommonSetupEvent event) {
         LOGGER.log(Level.INFO, "Summoning a hidebehind to eat you...");
+    }
+
+    private void loadComplete(final FMLLoadCompleteEvent event) {
+        ModLoadingContext.get().registerConfig(ModConfig.Type.SERVER, WhisperwoodsConfig.getServerSpec());
     }
 
 }

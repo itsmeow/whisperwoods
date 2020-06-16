@@ -1,13 +1,22 @@
 package its_meow.whisperwoods.entity;
 
+import java.util.Map;
 import java.util.UUID;
 
 import javax.annotation.Nullable;
 
+import com.mojang.authlib.GameProfile;
+import com.mojang.authlib.minecraft.MinecraftProfileTexture;
+import com.mojang.authlib.minecraft.MinecraftProfileTexture.Type;
+
+import dev.itsmeow.imdlib.entity.util.EntityTypeContainer;
+import dev.itsmeow.imdlib.entity.util.IContainerEntity;
 import its_meow.whisperwoods.init.ModBlocks;
 import its_meow.whisperwoods.init.ModEntities;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.resources.DefaultPlayerSkin;
 import net.minecraft.entity.AgeableEntity;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityPredicate;
@@ -23,16 +32,20 @@ import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.network.datasync.DataParameter;
 import net.minecraft.network.datasync.DataSerializers;
 import net.minecraft.network.datasync.EntityDataManager;
+import net.minecraft.tileentity.SkullTileEntity;
 import net.minecraft.util.DamageSource;
 import net.minecraft.util.EntityDamageSource;
+import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.DifficultyInstance;
 import net.minecraft.world.IWorld;
 import net.minecraft.world.World;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 
-public class EntityWisp extends AnimalEntity {
+public class EntityWisp extends AnimalEntity implements IContainerEntity<EntityWisp> {
 
     public final DamageSource WISP = new EntityDamageSource("wisp", this).setDamageIsAbsolute().setDamageBypassesArmor();
     public static int HOSTILE_CHANCE = 8;
@@ -44,6 +57,7 @@ public class EntityWisp extends AnimalEntity {
     public static final DataParameter<String> TARGET_NAME = EntityDataManager.createKey(EntityWisp.class, DataSerializers.STRING);
     public static final DataParameter<Float> PASSIVE_SCALE = EntityDataManager.createKey(EntityWisp.class, DataSerializers.FLOAT);
     public static final DataParameter<Integer> COLOR_VARIANT = EntityDataManager.createKey(EntityWisp.class, DataSerializers.VARINT);
+    protected ResourceLocation targetTexture;
 
     protected EntityWisp(EntityType<? extends EntityWisp> entityType, World world) {
         super(entityType, world);
@@ -61,11 +75,11 @@ public class EntityWisp extends AnimalEntity {
     @Override
     protected void registerData() {
         super.registerData();
-        this.dataManager.register(ATTACK_STATE, Integer.valueOf(0));
+        this.dataManager.register(ATTACK_STATE, 0);
         this.dataManager.register(TARGET, "");
         this.dataManager.register(TARGET_NAME, "");
-        this.dataManager.register(PASSIVE_SCALE, Float.valueOf(1.0F));
-        this.dataManager.register(COLOR_VARIANT, Integer.valueOf(0));
+        this.dataManager.register(PASSIVE_SCALE, 1F);
+        this.dataManager.register(COLOR_VARIANT, 0);
     }
 
     public void tick() {
@@ -90,9 +104,7 @@ public class EntityWisp extends AnimalEntity {
             if(soul == null) {
                 soul = world.getServer().getPlayerList().getPlayerByUsername(this.dataManager.get(TARGET_NAME));
             }
-            this.dataManager.set(ATTACK_STATE, 0);
-            this.dataManager.set(TARGET, "");
-            this.dataManager.set(TARGET_NAME, "");
+            resetAttackState();
             soul.attackEntityFrom(WISP, 3000F);
             this.targetPosition = null;
             this.setAttackTarget(null);
@@ -119,9 +131,7 @@ public class EntityWisp extends AnimalEntity {
             this.setAttackTarget(null);
         }
         if(this.getAttackTarget() == null && this.isHostile) {
-            this.dataManager.set(ATTACK_STATE, Integer.valueOf(0));
-            this.dataManager.set(TARGET, "");
-            this.dataManager.set(TARGET_NAME, "");
+            
         }
         if((this.targetPosition != null && this.getPosition().distanceSq(this.targetPosition) < 4) || this.targetPosition == null || !this.isHostile || (this.isHostile && state == 0)) {
             if(this.getAttackTarget() == null && this.isHostile) {
@@ -149,6 +159,33 @@ public class EntityWisp extends AnimalEntity {
             this.moveForward = 0.5F;
             this.rotationYaw += f1;
         }
+    }
+
+    protected void resetAttackState() {
+        this.dataManager.set(ATTACK_STATE, 0);
+        this.dataManager.set(TARGET, "");
+        this.dataManager.set(TARGET_NAME, "");
+        targetTexture = null;
+    }
+
+    @OnlyIn(Dist.CLIENT)
+    public ResourceLocation getTargetTexture() {
+        if(targetTexture == null) {
+            UUID target = UUID.fromString(this.getDataManager().get(EntityWisp.TARGET));
+            String name = this.getDataManager().get(EntityWisp.TARGET_NAME);
+            GameProfile profile = new GameProfile(target, name);
+            profile = SkullTileEntity.updateGameProfile(profile);
+            Map<Type, MinecraftProfileTexture> map = Minecraft.getInstance().getSkinManager().loadSkinFromCache(profile);
+            ResourceLocation skin;
+            if(map.containsKey(Type.SKIN)) {
+                skin = Minecraft.getInstance().getSkinManager().loadSkin(map.get(Type.SKIN), Type.SKIN);
+            } else {
+                skin = DefaultPlayerSkin.getDefaultSkin(target);
+                Minecraft.getInstance().getSkinManager().loadProfileTextures(profile, null, false);
+            }
+            targetTexture = skin;
+        }
+        return targetTexture;
     }
 
     @Override
@@ -194,7 +231,7 @@ public class EntityWisp extends AnimalEntity {
 
     @Override
     public boolean canDespawn(double range) {
-        return ModEntities.ENTITIES.containsKey("wisp") ? ModEntities.ENTITIES.get("wisp").despawn && this.dataManager.get(ATTACK_STATE) == 0 : false;
+        return getContainer().despawn && this.dataManager.get(ATTACK_STATE) == 0;
     }
 
     @Override
@@ -273,5 +310,15 @@ public class EntityWisp extends AnimalEntity {
     @Override
     public AgeableEntity createChild(AgeableEntity ageable) {
         return null;
+    }
+
+    @Override
+    public EntityWisp getImplementation() {
+        return this;
+    }
+
+    @Override
+    public EntityTypeContainer<?> getContainer() {
+        return ModEntities.WISP;
     }
 }

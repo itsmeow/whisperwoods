@@ -1,19 +1,17 @@
-modLoader="javafml" #mandatory
-loaderVersion="[24,)" #mandatory
-issueTrackerURL="http://github.com/itsmeow/whisperwoods/issues" #optional
-displayURL="https://www.curseforge.com/minecraft/mc-mods/whisperwoods" #optional
-logoFile="whisperwoods_banner.gif" #optional
-credits="Cybercat5555: Design, Modeling, Texturing, Ideas; its_meow: Programming, AI, Functionality" #optional
-authors="cybercat5555, its_meow" #optional
-[[mods]] #mandatory
-modId="whisperwoods" #mandatory
-version="${file.jarVersion}" #mandatory
-displayName="Whisperwoods" #mandatory
-#updateJSONURL="" #optional
-# The description text for the mod (multi line!) (#mandatory)
-description='''
+modLoader="javafml"
+loaderVersion="[28,)"
+issueTrackerURL="http://github.com/itsmeow/whisperwoods/issues"
+displayURL="https://www.curseforge.com/minecraft/mc-mods/whisperwoods"
+logoFile="whisperwoods_banner.gif"
+credits="Cybercat5555: Design, Modeling, Texturing, Ideas; its_meow: Programming, AI, Functionality"
+authors="cybercat5555, its_meow"
+[[mods]]
+  modId="whisperwoods"
+  version="${file.jarVersion}"
+  displayName="Whisperwoods"
+  description='''
 Spooky forest stuff for spooky jam'''
-[[dependencies.whisperwoods]]
+  [[dependencies.whisperwoods]]
     modId="forge"
     mandatory=true
     versionRange="[28.1.0,)"

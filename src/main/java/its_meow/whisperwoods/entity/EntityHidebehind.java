@@ -1,13 +1,16 @@
 package its_meow.whisperwoods.entity;
 
 import java.util.EnumSet;
-import java.util.Random;
+import java.util.Set;
 import java.util.stream.Stream;
 
 import javax.annotation.Nullable;
 
 import com.google.common.collect.ImmutableSet;
 
+import dev.itsmeow.imdlib.entity.util.EntityTypeContainer;
+import dev.itsmeow.imdlib.entity.util.EntityVariant;
+import its_meow.whisperwoods.WhisperwoodsMod;
 import its_meow.whisperwoods.init.ModEntities;
 import its_meow.whisperwoods.init.ModSounds;
 import net.minecraft.block.Block;
@@ -17,22 +20,18 @@ import net.minecraft.crash.CrashReport;
 import net.minecraft.crash.CrashReportCategory;
 import net.minecraft.crash.ReportedException;
 import net.minecraft.enchantment.EnchantmentHelper;
-import net.minecraft.entity.CreatureEntity;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityPredicate;
 import net.minecraft.entity.EntityType;
-import net.minecraft.entity.ILivingEntityData;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.MobEntity;
 import net.minecraft.entity.MoverType;
 import net.minecraft.entity.SharedMonsterAttributes;
-import net.minecraft.entity.SpawnReason;
 import net.minecraft.entity.ai.RandomPositionGenerator;
 import net.minecraft.entity.ai.goal.Goal;
 import net.minecraft.entity.ai.goal.SwimGoal;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.network.datasync.DataParameter;
 import net.minecraft.network.datasync.DataSerializers;
 import net.minecraft.network.datasync.EntityDataManager;
@@ -45,6 +44,7 @@ import net.minecraft.tags.BlockTags;
 import net.minecraft.util.DamageSource;
 import net.minecraft.util.Direction;
 import net.minecraft.util.EntityDamageSource;
+import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.ReuseableStream;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
@@ -54,19 +54,15 @@ import net.minecraft.util.math.shapes.IBooleanFunction;
 import net.minecraft.util.math.shapes.ISelectionContext;
 import net.minecraft.util.math.shapes.VoxelShape;
 import net.minecraft.util.math.shapes.VoxelShapes;
-import net.minecraft.world.DifficultyInstance;
 import net.minecraft.world.IBlockReader;
-import net.minecraft.world.IWorld;
 import net.minecraft.world.World;
 import net.minecraft.world.biome.Biome;
 import net.minecraft.world.biome.Biomes;
-import net.minecraftforge.common.BiomeDictionary;
 import net.minecraftforge.common.BiomeDictionary.Type;
 
-public class EntityHidebehind extends CreatureEntity implements IVariantTypes {
+public class EntityHidebehind extends EntityCreatureWithSelectiveTypes {
 
     public final DamageSource HIDEBEHIND = new EntityDamageSource("hidebehind", this).setDamageIsAbsolute().setDamageBypassesArmor();
-    protected static final DataParameter<Integer> TYPE_NUMBER = EntityDataManager.<Integer>createKey(EntityHidebehind.class, DataSerializers.VARINT);
     protected static final DataParameter<Byte> HIDING = EntityDataManager.<Byte>createKey(EntityHidebehind.class, DataSerializers.BYTE);
     protected static final DataParameter<Byte> OPEN = EntityDataManager.<Byte>createKey(EntityHidebehind.class, DataSerializers.BYTE);
     protected float nextStepDistance = 1.0F;
@@ -344,11 +340,6 @@ public class EntityHidebehind extends CreatureEntity implements IVariantTypes {
     }
 
     @Override
-    public boolean canDespawn(double range) {
-        return this.world.isDaytime() || ModEntities.ENTITIES.containsKey("hidebehind") ? ModEntities.ENTITIES.get("hidebehind").despawn : false;
-    }
-
-    @Override
     public void move(MoverType type, Vec3d pos) {
         if(this.noClip) {
             this.setBoundingBox(this.getBoundingBox().offset(pos));
@@ -498,7 +489,7 @@ public class EntityHidebehind extends CreatureEntity implements IVariantTypes {
             ReuseableStream<VoxelShape> reuseablestream = new ReuseableStream<>(Stream.concat(stream.createStream(), world.getCollisionShapes(entity, bb.expand(vec))).filter(shape -> {
                 return !world.getBlockState(new BlockPos(shape.getBoundingBox().minX, shape.getBoundingBox().minY, shape.getBoundingBox().minZ)).getBlock().isIn(BlockTags.LEAVES);
             }));
-            return func_223310_a(vec, bb, reuseablestream);
+            return collideBoundingBox(vec, bb, reuseablestream);
         } else {
             return getAllowedMovement(vec, bb, world, context, stream);
         }
@@ -584,67 +575,9 @@ public class EntityHidebehind extends CreatureEntity implements IVariantTypes {
     @Override
     protected void registerData() {
         super.registerData();
-        this.registerTypeKey();
         this.dataManager.register(HIDING, (byte) 0);
         this.dataManager.register(OPEN, (byte) 0);
         this.dataManager.register(ATTACK_SEQUENCE_TICKS, Integer.valueOf(0));
-    }
-
-    @Override
-    public void writeAdditional(CompoundNBT compound) {
-        super.writeAdditional(compound);
-        this.writeType(compound);
-    }
-
-    @Override
-    public void readAdditional(CompoundNBT compound) {
-        super.readAdditional(compound);
-        this.readType(compound);
-    }
-
-    @Override
-    @Nullable
-    public ILivingEntityData onInitialSpawn(IWorld world, DifficultyInstance difficulty, SpawnReason reason, @Nullable ILivingEntityData livingdata, CompoundNBT compound) {
-        int validTypes[] = getTypesFor(world.getBiome(this.getPosition()));
-        return this.initData(super.onInitialSpawn(world, difficulty, reason, livingdata, compound), validTypes[this.getRNG().nextInt(validTypes.length)]);
-    }
-
-    private static int[] getTypesFor(Biome biome) {
-        if(biome == Biomes.GIANT_SPRUCE_TAIGA || biome == Biomes.GIANT_SPRUCE_TAIGA_HILLS || biome == Biomes.GIANT_TREE_TAIGA || biome == Biomes.GIANT_TREE_TAIGA_HILLS) {
-            return new int[] { 5, 5, 5, 3 };
-        }
-        if(BiomeDictionary.getTypes(biome).contains(Type.CONIFEROUS)) {
-            return new int[] { 2, 2, 2, 2, 1, 3 };
-        }
-        if(BiomeDictionary.getTypes(biome).contains(Type.FOREST)) {
-            return new int[] { 4, 1, 3 };
-        }
-        return new int[] { 1, 2, 3, 4, 5 };
-    }
-
-    @Override
-    public Random getRNGI() {
-        return this.getRNG();
-    }
-
-    @Override
-    public EntityDataManager getDataManagerI() {
-        return this.getDataManager();
-    }
-
-    @Override
-    public DataParameter<Integer> getDataKey() {
-        return TYPE_NUMBER;
-    }
-
-    @Override
-    public boolean isChildI() {
-        return this.isChild();
-    }
-
-    @Override
-    public int getVariantMax() {
-        return 5;
     }
 
     @Override
@@ -720,6 +653,40 @@ public class EntityHidebehind extends CreatureEntity implements IVariantTypes {
             this.hidebehind.lookController.setLookPositionWithEntity(this.target, 1000, 1000);
             this.hidebehind.getNavigator().tryMoveToEntityLiving(this.hidebehind.getAttackTarget(), this.speed);
         }
+    }
+
+    @Override
+    public EntityTypeContainer<?> getContainer() {
+        return ModEntities.HIDEBEHIND;
+    }
+
+    @Override
+    public String[] getTypesFor(Biome biome, Set<Type> types) {
+        if(biome == Biomes.GIANT_SPRUCE_TAIGA || biome == Biomes.GIANT_SPRUCE_TAIGA_HILLS || biome == Biomes.GIANT_TREE_TAIGA || biome == Biomes.GIANT_TREE_TAIGA_HILLS) {
+            return new String[] { "mega_taiga", "mega_taiga", "mega_taiga", "darkforest" };
+        }
+        if(types.contains(Type.CONIFEROUS)) {
+            return new String[] { "coniferous", "coniferous", "coniferous", "coniferous", "black", "darkforest" };
+        }
+        if(types.contains(Type.FOREST)) {
+            return new String[] { "forest", "black", "darkforest" };
+        }
+        return new String[] { "black", "coniferous", "darkforest", "forest", "mega_taiga" };
+    }
+
+    public static class HidebehindVariant extends EntityVariant {
+
+        private ResourceLocation openTexture;
+
+        public HidebehindVariant(String nameTexture) {
+            super(WhisperwoodsMod.MODID, nameTexture, "hidebehind_" + nameTexture);
+            this.openTexture = new ResourceLocation(WhisperwoodsMod.MODID, "textures/entities/hidebehind_" + nameTexture + "_open.png");
+        }
+
+        public ResourceLocation getHidebehindTexture(EntityHidebehind hidebehind) {
+            return hidebehind.getOpen() ? openTexture : texture;
+        }
+
     }
 
 }

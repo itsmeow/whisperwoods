@@ -1,51 +1,5 @@
-buildscript {
-    repositories {
-        maven { url = 'https://files.minecraftforge.net/maven' }
-        jcenter()
-        mavenCentral()
-    }
-    dependencies {
-        classpath group: 'net.minecraftforge.gradle', name: 'ForgeGradle', version: '3.+', changing: true
-    }
-}
-plugins {
-    id 'org.ajoberstar.grgit' version '3.1.1'
-}
-apply plugin: 'net.minecraftforge.gradle'
-apply plugin: 'eclipse'
-
-version = "${project.mc_version}-${project.mod_version}"
-group = "${project.maven_group}"
-archivesBaseName = "${project.mod_id}"
-
-sourceCompatibility = targetCompatibility = compileJava.sourceCompatibility = compileJava.targetCompatibility = '1.8'
-
-minecraft {
-    mappings channel: project.mappings_channel, version: "${project.mappings_version}-${project.mappings_mc_version}"
-    //accessTransformer = file('src/main/resources/META-INF/accesstransformer.cfg')
-
-    runs {
-        client {
-            workingDirectory project.file('run')
-            property 'forge.logging.console.level', 'info'
-            mods {
-                whisperwoods {
-                    source sourceSets.main
-                }
-            }
-        }
-
-        server {
-            workingDirectory project.file('run')
-            property 'forge.logging.console.level', 'info'
-            mods {
-                whisperwoods {
-                    source sourceSets.main
-                }
-            }
-        }
-    }
-}
+apply from: 'https://maven.itsmeow.dev/scripts/fg3.gradle'
+apply from: 'https://maven.itsmeow.dev/scripts/imdlib.gradle'
 
 repositories {
     maven {
@@ -55,42 +9,6 @@ repositories {
 }
 
 dependencies {
-    minecraft "net.minecraftforge:forge:${project.mc_version}-${project.forge_version}"
     compileOnly fg.deobf("mezz.jei:jei-${project.mc_version}:${jei_version}:api")
     runtimeOnly fg.deobf("mezz.jei:jei-${project.mc_version}:${jei_version}")
-}
-
-tasks.withType(JavaCompile) {
-  options.encoding = 'UTF-8'
-  options.compilerArgs = [
-    '-Xlint:deprecation', // deprecation, rawtypes, cast, unchecked, all
-    '-Xlint:unchecked',
-  ]
-}
-
-task setupGithubActions(type: Exec) {
-    def getVersion = {
-        //TAG-offset-hash
-        def raw = grgit.describe(longDescr: true, tags:true, match: ["[1-9].[0-9].[0-9]", "[1-9][0-9].[1-9][0-9].[1-9][0-9]", "[0-9].[1-9][0-9].[1-9][0-9]", "[0-9].[0-9].[1-9][0-9]", "[0-9].[1-9][0-9].[0-9]", "[1-9][0-9].[0-9].[0-9]"])
-        def desc = (raw == null ? '0.0-0-unknown' : grgit.describe(longDescr: true, tags:true, match: ["[1-9].[0-9].[0-9]", "[1-9][0-9].[1-9][0-9].[1-9][0-9]", "[0-9].[1-9][0-9].[1-9][0-9]", "[0-9].[0-9].[1-9][0-9]", "[0-9].[1-9][0-9].[0-9]", "[1-9][0-9].[0-9].[0-9]"])).split('-') as List
-        def hash = desc.remove(desc.size() - 1)
-        def offset = desc.remove(desc.size() - 1)
-        def tag = desc.join('-')
-        return "${tag}.${offset}".toString() //Bake the response instead of making it dynamic
-    }
-    project.mod_version = getVersion();
-    version = "${project.mc_version}-${project.mod_version}";
-    commandLine "echo", "##[set-output name=version;]${project.version}"
-}
-
-jar {
-    manifest {
-        attributes(["Specification-Title": archivesBaseName,
-                    "Specification-Vendor": "its_meow",
-                    "Specification-Version": "${project.mod_version}",
-                    "Implementation-Title": archivesBaseName,
-                    "Implementation-Version": "${project.mod_version}",
-                    "Implementation-Vendor" :"its_meow",
-                    "Implementation-Timestamp": new Date().format("yyyy-MM-dd'T'HH:mm:ssZ")],)
-    }
 }

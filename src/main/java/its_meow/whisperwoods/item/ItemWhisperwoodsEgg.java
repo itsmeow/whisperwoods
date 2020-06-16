@@ -1,6 +1,6 @@
 package its_meow.whisperwoods.item;
 
-import its_meow.whisperwoods.util.EntityTypeContainer;
+import dev.itsmeow.imdlib.entity.util.EntityTypeContainer;
 import net.minecraft.entity.EntityType;
 import net.minecraft.item.ItemGroup;
 import net.minecraft.item.ItemStack;

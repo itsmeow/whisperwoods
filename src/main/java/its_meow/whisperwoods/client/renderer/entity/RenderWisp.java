@@ -1,11 +1,7 @@
 package its_meow.whisperwoods.client.renderer.entity;
 
-import java.util.Map;
 import java.util.UUID;
 
-import com.mojang.authlib.GameProfile;
-import com.mojang.authlib.minecraft.MinecraftProfileTexture;
-import com.mojang.authlib.minecraft.MinecraftProfileTexture.Type;
 import com.mojang.blaze3d.platform.GlStateManager;
 
 import its_meow.whisperwoods.entity.EntityWisp;
@@ -16,8 +12,6 @@ import net.minecraft.client.renderer.entity.LivingRenderer;
 import net.minecraft.client.renderer.entity.model.EntityModel;
 import net.minecraft.client.renderer.entity.model.GenericHeadModel;
 import net.minecraft.client.renderer.entity.model.HumanoidHeadModel;
-import net.minecraft.client.resources.DefaultPlayerSkin;
-import net.minecraft.tileentity.SkullTileEntity;
 import net.minecraft.util.ResourceLocation;
 
 public class RenderWisp extends LivingRenderer<EntityWisp, EntityModel<EntityWisp>> {
@@ -40,19 +34,7 @@ public class RenderWisp extends LivingRenderer<EntityWisp, EntityModel<EntityWis
             String name = entity.getDataManager().get(EntityWisp.TARGET_NAME);
             if(target != null && name != null && !name.equals("")) {
                 // Bind skin texture
-                {   
-                    GameProfile profile = new GameProfile(target, name);
-                    profile = SkullTileEntity.updateGameProfile(profile);
-                    Map<Type, MinecraftProfileTexture> map = Minecraft.getInstance().getSkinManager().loadSkinFromCache(profile);
-                    ResourceLocation skin;
-                    if(map.containsKey(Type.SKIN)) {
-                        skin = Minecraft.getInstance().getSkinManager().loadSkin(map.get(Type.SKIN), Type.SKIN);
-                    } else {
-                        skin = DefaultPlayerSkin.getDefaultSkin(target);
-                        Minecraft.getInstance().getSkinManager().loadProfileTextures(profile, null, false);
-                    }
-                    this.bindTexture(skin);
-                }
+                this.bindTexture(entity.getTargetTexture());
                 GlStateManager.pushMatrix();
                 {
                     GlStateManager.disableCull();
@@ -113,6 +95,7 @@ public class RenderWisp extends LivingRenderer<EntityWisp, EntityModel<EntityWis
         return null;
     }
 
+    @Override
     protected boolean canRenderName(EntityWisp entity) {
         return false;
     }

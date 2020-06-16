@@ -1,9 +1,9 @@
 
 package its_meow.whisperwoods.init;
 
+import dev.itsmeow.imdlib.entity.util.EntityTypeContainer;
 import its_meow.whisperwoods.WhisperwoodsMod;
 import its_meow.whisperwoods.item.ItemWhisperwoodsEgg;
-import its_meow.whisperwoods.util.EntityTypeContainer;
 import net.minecraft.block.Block;
 import net.minecraft.entity.EntityType;
 import net.minecraft.item.BlockItem;
@@ -21,7 +21,7 @@ public class WhisperwoodsRegistrar {
 
     @SubscribeEvent
     public static void registerItems(RegistryEvent.Register<Item> event) {
-        for (EntityTypeContainer<?> container : ModEntities.ENTITIES.values()) {
+        for (EntityTypeContainer<?> container : ModEntities.getEntities().values()) {
             ItemWhisperwoodsEgg egg = new ItemWhisperwoodsEgg(container);
             egg.setRegistryName(container.entityName.toLowerCase().toString() + "_spawn_egg");
             event.getRegistry().register(egg);
@@ -37,7 +37,7 @@ public class WhisperwoodsRegistrar {
 
     @SubscribeEvent
     public static void registerEntities(RegistryEvent.Register<EntityType<?>> event) {
-        for(EntityTypeContainer<?> container : ModEntities.ENTITIES.values()) {
+        for(EntityTypeContainer<?> container : ModEntities.getEntities().values()) {
             event.getRegistry().register(container.entityType);
         }
     }

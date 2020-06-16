@@ -1,5 +1,6 @@
 package its_meow.whisperwoods.entity;
 
+import dev.itsmeow.imdlib.entity.util.EntityTypeContainer;
 import its_meow.whisperwoods.block.BlockGhostLight;
 import its_meow.whisperwoods.init.ModEntities;
 import net.minecraft.block.Block;
@@ -27,7 +28,6 @@ import net.minecraft.util.Hand;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
-import net.minecraft.util.text.ITextComponent;
 import net.minecraft.world.LightType;
 import net.minecraft.world.World;
 
@@ -46,19 +46,26 @@ public class EntityMoth extends EntityAnimalWithTypesAndSize {
         super(type, worldIn);
     }
 
+    @Override
     protected void registerData() {
         super.registerData();
         this.dataManager.register(LANDED, 1);
     }
 
+    @Override
     public boolean canBePushed() {
         return false;
     }
 
-    protected void collideWithEntity(Entity entityIn) {}
+    @Override
+    protected void collideWithEntity(Entity entityIn) {
+    }
 
-    protected void collideWithNearbyEntities() {}
+    @Override
+    protected void collideWithNearbyEntities() {
+    }
 
+    @Override
     protected void registerAttributes() {
         super.registerAttributes();
         this.getAttribute(SharedMonsterAttributes.MAX_HEALTH).setBaseValue(2.0D);
@@ -83,12 +90,10 @@ public class EntityMoth extends EntityAnimalWithTypesAndSize {
         this.dataManager.set(LANDED, 1);
     }
 
-    /**
-     * Called to update the entity's position/logic.
-     */
+    @Override
     public void tick() {
         super.tick();
-        if (this.isLanded()) {
+        if(this.isLanded()) {
             this.setMotion(Vec3d.ZERO);
             if(Direction.byIndex(this.getLandedInteger()) != Direction.DOWN) {
                 double x = Math.floor(this.posX) + 0.5D;
@@ -110,10 +115,11 @@ public class EntityMoth extends EntityAnimalWithTypesAndSize {
 
     }
 
+    @Override
     protected void updateAITasks() {
         super.updateAITasks();
         BlockPos blockpos = new BlockPos(this);
-        if (this.isLanded()) {
+        if(this.isLanded()) {
             BlockPos offset = blockpos.offset(Direction.byIndex(this.getLandedInteger()));
             if(this.world.getBlockState(offset).isNormalCube(this.world, offset)) {
                 if(this.world.getClosestPlayer(playerPredicate, this) != null || this.getRNG().nextInt(this.isAttractedToLight() ? 500 : 1000) == 0) {
@@ -123,7 +129,7 @@ public class EntityMoth extends EntityAnimalWithTypesAndSize {
                 this.setNotLanded();
             }
         }
-        if (this.targetPosition == null || this.rand.nextInt(30) == 0 || (this.targetPosition.withinDistance(this.getPositionVec(), 1.0D) && !isLightBlock(world.getBlockState(this.targetPosition)))) {
+        if(this.targetPosition == null || this.rand.nextInt(30) == 0 || (this.targetPosition.withinDistance(this.getPositionVec(), 1.0D) && !isLightBlock(world.getBlockState(this.targetPosition)))) {
             int i = 12;
             int j = 2;
             BlockPos.MutableBlockPos blockpos$mutableblockpos = new BlockPos.MutableBlockPos();
@@ -172,25 +178,25 @@ public class EntityMoth extends EntityAnimalWithTypesAndSize {
                     }
                 }
                 if(!found) {
-                    this.targetPosition = new BlockPos(this.posX + (double)this.rand.nextInt(5) - (double)this.rand.nextInt(5), this.posY + (double)this.rand.nextInt(4) - 1.0D, this.posZ + (double)this.rand.nextInt(5) - (double)this.rand.nextInt(5));
+                    this.targetPosition = new BlockPos(this.posX + (double) this.rand.nextInt(5) - (double) this.rand.nextInt(5), this.posY + (double) this.rand.nextInt(4) - 1.0D, this.posZ + (double) this.rand.nextInt(5) - (double) this.rand.nextInt(5));
                 }
             }
         }
         if(!this.isLanded() && targetPosition != null) {
-            double d0 = (double)this.targetPosition.getX() + 0.5D - this.posX;
-            double d1 = (double)this.targetPosition.getY() + 0.1D - this.posY;
-            double d2 = (double)this.targetPosition.getZ() + 0.5D - this.posZ;
+            double d0 = (double) this.targetPosition.getX() + 0.5D - this.posX;
+            double d1 = (double) this.targetPosition.getY() + 0.1D - this.posY;
+            double d2 = (double) this.targetPosition.getZ() + 0.5D - this.posZ;
             Vec3d vec3d = this.getMotion();
-            Vec3d vec3d1 = vec3d.add((Math.signum(d0) * 0.5D - vec3d.x) * (double)0.1F, (Math.signum(d1) * (double)0.7F - vec3d.y) * (double)0.1F, (Math.signum(d2) * 0.5D - vec3d.z) * (double)0.1F);
+            Vec3d vec3d1 = vec3d.add((Math.signum(d0) * 0.5D - vec3d.x) * (double) 0.1F, (Math.signum(d1) * (double) 0.7F - vec3d.y) * (double) 0.1F, (Math.signum(d2) * 0.5D - vec3d.z) * (double) 0.1F);
             this.setMotion(vec3d1);
-            float f = (float)(MathHelper.atan2(vec3d1.z, vec3d1.x) * (double)(180F / (float)Math.PI)) - 90.0F;
+            float f = (float) (MathHelper.atan2(vec3d1.z, vec3d1.x) * (double) (180F / (float) Math.PI)) - 90.0F;
             float f1 = MathHelper.wrapDegrees(f - this.rotationYaw);
             this.moveForward = 0.5F;
             this.rotationYaw += f1;
         }
         if(MOTHS_REQUIRED_TO_DESTROY != 0 && world.getBlockState(this.getPosition()).getBlock() instanceof TorchBlock && world.getEntitiesWithinAABB(EntityMoth.class, this.getBoundingBox()).size() >= MOTHS_REQUIRED_TO_DESTROY && net.minecraftforge.event.ForgeEventFactory.getMobGriefingEvent(this.world, this)) {
             BlockState state = world.getBlockState(this.getPosition());
-            Block.spawnDrops(state,  world, this.getPosition());
+            Block.spawnDrops(state, world, this.getPosition());
             world.setBlockState(this.getPosition(), Blocks.AIR.getDefaultState());
         }
     }
@@ -205,57 +211,46 @@ public class EntityMoth extends EntityAnimalWithTypesAndSize {
         return block instanceof BlockGhostLight || block instanceof LanternBlock || block instanceof TorchBlock || (block instanceof CampfireBlock && blockState.get(CampfireBlock.LIT)) || block == Blocks.LAVA || block == Blocks.GLOWSTONE || block == Blocks.SEA_LANTERN || block == Blocks.JACK_O_LANTERN || block == Blocks.FIRE || (block instanceof RedstoneLampBlock && blockState.get(RedstoneLampBlock.LIT));
     }
 
+    @Override
     protected boolean canTriggerWalking() {
         return false;
     }
 
-    public void fall(float distance, float damageMultiplier) {}
+    @Override
+    public void fall(float distance, float damageMultiplier) {
+    }
 
-    protected void updateFallState(double y, boolean onGroundIn, BlockState state, BlockPos pos) {}
+    @Override
+    protected void updateFallState(double y, boolean onGroundIn, BlockState state, BlockPos pos) {
+    }
 
+    @Override
     public boolean doesEntityNotTriggerPressurePlate() {
         return true;
     }
 
+    @Override
     public boolean attackEntityFrom(DamageSource source, float amount) {
-        if (this.isInvulnerableTo(source)) {
+        if(this.isInvulnerableTo(source)) {
             return false;
         } else {
-            if (!this.world.isRemote && this.isLanded()) {
+            if(!this.world.isRemote && this.isLanded()) {
                 this.setNotLanded();
             }
             return super.attackEntityFrom(source, amount);
         }
     }
 
+    @Override
     public void readAdditional(CompoundNBT compound) {
         super.readAdditional(compound);
         this.dataManager.set(LANDED, compound.getInt("Landed"));
     }
 
+    @Override
     public void writeAdditional(CompoundNBT compound) {
         super.writeAdditional(compound);
         compound.putInt("Landed", this.dataManager.get(LANDED));
-    }
-
-    @Override
-    public int getVariantMax() {
-        return 8;
-    }
-
-    @Override
-    protected IVariantTypes getBaseChild() {
-        return null;
-    }
-
-    @Override
-    protected String getContainerName() {
-        return "moth";
-    }
-
-    @Override
-    public ITextComponent getDisplayName() {
-        return super.getDisplayName();
     }
 
     @Override
@@ -263,8 +258,19 @@ public class EntityMoth extends EntityAnimalWithTypesAndSize {
         return (this.rand.nextInt(30) + 1F) / 100F + 0.15F;
     }
 
+    @Override
     public boolean canBeLeashedTo(PlayerEntity player) {
         return false;
+    }
+
+    @Override
+    public EntityTypeContainer<?> getContainer() {
+        return ModEntities.MOTH;
+    }
+
+    @Override
+    protected EntityAnimalWithTypes getBaseChild() {
+        return null;
     }
 
 }

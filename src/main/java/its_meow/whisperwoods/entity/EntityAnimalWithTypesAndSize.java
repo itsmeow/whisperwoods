@@ -16,18 +16,18 @@ import net.minecraft.world.IWorld;
 import net.minecraft.world.World;
 
 public abstract class EntityAnimalWithTypesAndSize extends EntityAnimalWithTypes {
-    
+
     protected static final DataParameter<Float> SIZE = EntityDataManager.<Float>createKey(EntityAnimalWithTypesAndSize.class, DataSerializers.FLOAT);
-    
+
     public EntityAnimalWithTypesAndSize(EntityType<? extends EntityAnimalWithTypes> entityType, World worldIn) {
         super(entityType, worldIn);
-        this.setSize(0.35F, 0.35F);
+        this.setSize(0.35F);
     }
-    
+
     @Override
     protected void registerData() {
         super.registerData();
-        this.dataManager.register(SIZE, Float.valueOf(1));
+        this.dataManager.register(SIZE, 1F);
     }
 
     @Override
@@ -36,8 +36,8 @@ public abstract class EntityAnimalWithTypesAndSize extends EntityAnimalWithTypes
         return EntitySize.flexible(size, size).scale(this.getRenderScale());
     }
 
-    public void setSize(float width, float height) {
-        this.dataManager.set(SIZE, Float.valueOf(width));
+    public void setSize(float size) {
+        this.dataManager.set(SIZE, size);
     }
 
     @Override
@@ -50,18 +50,18 @@ public abstract class EntityAnimalWithTypesAndSize extends EntityAnimalWithTypes
     public void readAdditional(CompoundNBT compound) {
         super.readAdditional(compound);
         float size = compound.getFloat("Size");
-        this.setSize(size, size);
+        this.setSize(size);
     }
 
     @Override
     @Nullable
     public ILivingEntityData onInitialSpawn(IWorld world, DifficultyInstance difficulty, SpawnReason reason, @Nullable ILivingEntityData livingdata, CompoundNBT compound) {
         livingdata = super.onInitialSpawn(world, difficulty, reason, livingdata, compound);
-        if (!this.isChild()) {
-            int i = this.getRandomType();
+        if(!this.isChild()) {
+            String i = this.getRandomType().getName();
             float rand = this.getRandomizedSize();
 
-            if (livingdata instanceof SizeTypeData) {
+            if(livingdata instanceof SizeTypeData) {
                 i = ((SizeTypeData) livingdata).typeData;
                 rand = ((SizeTypeData) livingdata).size;
             } else {
@@ -69,9 +69,8 @@ public abstract class EntityAnimalWithTypesAndSize extends EntityAnimalWithTypes
             }
 
             this.setType(i);
-            this.setSize(rand, rand);
+            this.setSize(rand);
         }
-        this.setLocationAndAngles(this.posX, this.posY, this.posZ, this.rotationYaw, 0F);
         return livingdata;
     }
 
@@ -79,10 +78,10 @@ public abstract class EntityAnimalWithTypesAndSize extends EntityAnimalWithTypes
 
     public static class SizeTypeData implements ILivingEntityData {
 
-        public int typeData;
+        public String typeData;
         public float size;
 
-        public SizeTypeData(int type, float size) {
+        public SizeTypeData(String type, float size) {
             this.typeData = type;
             this.size = size;
         }
