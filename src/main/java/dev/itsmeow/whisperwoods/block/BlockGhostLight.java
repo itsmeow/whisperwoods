@@ -1,20 +1,18 @@
 package dev.itsmeow.whisperwoods.block;
 
-import dev.itsmeow.whisperwoods.WhisperwoodsMod;
 import dev.itsmeow.whisperwoods.tileentity.TileEntityGhostLight;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockRenderType;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.SoundType;
 import net.minecraft.block.material.Material;
+import net.minecraft.pathfinding.PathType;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.shapes.ISelectionContext;
 import net.minecraft.util.math.shapes.VoxelShape;
 import net.minecraft.util.math.shapes.VoxelShapes;
 import net.minecraft.world.IBlockReader;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
 
 public class BlockGhostLight extends Block {
 
@@ -26,9 +24,8 @@ public class BlockGhostLight extends Block {
 
     private int color = 0;
 
-    public BlockGhostLight(String name, int color) {
-        super(Properties.create(Material.MISCELLANEOUS).sound(SoundType.LANTERN).lightValue(12));
-        this.setRegistryName(WhisperwoodsMod.MODID, name);
+    public BlockGhostLight(int color) {
+        super(Properties.create(Material.MISCELLANEOUS).sound(SoundType.LANTERN).setLightLevel(state -> 12));
         this.color = color;
     }
 
@@ -42,25 +39,13 @@ public class BlockGhostLight extends Block {
         return VoxelShapes.empty();
     }
 
-    @Override
-    @OnlyIn(Dist.CLIENT)
-    public boolean hasCustomBreakingProgress(BlockState state) {
+    public boolean allowsMovement(BlockState state, IBlockReader worldIn, BlockPos pos, PathType type) {
         return true;
     }
 
     @Override
     public BlockRenderType getRenderType(BlockState state) {
         return BlockRenderType.INVISIBLE;
-    }
-
-    @Override
-    public boolean isSolid(BlockState state) {
-        return false;
-    }
-
-    @Override
-    public boolean isNormalCube(BlockState p_220081_1_, IBlockReader p_220081_2_, BlockPos p_220081_3_) {
-        return false;
     }
 
     @Override

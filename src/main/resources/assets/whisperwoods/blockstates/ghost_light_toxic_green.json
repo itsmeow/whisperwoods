@@ -1,9 +1,7 @@
 {
-    "forge_marker": 1,
-    "defaults": {
-        "model": "minecraft:block/soul_sand"
-    },
-    "variants": {
-    	"": [{}]
-    }
+	"variants": {
+		"": {
+			"model": "minecraft:block/soul_sand"
+		}
+	}
 }

@@ -2,11 +2,10 @@ package dev.itsmeow.whisperwoods.client.init;
 
 import org.apache.logging.log4j.LogManager;
 
-import com.mojang.blaze3d.platform.GLX;
-import com.mojang.blaze3d.platform.GlStateManager;
+import com.mojang.blaze3d.matrix.MatrixStack;
 
-import dev.itsmeow.imdlib.client.render.ImplRenderer;
-import dev.itsmeow.imdlib.entity.util.IVariantTypes;
+import dev.itsmeow.imdlib.client.IMDLibClient;
+import dev.itsmeow.imdlib.client.render.RenderFactory;
 import dev.itsmeow.whisperwoods.WhisperwoodsMod;
 import dev.itsmeow.whisperwoods.client.particle.WispParticle;
 import dev.itsmeow.whisperwoods.client.renderer.entity.RenderWisp;
@@ -14,85 +13,85 @@ import dev.itsmeow.whisperwoods.client.renderer.entity.model.ModelHidebehind;
 import dev.itsmeow.whisperwoods.client.renderer.entity.model.ModelMoth;
 import dev.itsmeow.whisperwoods.client.renderer.tile.RenderTileGhostLight;
 import dev.itsmeow.whisperwoods.entity.EntityHidebehind;
-import dev.itsmeow.whisperwoods.entity.EntityMoth;
-import dev.itsmeow.whisperwoods.entity.EntityWisp;
-import dev.itsmeow.whisperwoods.entity.EntityHidebehind.HidebehindVariant;
+import dev.itsmeow.whisperwoods.init.ModEntities;
 import dev.itsmeow.whisperwoods.init.ModParticles;
-import dev.itsmeow.whisperwoods.init.ModTextures;
-import dev.itsmeow.whisperwoods.tileentity.TileEntityGhostLight;
+import dev.itsmeow.whisperwoods.init.ModTileEntities;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.GameRenderer;
+import net.minecraft.client.renderer.IRenderTypeBuffer;
+import net.minecraft.client.renderer.RenderState;
+import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.entity.layers.LayerRenderer;
+import net.minecraft.client.renderer.entity.model.EntityModel;
+import net.minecraft.client.renderer.texture.OverlayTexture;
+import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import net.minecraft.entity.Pose;
+import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.ParticleFactoryRegisterEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.client.registry.ClientRegistry;
-import net.minecraftforge.fml.client.registry.RenderingRegistry;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 
 @Mod.EventBusSubscriber(modid = WhisperwoodsMod.MODID, value = Dist.CLIENT, bus = Mod.EventBusSubscriber.Bus.MOD)
 public class ClientLifecycleHandler {
 
-    public void clientSetup(FMLClientSetupEvent event) {
+    public static RenderFactory R = IMDLibClient.getRenderRegistry(WhisperwoodsMod.MODID);
 
-        RenderingRegistry.registerEntityRenderingHandler(EntityMoth.class, ImplRenderer.<EntityMoth, ModelMoth>factory(WhisperwoodsMod.MODID, 0.1F)
-        .tMappedRaw(IVariantTypes::getVariantTexture)
-        .mSingle(new ModelMoth())
-        .preRender((e, f) -> {
-            float s = e.getSize(Pose.STANDING).width;
-            GlStateManager.scalef(s, s, s);
-        }).done());
+    public static class RenderTypes extends RenderType {
+        protected static final RenderState.WriteMaskState NO_WRITE = new RenderState.WriteMaskState(false, false);
 
-        RenderingRegistry.registerEntityRenderingHandler(EntityHidebehind.class, ImplRenderer.<EntityHidebehind, ModelHidebehind>factory(WhisperwoodsMod.MODID, 0.75F)
-        .tMappedRaw(e -> {
-            return e.getVariant().isPresent() ? (e.getVariant().get() instanceof HidebehindVariant ? ((HidebehindVariant) e.getVariant().get()).getHidebehindTexture(e) : null) : null;
-        })
-        .mSingle(new ModelHidebehind())
-        .layer(mgr -> new LayerRenderer<EntityHidebehind, ModelHidebehind>(mgr) {
-            @Override
-            public void render(EntityHidebehind entityIn, float p_212842_2_, float p_212842_3_, float p_212842_4_, float p_212842_5_, float p_212842_6_, float p_212842_7_, float p_212842_8_) {
-                this.bindTexture(ModTextures.hidebehind_open_glow);
-                GlStateManager.enableBlend();
-                GlStateManager.disableAlphaTest();
-                GlStateManager.blendFunc(GlStateManager.SourceFactor.ONE, GlStateManager.DestFactor.ONE);
-                GlStateManager.depthMask(false);
+        public RenderTypes() {
+            super(null, null, 0, 0, false, false, null, null);
+        }
 
-                int i = 240;
-                int j = i % 65536;
-                int k = i / 65536;
-                GLX.glMultiTexCoord2f(GLX.GL_TEXTURE1, (float) j, (float) k);
-                GlStateManager.color4f(1.0F, 1.0F, 1.0F, 1.0F);
-                GameRenderer gamerenderer = Minecraft.getInstance().gameRenderer;
-                gamerenderer.setupFogColor(true);
-                this.getEntityModel().render(entityIn, p_212842_2_, p_212842_3_, p_212842_5_, p_212842_6_, 23, p_212842_8_);
-                gamerenderer.setupFogColor(false);
-                i = entityIn.getBrightnessForRender();
-                j = i % 65536;
-                k = i / 65536;
-                GLX.glMultiTexCoord2f(GLX.GL_TEXTURE1, (float) j, (float) k);
-                this.func_215334_a(entityIn);
-                GlStateManager.depthMask(true);
-                GlStateManager.disableBlend();
-                GlStateManager.enableAlphaTest();
-            }
+        public static RenderType getEntityTranslucentDepthMaskOff(ResourceLocation LocationIn, boolean outlineIn) {
+            RenderType.State rendertype$state = RenderType.State.getBuilder().texture(new RenderState.TextureState(LocationIn, false, false)).transparency(TRANSLUCENT_TRANSPARENCY).diffuseLighting(DIFFUSE_LIGHTING_ENABLED).alpha(DEFAULT_ALPHA).cull(CULL_DISABLED).lightmap(LIGHTMAP_ENABLED).overlay(OVERLAY_ENABLED).build(outlineIn);
+            return RenderType.makeType("entity_translucent_depth_mask_off", DefaultVertexFormats.ENTITY, 7, 256, true, true, rendertype$state);
+        }
 
-            @Override
-            public boolean shouldCombineTextures() {
-                return false;
-            }
-        }).done());
-
-        RenderingRegistry.registerEntityRenderingHandler(EntityWisp.class, RenderWisp::new);
-
-        ClientRegistry.bindTileEntitySpecialRenderer(TileEntityGhostLight.class, new RenderTileGhostLight());
-        LogManager.getLogger().info("Increasing wispiness of wisps...");
+        public static RenderType getEyesDepthMaskOff(ResourceLocation locationIn) {
+            RenderState.TextureState renderstate$texturestate = new RenderState.TextureState(locationIn, false, false);
+            return makeType("eyes_depth_mask_off", DefaultVertexFormats.ENTITY, 7, 256, false, true, RenderType.State.getBuilder().texture(renderstate$texturestate).cull(CULL_DISABLED).transparency(ADDITIVE_TRANSPARENCY).writeMask(COLOR_WRITE).fog(BLACK_FOG).build(false));
+        }
     }
 
     @SubscribeEvent
+    public static void clientSetup(FMLClientSetupEvent event) {
+        R.addRender(ModEntities.MOTH.entityType, 0.1F, r -> r
+        .tVariant()
+        .mSingle(new ModelMoth())
+        .simpleScale(e -> e.getSize(Pose.STANDING).width));
+
+        R.addRender(ModEntities.HIDEBEHIND.entityType, 0.75F, r -> r
+        .tVariant()
+        .mSingle(new ModelHidebehind())
+        .renderLayer((e, a, b, c, t) -> RenderType.getEntityTranslucent(t, true))
+        .layer(mgr -> new LayerRenderer<EntityHidebehind, EntityModel<EntityHidebehind>>(mgr) {
+            protected final ResourceLocation GLOW = new ResourceLocation(WhisperwoodsMod.MODID, "textures/entity/hidebehind_glow.png");
+            protected final ResourceLocation GLOW_OPEN = new ResourceLocation(WhisperwoodsMod.MODID, "textures/entity/hidebehind_open_glow.png");
+            @Override
+            public void render(MatrixStack matrixStackIn, IRenderTypeBuffer bufferIn, int packedLightIn, EntityHidebehind entity, float limbSwing, float limbSwingAmount, float partialTicks, float ageInTicks, float netHeadYaw, float headPitch) {
+                if(!entity.isInvisible()) {
+                    matrixStackIn.push();
+                    this.getEntityModel().setLivingAnimations(entity, limbSwing, limbSwingAmount, partialTicks);
+                    this.getEntityModel().setRotationAngles(entity, limbSwing, limbSwingAmount, ageInTicks, netHeadYaw, headPitch);
+                    this.getEntityModel().render(matrixStackIn, bufferIn.getBuffer(entity.getOpen() ? RenderTypes.getEyesDepthMaskOff(GLOW_OPEN) : RenderTypes.getEyesDepthMaskOff(GLOW)), 15728640, OverlayTexture.NO_OVERLAY, 1.0F, 1.0F, 1.0F, 1.0F);
+                    matrixStackIn.pop();
+                }
+            }
+        }));
+
+        RenderFactory.addRender(ModEntities.WISP.entityType, RenderWisp::new);
+
+        ClientRegistry.bindTileEntityRenderer(ModTileEntities.GHOST_LIGHT.get(), RenderTileGhostLight::new);
+        LogManager.getLogger().info("Increasing wispiness of wisps...");
+    }
+
+    @SuppressWarnings("resource")
+    @SubscribeEvent
     public static void registerParticleFactory(ParticleFactoryRegisterEvent event) {
-        Minecraft.getInstance().particles.registerFactory(ModParticles.WISP, WispParticle.WispFactory::new);
+        Minecraft.getInstance().particles.registerFactory(ModParticles.WISP.get(), WispParticle.WispFactory::new);
     }
 
 }

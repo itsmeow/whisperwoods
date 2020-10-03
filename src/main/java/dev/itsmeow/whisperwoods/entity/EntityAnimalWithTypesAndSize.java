@@ -2,6 +2,7 @@ package dev.itsmeow.whisperwoods.entity;
 
 import javax.annotation.Nullable;
 
+import dev.itsmeow.imdlib.entity.util.IVariant;
 import net.minecraft.entity.EntitySize;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.ILivingEntityData;
@@ -12,7 +13,7 @@ import net.minecraft.network.datasync.DataParameter;
 import net.minecraft.network.datasync.DataSerializers;
 import net.minecraft.network.datasync.EntityDataManager;
 import net.minecraft.world.DifficultyInstance;
-import net.minecraft.world.IWorld;
+import net.minecraft.world.IServerWorld;
 import net.minecraft.world.World;
 
 public abstract class EntityAnimalWithTypesAndSize extends EntityAnimalWithTypes {
@@ -55,17 +56,17 @@ public abstract class EntityAnimalWithTypesAndSize extends EntityAnimalWithTypes
 
     @Override
     @Nullable
-    public ILivingEntityData onInitialSpawn(IWorld world, DifficultyInstance difficulty, SpawnReason reason, @Nullable ILivingEntityData livingdata, CompoundNBT compound) {
+    public ILivingEntityData onInitialSpawn(IServerWorld world, DifficultyInstance difficulty, SpawnReason reason, @Nullable ILivingEntityData livingdata, CompoundNBT compound) {
         livingdata = super.onInitialSpawn(world, difficulty, reason, livingdata, compound);
         if(!this.isChild()) {
-            String i = this.getRandomType().getName();
+            IVariant i = this.getRandomType();
             float rand = this.getRandomizedSize();
 
-            if(livingdata instanceof SizeTypeData) {
-                i = ((SizeTypeData) livingdata).typeData;
-                rand = ((SizeTypeData) livingdata).size;
+            if(livingdata instanceof AgeableSizeTypeData) {
+                i = ((AgeableSizeTypeData) livingdata).typeData;
+                rand = ((AgeableSizeTypeData) livingdata).size;
             } else {
-                livingdata = new SizeTypeData(i, rand);
+                livingdata = new AgeableSizeTypeData(i, rand);
             }
 
             this.setType(i);
@@ -76,13 +77,12 @@ public abstract class EntityAnimalWithTypesAndSize extends EntityAnimalWithTypes
 
     protected abstract float getRandomizedSize();
 
-    public static class SizeTypeData implements ILivingEntityData {
+    public static class AgeableSizeTypeData extends AgeableTypeData {
 
-        public String typeData;
         public float size;
 
-        public SizeTypeData(String type, float size) {
-            this.typeData = type;
+        public AgeableSizeTypeData(IVariant type, float size) {
+            super(type);
             this.size = size;
         }
     }

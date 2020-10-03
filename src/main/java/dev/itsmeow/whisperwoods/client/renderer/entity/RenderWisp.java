@@ -2,17 +2,22 @@ package dev.itsmeow.whisperwoods.client.renderer.entity;
 
 import java.util.UUID;
 
-import com.mojang.blaze3d.platform.GlStateManager;
+import com.mojang.blaze3d.matrix.MatrixStack;
+import com.mojang.blaze3d.vertex.IVertexBuilder;
 
 import dev.itsmeow.whisperwoods.entity.EntityWisp;
 import dev.itsmeow.whisperwoods.particle.WispParticleData;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.IRenderTypeBuffer;
+import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.entity.EntityRendererManager;
 import net.minecraft.client.renderer.entity.LivingRenderer;
 import net.minecraft.client.renderer.entity.model.EntityModel;
 import net.minecraft.client.renderer.entity.model.GenericHeadModel;
 import net.minecraft.client.renderer.entity.model.HumanoidHeadModel;
+import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.util.ResourceLocation;
+import net.minecraft.util.text.StringTextComponent;
 
 public class RenderWisp extends LivingRenderer<EntityWisp, EntityModel<EntityWisp>> {
 
@@ -23,7 +28,7 @@ public class RenderWisp extends LivingRenderer<EntityWisp, EntityModel<EntityWis
     }
 
     @Override
-    public void doRender(EntityWisp entity, double x, double y, double z, float entityYaw, float partialTicks) {
+    public void render(EntityWisp entity, float entityYaw, float partialTicks, MatrixStack stack, IRenderTypeBuffer bufferIn, int packedLightIn) {
         int color = getColorVariant(entity.getDataManager().get(EntityWisp.COLOR_VARIANT));
         float r = (color >> 16) & 0xFF;
         float g = (color >> 8) & 0xFF;
@@ -33,23 +38,17 @@ public class RenderWisp extends LivingRenderer<EntityWisp, EntityModel<EntityWis
             UUID target = UUID.fromString(entity.getDataManager().get(EntityWisp.TARGET));
             String name = entity.getDataManager().get(EntityWisp.TARGET_NAME);
             if(target != null && name != null && !name.equals("")) {
-                // Bind skin texture
-                this.bindTexture(entity.getTargetTexture());
-                GlStateManager.pushMatrix();
+                stack.push();
                 {
-                    GlStateManager.disableCull();
-                    GlStateManager.translated(x, y + 0.8F, z);
-                    GlStateManager.enableRescaleNormal();
-                    GlStateManager.scalef(-1.0F, -1.0F, 1.0F);
-                    GlStateManager.enableAlphaTest();
-                    GlStateManager.enableDepthTest();
-                    GlStateManager.setProfile(GlStateManager.Profile.PLAYER_SKIN);
-                    GlStateManager.color4f(r / 255F, g / 255F, b / 255F, 0.6F);
-
-                    head.func_217104_a(0.0F, 0.0F, 0.0F, 180F + entity.rotationYawHead, 0.0F, 0.0625F);
+                    stack.translate(0F, 0.8F, 0F);
+                    //stack.translate(entity.getPosX(), entity.getPosY() + 0.8F, entity.getPosZ());
+                    IVertexBuilder vertex = bufferIn.getBuffer(RenderType.getEntityTranslucent(entity.getTargetTexture()));
+                    head.func_225603_a_(0F, -entity.rotationYawHead, 180F + entity.rotationPitch);
+                    head.render(stack, vertex, packedLightIn, OverlayTexture.NO_OVERLAY, r / 255F, g / 255F, b / 255F, 0.6F);
+                    stack.translate(0F, 0.4F, 0F);
+                    this.renderName(entity, new StringTextComponent(name + "'s soul"), stack, bufferIn, packedLightIn);
                 }
-                GlStateManager.popMatrix();
-                this.renderEntityName(entity, x, y + 1.2F, z, name + "'s soul", 32F);
+                stack.pop();
             }
         }
         if(!Minecraft.getInstance().isGamePaused()) {
@@ -66,32 +65,38 @@ public class RenderWisp extends LivingRenderer<EntityWisp, EntityModel<EntityWis
                     double yO = (entity.getRNG().nextFloat() * 2F - 1F) / 6 + 0.8F;
                     double zO = (entity.getRNG().nextFloat() * 2F - 1F) / 3.5;
                     entity.world.addParticle(new WispParticleData(r, g, b, scale),
-                    entity.posX + xO,
-                    entity.posY + yO,
-                    entity.posZ + zO, 0, 0.005F, 0);
+                    entity.getPosX() + xO,
+                    entity.getPosY() + yO,
+                    entity.getPosZ() + zO, 0, 0.005F, 0);
                 }
                 // spawn upper particle
                 entity.world.addParticle(new WispParticleData(r, g, b, scale),
-                entity.posX + (entity.getRNG().nextFloat() * 2F - 1F) / 10,
-                entity.posY + (entity.getRNG().nextFloat() * 2F - 1F) / 5 + 1.1F,
-                entity.posZ + (entity.getRNG().nextFloat() * 2F - 1F) / 10, 0, 0.02F, 0);
+                entity.getPosX() + (entity.getRNG().nextFloat() * 2F - 1F) / 10,
+                entity.getPosY() + (entity.getRNG().nextFloat() * 2F - 1F) / 5 + 1.1F,
+                entity.getPosZ() + (entity.getRNG().nextFloat() * 2F - 1F) / 10, 0, 0.02F, 0);
             }
         }
     }
 
     private static int getColorVariant(int variant) {
         switch(variant) {
-        case 1: return 0x00efef;
-        case 2: return 0xf28900;
-        case 3: return 0xffc61c;
-        case 4: return 0x2bff39;
-        case 5: return 0xca27ea;
-        default:return 0xff0000;
+        case 1:
+            return 0x00efef;
+        case 2:
+            return 0xf28900;
+        case 3:
+            return 0xffc61c;
+        case 4:
+            return 0x2bff39;
+        case 5:
+            return 0xca27ea;
+        default:
+            return 0xff0000;
         }
     }
 
     @Override
-    protected ResourceLocation getEntityTexture(EntityWisp entity) {
+    public ResourceLocation getEntityTexture(EntityWisp entity) {
         return null;
     }
 

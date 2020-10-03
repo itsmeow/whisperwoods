@@ -9,6 +9,7 @@ import dev.itsmeow.imdlib.entity.EntityRegistrarHandler.ServerEntityConfiguratio
 import dev.itsmeow.whisperwoods.WhisperwoodsMod;
 import dev.itsmeow.whisperwoods.init.ModEntities;
 import net.minecraftforge.common.ForgeConfigSpec;
+import net.minecraftforge.event.world.BiomeLoadingEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.Mod.EventBusSubscriber;
@@ -50,7 +51,7 @@ public class WhisperwoodsConfig {
     }
 
     @SubscribeEvent
-    public static void onLoad(final ModConfig.ConfigReloading configEvent) {
+    public static void onLoad(final ModConfig.Reloading configEvent) {
         LOGGER.debug("Reloading {} {}", WhisperwoodsMod.MODID, configEvent.getConfig().getFileName());
         if(configEvent.getConfig().getSpec() == SERVER_CONFIG_SPEC) {
             SERVER_CONFIG.onLoad();
@@ -59,4 +60,7 @@ public class WhisperwoodsConfig {
         }
     }
 
+    public static void onBiomeLoad(BiomeLoadingEvent event) {
+        SERVER_CONFIG.biomeLoad(event);
+    }
 }

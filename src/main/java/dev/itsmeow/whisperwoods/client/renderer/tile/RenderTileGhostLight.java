@@ -2,19 +2,27 @@ package dev.itsmeow.whisperwoods.client.renderer.tile;
 
 import java.util.Random;
 
+import com.mojang.blaze3d.matrix.MatrixStack;
+
 import dev.itsmeow.whisperwoods.block.BlockGhostLight;
 import dev.itsmeow.whisperwoods.particle.WispParticleData;
 import dev.itsmeow.whisperwoods.tileentity.TileEntityGhostLight;
 import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.IRenderTypeBuffer;
 import net.minecraft.client.renderer.tileentity.TileEntityRenderer;
+import net.minecraft.client.renderer.tileentity.TileEntityRendererDispatcher;
 
 public class RenderTileGhostLight extends TileEntityRenderer<TileEntityGhostLight> {
 
     private final Random rand = new Random();
 
+    public RenderTileGhostLight(TileEntityRendererDispatcher rendererDispatcherIn) {
+        super(rendererDispatcherIn);
+    }
+
     @Override
-    public void render(TileEntityGhostLight tileentity, double x, double y, double z, float partialTicks, int destroyStage) {
+    public void render(TileEntityGhostLight tileentity, float partialTicks, MatrixStack matrixStackIn, IRenderTypeBuffer bufferIn, int combinedLightIn, int combinedOverlayIn) {
         if(tileentity.hasWorld()) {
             Block block = tileentity.getBlockState().getBlock();
             if(block instanceof BlockGhostLight) {

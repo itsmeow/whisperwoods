@@ -22,7 +22,6 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityPredicate;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.ILivingEntityData;
-import net.minecraft.entity.SharedMonsterAttributes;
 import net.minecraft.entity.SpawnReason;
 import net.minecraft.entity.passive.AnimalEntity;
 import net.minecraft.entity.player.PlayerEntity;
@@ -38,10 +37,11 @@ import net.minecraft.util.EntityDamageSource;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.math.vector.Vector3d;
 import net.minecraft.world.DifficultyInstance;
-import net.minecraft.world.IWorld;
+import net.minecraft.world.IServerWorld;
 import net.minecraft.world.World;
+import net.minecraft.world.server.ServerWorld;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
@@ -65,11 +65,6 @@ public class EntityWisp extends AnimalEntity implements IContainerEntity<EntityW
 
     public EntityWisp(World world) {
         this(ModEntities.WISP.entityType, world);
-    }
-
-    protected void registerAttributes() {
-        super.registerAttributes();
-        this.getAttribute(SharedMonsterAttributes.MAX_HEALTH).setBaseValue(4.5D);
     }
 
     @Override
@@ -111,7 +106,7 @@ public class EntityWisp extends AnimalEntity implements IContainerEntity<EntityW
         }
         if(!this.isHostile && !world.isRemote) {
             if(world.getEntitiesWithinAABB(PlayerEntity.class, this.getBoundingBox().grow(10)).size() > 0) {
-                PlayerEntity nearest = world.getClosestEntityWithinAABB(PlayerEntity.class, new EntityPredicate().allowInvulnerable().allowFriendlyFire().setSkipAttackChecks(), null, this.posX, this.posY, this.posZ, this.getBoundingBox().grow(10));
+                PlayerEntity nearest = world.getClosestEntityWithinAABB(PlayerEntity.class, new EntityPredicate().allowInvulnerable().allowFriendlyFire().setSkipAttackChecks(), null, this.getPosX(), this.getPosY(), this.getPosZ(), this.getBoundingBox().grow(10));
                 if(nearest != null) {
                     this.dataManager.set(PASSIVE_SCALE, nearest.getDistance(this) / 12F);
                 } else {
@@ -135,24 +130,24 @@ public class EntityWisp extends AnimalEntity implements IContainerEntity<EntityW
         }
         if((this.targetPosition != null && this.getPosition().distanceSq(this.targetPosition) < 4) || this.targetPosition == null || !this.isHostile || (this.isHostile && state == 0)) {
             if(this.getAttackTarget() == null && this.isHostile) {
-                this.setAttackTarget(world.getClosestEntityWithinAABB(PlayerEntity.class, EntityPredicate.DEFAULT, null, this.posX, this.posY, this.posZ, this.getBoundingBox().grow(25)));
+                this.setAttackTarget(world.getClosestEntityWithinAABB(PlayerEntity.class, EntityPredicate.DEFAULT, null, this.getPosX(), this.getPosY(), this.getPosZ(), this.getBoundingBox().grow(25)));
             }
             if(this.isHostile && this.getAttackTarget() != null) {
                 this.targetPosition = this.getAttackTarget().getPosition();
             } else {
-                this.targetPosition = new BlockPos(this.posX + (double)this.rand.nextInt(5) - (double)this.rand.nextInt(5), this.posY + (double)this.rand.nextInt(4) - 0.1D, this.posZ + (double)this.rand.nextInt(5) - (double)this.rand.nextInt(5));
+                this.targetPosition = new BlockPos(this.getPosX() + (double)this.rand.nextInt(5) - (double)this.rand.nextInt(5), this.getPosY() + (double)this.rand.nextInt(4) - 0.1D, this.getPosZ() + (double)this.rand.nextInt(5) - (double)this.rand.nextInt(5));
                 
             }
             if(state > 0 && this.isHostile) {
-                this.targetPosition = new BlockPos(this.posX + (double)this.rand.nextInt(60) - (double)this.rand.nextInt(60), this.posY + (double)this.rand.nextInt(4), this.posZ + (double)this.rand.nextInt(60) - (double)this.rand.nextInt(60));
+                this.targetPosition = new BlockPos(this.getPosX() + (double)this.rand.nextInt(60) - (double)this.rand.nextInt(60), this.getPosY() + (double)this.rand.nextInt(4), this.getPosZ() + (double)this.rand.nextInt(60) - (double)this.rand.nextInt(60));
             }
         }
         if(targetPosition != null) {
-            double d0 = (double) this.targetPosition.getX() + 0.5D - this.posX;
-            double d1 = (double) this.targetPosition.getY() + 0.1D - this.posY;
-            double d2 = (double) this.targetPosition.getZ() + 0.5D - this.posZ;
-            Vec3d vec3d = this.getMotion();
-            Vec3d vec3d1 = vec3d.add((Math.signum(d0) * 0.5D - vec3d.x) * (double) 0.1F, (Math.signum(d1) * (double) 0.7F - vec3d.y) * (double) 0.1F, (Math.signum(d2) * 0.5D - vec3d.z) * (double) 0.1F);
+            double d0 = (double) this.targetPosition.getX() + 0.5D - this.getPosX();
+            double d1 = (double) this.targetPosition.getY() + 0.1D - this.getPosY();
+            double d2 = (double) this.targetPosition.getZ() + 0.5D - this.getPosZ();
+            Vector3d vec3d = this.getMotion();
+            Vector3d vec3d1 = vec3d.add((Math.signum(d0) * 0.5D - vec3d.x) * (double) 0.1F, (Math.signum(d1) * (double) 0.7F - vec3d.y) * (double) 0.1F, (Math.signum(d2) * 0.5D - vec3d.z) * (double) 0.1F);
             this.setMotion(vec3d1);
             float f = (float) (MathHelper.atan2(vec3d1.z, vec3d1.x) * (double) (180F / (float) Math.PI)) - 90.0F;
             float f1 = MathHelper.wrapDegrees(f - this.rotationYaw);
@@ -189,7 +184,8 @@ public class EntityWisp extends AnimalEntity implements IContainerEntity<EntityW
     }
 
     @Override
-    public void fall(float distance, float damageMultiplier) {
+    public boolean onLivingFall(float distance, float damageMultiplier) {
+        return false;
     }
 
     @Override
@@ -263,11 +259,11 @@ public class EntityWisp extends AnimalEntity implements IContainerEntity<EntityW
     private static Item getItemForVariant(int variant) {
         Block block = null;
         switch(variant) {
-        case 1: block = ModBlocks.GHOST_LIGHT_ELECTRIC_BLUE; break;
-        case 2: block = ModBlocks.GHOST_LIGHT_FIERY_ORANGE; break;
-        case 3: block = ModBlocks.GHOST_LIGHT_GOLD; break;
-        case 4: block = ModBlocks.GHOST_LIGHT_TOXIC_GREEN; break;
-        case 5: block = ModBlocks.GHOST_LIGHT_MAGIC_PURPLE; break;
+        case 1: block = ModBlocks.GHOST_LIGHT_ELECTRIC_BLUE.get(); break;
+        case 2: block = ModBlocks.GHOST_LIGHT_FIERY_ORANGE.get(); break;
+        case 3: block = ModBlocks.GHOST_LIGHT_GOLD.get(); break;
+        case 4: block = ModBlocks.GHOST_LIGHT_TOXIC_GREEN.get(); break;
+        case 5: block = ModBlocks.GHOST_LIGHT_MAGIC_PURPLE.get(); break;
         }
         if(block == null) {
             return null;
@@ -277,38 +273,35 @@ public class EntityWisp extends AnimalEntity implements IContainerEntity<EntityW
 
     @Override
     @Nullable
-    public ILivingEntityData onInitialSpawn(IWorld world, DifficultyInstance difficulty, SpawnReason reason, @Nullable ILivingEntityData livingdata, CompoundNBT compound) {
-        if(!this.isChild()) {
-            boolean hostile = this.getRNG().nextInt(HOSTILE_CHANCE) == 0;
-            int colorVariant = this.getRNG().nextInt(5) + 1;
+    public ILivingEntityData onInitialSpawn(IServerWorld world, DifficultyInstance difficulty, SpawnReason reason, @Nullable ILivingEntityData livingdata, CompoundNBT compound) {
+        boolean hostile = this.getRNG().nextInt(HOSTILE_CHANCE) == 0;
+        int colorVariant = this.getRNG().nextInt(5) + 1;
 
-            if(livingdata instanceof WispData) {
-                hostile = ((WispData) livingdata).isHostile;
-                colorVariant = ((WispData) livingdata).colorVariant;
-            } else {
-                livingdata = new WispData(hostile, colorVariant);
-            }
-
-            this.isHostile = hostile;
-            this.dataManager.set(COLOR_VARIANT, colorVariant);
-
+        if(livingdata instanceof WispData) {
+            hostile = ((WispData) livingdata).isHostile;
+            colorVariant = ((WispData) livingdata).colorVariant;
+        } else {
+            livingdata = new WispData(hostile, colorVariant);
         }
 
+        this.isHostile = hostile;
+        this.dataManager.set(COLOR_VARIANT, colorVariant);
         return livingdata;
     }
 
-    public static class WispData implements ILivingEntityData {
+    public static class WispData extends AgeableData {
         public boolean isHostile;
         public int colorVariant;
 
         public WispData(boolean isHostile, int colorVariant) {
+            super(false);
             this.isHostile = isHostile;
             this.colorVariant = colorVariant;
         }
     }
 
     @Override
-    public AgeableEntity createChild(AgeableEntity ageable) {
+    public AgeableEntity func_241840_a(ServerWorld world, AgeableEntity ageable) {
         return null;
     }
 

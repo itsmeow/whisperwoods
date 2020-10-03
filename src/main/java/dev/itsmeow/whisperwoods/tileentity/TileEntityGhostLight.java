@@ -8,7 +8,7 @@ public class TileEntityGhostLight extends TileEntity {
     public long lastSpawn;
 
     public TileEntityGhostLight() {
-        super(ModTileEntities.GHOST_LIGHT);
+        super(ModTileEntities.GHOST_LIGHT.get());
     }
 
 }

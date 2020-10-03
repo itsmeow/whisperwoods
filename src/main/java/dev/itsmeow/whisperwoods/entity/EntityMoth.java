@@ -1,21 +1,16 @@
 package dev.itsmeow.whisperwoods.entity;
 
 import dev.itsmeow.imdlib.entity.util.EntityTypeContainer;
-import dev.itsmeow.whisperwoods.block.BlockGhostLight;
 import dev.itsmeow.whisperwoods.init.ModEntities;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
-import net.minecraft.block.CampfireBlock;
-import net.minecraft.block.LanternBlock;
-import net.minecraft.block.RedstoneLampBlock;
 import net.minecraft.block.TorchBlock;
 import net.minecraft.entity.CreatureAttribute;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityPredicate;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.SharedMonsterAttributes;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
 import net.minecraft.item.Items;
@@ -28,7 +23,7 @@ import net.minecraft.util.Direction;
 import net.minecraft.util.Hand;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.math.vector.Vector3d;
 import net.minecraft.world.LightType;
 import net.minecraft.world.World;
 
@@ -66,12 +61,6 @@ public class EntityMoth extends EntityAnimalWithTypesAndSize {
     protected void collideWithNearbyEntities() {
     }
 
-    @Override
-    protected void registerAttributes() {
-        super.registerAttributes();
-        this.getAttribute(SharedMonsterAttributes.MAX_HEALTH).setBaseValue(2.0D);
-    }
-
     public boolean isLanded() {
         return this.dataManager.get(LANDED) != 1;
     }
@@ -100,20 +89,18 @@ public class EntityMoth extends EntityAnimalWithTypesAndSize {
     public void tick() {
         super.tick();
         if(this.isLanded()) {
-            this.setMotion(Vec3d.ZERO);
+            this.setMotion(Vector3d.ZERO);
             if(Direction.byIndex(this.getLandedInteger()) != Direction.DOWN) {
-                double x = Math.floor(this.posX) + 0.5D;
-                double z = Math.floor(this.posZ) + 0.5D;
-                this.posY = Math.floor(this.posY) + 0.5D;
-                BlockPos pos = new BlockPos(x, posY, z);
+                double x = Math.floor(this.getPosX()) + 0.5D;
+                double z = Math.floor(this.getPosZ()) + 0.5D;
+                BlockPos pos = new BlockPos(x, Math.floor(this.getPosY()) + 0.5D, z);
                 BlockPos offset = pos.offset(Direction.byIndex(this.getLandedInteger()));
                 BlockPos diff = pos.subtract(offset);
-                this.posX = x - ((double) diff.getX()) / 2.778D;
-                this.posZ = z - ((double) diff.getZ()) / 2.778D;
+                this.setPositionAndUpdate(x - ((double) diff.getX()) / 2.778D, Math.floor(this.getPosY()) + 0.5D, z - ((double) diff.getZ()) / 2.778D);
                 this.rotationYaw = 0;
                 this.rotationYawHead = 0;
             } else {
-                this.posY = Math.floor(this.posY);
+                this.setPositionAndUpdate(this.getPosX(), Math.floor(this.getPosY()), this.getPosZ());
             }
         } else {
             this.setMotion(this.getMotion().mul(1.0D, 0.6D, 1.0D));
@@ -124,7 +111,7 @@ public class EntityMoth extends EntityAnimalWithTypesAndSize {
     @Override
     protected void updateAITasks() {
         super.updateAITasks();
-        BlockPos blockpos = new BlockPos(this);
+        BlockPos blockpos = this.getPosition();
         if(this.isLanded()) {
             BlockPos offset = blockpos.offset(Direction.byIndex(this.getLandedInteger()));
             if(this.world.getBlockState(offset).isNormalCube(this.world, offset)) {
@@ -138,7 +125,7 @@ public class EntityMoth extends EntityAnimalWithTypesAndSize {
         if(this.targetPosition == null || this.rand.nextInt(30) == 0 || (this.targetPosition.withinDistance(this.getPositionVec(), 1.0D) && !isLightBlock(world.getBlockState(this.targetPosition)))) {
             int i = 12;
             int j = 2;
-            BlockPos.MutableBlockPos blockpos$mutableblockpos = new BlockPos.MutableBlockPos();
+            BlockPos.Mutable blockpos$mutableblockpos = new BlockPos.Mutable();
             BlockPos destinationBlock = null;
             if(this.isAttractedToLight()) {
                 for(int k = 0; k <= j; k = k > 0 ? -k : 1 - k) {
@@ -146,7 +133,8 @@ public class EntityMoth extends EntityAnimalWithTypesAndSize {
                         for(int i1 = 0; i1 <= l; i1 = i1 > 0 ? -i1 : 1 - i1) {
                             for(int j1 = i1 < l && i1 > -l ? l : 0; j1 <= l; j1 = j1 > 0 ? -j1 : 1 - j1) {
                                 blockpos$mutableblockpos.setPos(this.getPosition()).move(i1, k - 1, j1);
-                                if(isLightBlock(world.getBlockState(blockpos$mutableblockpos))) {
+                                BlockState state = world.getBlockState(blockpos$mutableblockpos);
+                                if(isLightBlock(state) && (destinationBlock == null || state.getLightValue() >= world.getBlockState(destinationBlock).getLightValue())) {
                                     destinationBlock = blockpos$mutableblockpos.toImmutable();
                                 }
                             }
@@ -184,16 +172,16 @@ public class EntityMoth extends EntityAnimalWithTypesAndSize {
                     }
                 }
                 if(!found) {
-                    this.targetPosition = new BlockPos(this.posX + (double) this.rand.nextInt(5) - (double) this.rand.nextInt(5), this.posY + (double) this.rand.nextInt(4) - 1.0D, this.posZ + (double) this.rand.nextInt(5) - (double) this.rand.nextInt(5));
+                    this.targetPosition = new BlockPos(this.getPosX() + (double) this.rand.nextInt(5) - (double) this.rand.nextInt(5), this.getPosY() + (double) this.rand.nextInt(4) - 1.0D, this.getPosZ() + (double) this.rand.nextInt(5) - (double) this.rand.nextInt(5));
                 }
             }
         }
         if(!this.isLanded() && targetPosition != null) {
-            double d0 = (double) this.targetPosition.getX() + 0.5D - this.posX;
-            double d1 = (double) this.targetPosition.getY() + 0.1D - this.posY;
-            double d2 = (double) this.targetPosition.getZ() + 0.5D - this.posZ;
-            Vec3d vec3d = this.getMotion();
-            Vec3d vec3d1 = vec3d.add((Math.signum(d0) * 0.5D - vec3d.x) * (double) 0.1F, (Math.signum(d1) * (double) 0.7F - vec3d.y) * (double) 0.1F, (Math.signum(d2) * 0.5D - vec3d.z) * (double) 0.1F);
+            double d0 = (double) this.targetPosition.getX() + 0.5D - this.getPosX();
+            double d1 = (double) this.targetPosition.getY() + 0.1D - this.getPosY();
+            double d2 = (double) this.targetPosition.getZ() + 0.5D - this.getPosZ();
+            Vector3d vec3d = this.getMotion();
+            Vector3d vec3d1 = vec3d.add((Math.signum(d0) * 0.5D - vec3d.x) * (double) 0.1F, (Math.signum(d1) * (double) 0.7F - vec3d.y) * (double) 0.1F, (Math.signum(d2) * 0.5D - vec3d.z) * (double) 0.1F);
             this.setMotion(vec3d1);
             float f = (float) (MathHelper.atan2(vec3d1.z, vec3d1.x) * (double) (180F / (float) Math.PI)) - 90.0F;
             float f1 = MathHelper.wrapDegrees(f - this.rotationYaw);
@@ -213,8 +201,7 @@ public class EntityMoth extends EntityAnimalWithTypesAndSize {
     }
 
     private static boolean isLightBlock(BlockState blockState) {
-        Block block = blockState.getBlock();
-        return block instanceof BlockGhostLight || block instanceof LanternBlock || block instanceof TorchBlock || (block instanceof CampfireBlock && blockState.get(CampfireBlock.LIT)) || block == Blocks.LAVA || block == Blocks.GLOWSTONE || block == Blocks.SEA_LANTERN || block == Blocks.JACK_O_LANTERN || block == Blocks.FIRE || (block instanceof RedstoneLampBlock && blockState.get(RedstoneLampBlock.LIT));
+        return blockState.getLightValue() > 0;
     }
 
     @Override
@@ -223,7 +210,8 @@ public class EntityMoth extends EntityAnimalWithTypesAndSize {
     }
 
     @Override
-    public void fall(float distance, float damageMultiplier) {
+    public boolean onLivingFall(float distance, float damageMultiplier) {
+        return false;
     }
 
     @Override

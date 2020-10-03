@@ -6,10 +6,9 @@ import java.util.stream.Stream;
 
 import javax.annotation.Nullable;
 
-import com.google.common.collect.ImmutableSet;
-
 import dev.itsmeow.imdlib.entity.util.EntityTypeContainer;
 import dev.itsmeow.imdlib.entity.util.EntityVariant;
+import dev.itsmeow.imdlib.util.BiomeDictionary.Type;
 import dev.itsmeow.whisperwoods.WhisperwoodsMod;
 import dev.itsmeow.whisperwoods.init.ModEntities;
 import dev.itsmeow.whisperwoods.init.ModSounds;
@@ -26,8 +25,9 @@ import net.minecraft.entity.EntityType;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.MobEntity;
 import net.minecraft.entity.MoverType;
-import net.minecraft.entity.SharedMonsterAttributes;
+import net.minecraft.entity.SpawnReason;
 import net.minecraft.entity.ai.RandomPositionGenerator;
+import net.minecraft.entity.ai.attributes.Attributes;
 import net.minecraft.entity.ai.goal.Goal;
 import net.minecraft.entity.ai.goal.SwimGoal;
 import net.minecraft.entity.player.PlayerEntity;
@@ -44,21 +44,22 @@ import net.minecraft.tags.BlockTags;
 import net.minecraft.util.DamageSource;
 import net.minecraft.util.Direction;
 import net.minecraft.util.EntityDamageSource;
+import net.minecraft.util.RegistryKey;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.ReuseableStream;
+import net.minecraft.util.SoundEvents;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.math.shapes.IBooleanFunction;
 import net.minecraft.util.math.shapes.ISelectionContext;
 import net.minecraft.util.math.shapes.VoxelShape;
 import net.minecraft.util.math.shapes.VoxelShapes;
+import net.minecraft.util.math.vector.Vector3d;
 import net.minecraft.world.IBlockReader;
 import net.minecraft.world.World;
 import net.minecraft.world.biome.Biome;
 import net.minecraft.world.biome.Biomes;
-import net.minecraftforge.common.BiomeDictionary.Type;
 
 public class EntityHidebehind extends EntityCreatureWithSelectiveTypes {
 
@@ -77,28 +78,21 @@ public class EntityHidebehind extends EntityCreatureWithSelectiveTypes {
         this(ModEntities.HIDEBEHIND.entityType, world);
     }
 
-    protected void registerAttributes() {
-        super.registerAttributes();
-        this.getAttribute(SharedMonsterAttributes.MAX_HEALTH).setBaseValue(20D);
-        this.getAttributes().registerAttribute(SharedMonsterAttributes.ATTACK_DAMAGE);
-        this.getAttribute(SharedMonsterAttributes.ATTACK_DAMAGE).setBaseValue(15D);
-    }
-
     @Override
     protected void registerGoals() {
         this.goalSelector.addGoal(0, new SwimGoal(this));
         this.goalSelector.addGoal(1, new HideFromTargetGoal(this));
         this.goalSelector.addGoal(3, new StalkTargetGoal(this, 0.5D, 35F));
     }
-    
+
     public int attackSequenceTicks() {
         return this.dataManager.get(ATTACK_SEQUENCE_TICKS);
     }
-    
+
     public void attackSequenceTicksDecrement() {
         this.dataManager.set(ATTACK_SEQUENCE_TICKS, attackSequenceTicks() - 1);
     }
-    
+
     public void setAttackSequenceTicks(int value) {
         this.dataManager.set(ATTACK_SEQUENCE_TICKS, value);
     }
@@ -120,7 +114,7 @@ public class EntityHidebehind extends EntityCreatureWithSelectiveTypes {
         if(this.isInWater()) {
             int i = 12;
             int j = 2;
-            BlockPos.MutableBlockPos blockpos$mutableblockpos = new BlockPos.MutableBlockPos();
+            BlockPos.Mutable blockpos$mutableblockpos = new BlockPos.Mutable();
             BlockPos destinationBlock = null;
             for(int k = 0; k <= j; k = k > 0 ? -k : 1 - k) {
                 for(int l = 0; l < i; ++l) {
@@ -154,7 +148,7 @@ public class EntityHidebehind extends EntityCreatureWithSelectiveTypes {
             this.setHiding(false);
         }
         if(this.getAttackTarget() == null) {
-            this.setAttackTarget(world.getClosestEntityWithinAABB(PlayerEntity.class, EntityPredicate.DEFAULT, null, this.posX, this.posY, this.posZ, this.getBoundingBox().grow(25)));
+            this.setAttackTarget(world.getClosestEntityWithinAABB(PlayerEntity.class, EntityPredicate.DEFAULT, null, this.getPosX(), this.getPosY(), this.getPosZ(), this.getBoundingBox().grow(25)));
         }
         if(this.getAttackTarget() != null && this.getAttackTarget().getDistanceSq(this) < 5D && atkTicks == 0 && !this.getHiding()) {
             if(this.getAttackTarget() instanceof PlayerEntity) {
@@ -168,25 +162,25 @@ public class EntityHidebehind extends EntityCreatureWithSelectiveTypes {
                 }
             }
         }
-        
+
         if(atkTicks > 0) {
             if(!this.getOpen()) {
                 this.setOpen(true);
             }
             if(this.getAttackTarget() != null) {
                 LivingEntity target = this.getAttackTarget();
-                target.setMotion(0,0,0);
-                double d0 = this.posX - target.posX;
-                double d1 = this.posZ - target.posZ;
-                float angle = (float)(MathHelper.atan2(d1, d0) * (double)(180F / (float)Math.PI)) - 90.0F;
-                target.setPositionAndRotation(target.posX, target.posY, target.posZ, angle, 0);
-                double e0 = target.posX - this.posX;
-                double e1 = target.posZ - this.posZ;
-                float angle1 = (float)(MathHelper.atan2(e1, e0) * (double)(180F / (float)Math.PI)) - 90.0F;
-                this.setPositionAndRotation(this.posX, this.posY, this.posZ, angle1, 0);
+                target.setMotion(0, 0, 0);
+                double d0 = this.getPosX() - target.getPosX();
+                double d1 = this.getPosZ() - target.getPosZ();
+                float angle = (float) (MathHelper.atan2(d1, d0) * (double) (180F / (float) Math.PI)) - 90.0F;
+                target.setPositionAndRotation(target.getPosX(), target.getPosY(), target.getPosZ(), angle, 0);
+                double e0 = target.getPosX() - this.getPosX();
+                double e1 = target.getPosZ() - this.getPosZ();
+                float angle1 = (float) (MathHelper.atan2(e1, e0) * (double) (180F / (float) Math.PI)) - 90.0F;
+                this.setPositionAndRotation(this.getPosX(), this.getPosY(), this.getPosZ(), angle1, 0);
                 this.rotationYaw = angle1;
                 if(atkTicks == 20) {
-                    target.playSound(ModSounds.HIDEBEHIND_SOUND, 2F, 1F);
+                    target.playSound(ModSounds.HIDEBEHIND_SOUND.get(), 2F, 1F);
                 }
                 this.lookController.setLookPositionWithEntity(target, 360F, 360F);
             }
@@ -242,7 +236,8 @@ public class EntityHidebehind extends EntityCreatureWithSelectiveTypes {
     }
 
     /**
-     * @return The viewing angle of the attack target (0 when looking directly at HB, 180 if opposite). If there is no target, returns -1000
+     * @return The viewing angle of the attack target (0 when looking directly at
+     *         HB, 180 if opposite). If there is no target, returns -1000
      */
     public double getTargetViewingAngle() {
         LivingEntity target = this.getAttackTarget();
@@ -250,18 +245,18 @@ public class EntityHidebehind extends EntityCreatureWithSelectiveTypes {
             return -1000;
         }
         float targetAngle = Math.abs(this.getAttackTarget().rotationYawHead % 360);
-        boolean xNeg = target.posX - this.posX <= 0;
-        boolean zNeg = target.posZ - this.posZ <= 0;
+        boolean xNeg = target.getPosX() - this.getPosX() <= 0;
+        boolean zNeg = target.getPosZ() - this.getPosZ() <= 0;
         double angleAdd = xNeg ? (zNeg ? 0 : 90) : (zNeg ? 180 : 0);
         if(!(!xNeg && !zNeg)) {
-            double angle = (target.posZ - this.posZ == 0) ? ((target.posX - target.posX > 0) ? 90 : -90) : Math.toDegrees(Math.atan(Math.abs(target.posX - this.posX) / Math.abs(target.posZ - this.posZ)));
+            double angle = (target.getPosZ() - this.getPosZ() == 0) ? ((target.getPosX() - target.getPosX() > 0) ? 90 : -90) : Math.toDegrees(Math.atan(Math.abs(target.getPosX() - this.getPosX()) / Math.abs(target.getPosZ() - this.getPosZ())));
             double ans = Math.abs(((angleAdd) - Math.abs(angle)) + angleAdd) - targetAngle;
             if(ans > 180 || ans < -180) {
                 ans = (ans > 180 ? -1 : 1) * (180 - (Math.abs(ans) - 180));
             }
             return ans;
         } else {
-            double angle = (target.posX - this.posX == 0) ? ((target.posZ - target.posZ > 0) ? 0 : 360) : Math.toDegrees(Math.atan(Math.abs(target.posZ - this.posZ) / Math.abs(target.posX - this.posX)));
+            double angle = (target.getPosX() - this.getPosX() == 0) ? ((target.getPosZ() - target.getPosZ() > 0) ? 0 : 360) : Math.toDegrees(Math.atan(Math.abs(target.getPosZ() - this.getPosZ()) / Math.abs(target.getPosX() - this.getPosX())));
             double ans = Math.abs(angle);
             if(ans > 180 || ans < -180) {
                 ans = (ans > 180 ? -1 : 1) * (180 - (Math.abs(ans) - 180));
@@ -269,9 +264,10 @@ public class EntityHidebehind extends EntityCreatureWithSelectiveTypes {
             return 90 - ans - (targetAngle - 270) - 90;
         }
     }
-    
+
     /**
-     * @return The required viewing angle of the attack target to be looking at it. If there is no target, returns -1000
+     * @return The required viewing angle of the attack target to be looking at it.
+     *         If there is no target, returns -1000
      */
     public double getRequiredViewingAngle() {
         LivingEntity target = this.getAttackTarget();
@@ -279,18 +275,18 @@ public class EntityHidebehind extends EntityCreatureWithSelectiveTypes {
             return -1000;
         }
         float targetAngle = 0;
-        boolean xNeg = target.posX - this.posX <= 0;
-        boolean zNeg = target.posZ - this.posZ <= 0;
+        boolean xNeg = target.getPosX() - this.getPosX() <= 0;
+        boolean zNeg = target.getPosZ() - this.getPosZ() <= 0;
         double angleAdd = xNeg ? (zNeg ? 0 : 90) : (zNeg ? 180 : 0);
         if(!(!xNeg && !zNeg)) {
-            double angle = (target.posZ - this.posZ == 0) ? ((target.posX - target.posX > 0) ? 90 : -90) : Math.toDegrees(Math.atan(Math.abs(target.posX - this.posX) / Math.abs(target.posZ - this.posZ)));
+            double angle = (target.getPosZ() - this.getPosZ() == 0) ? ((target.getPosX() - target.getPosX() > 0) ? 90 : -90) : Math.toDegrees(Math.atan(Math.abs(target.getPosX() - this.getPosX()) / Math.abs(target.getPosZ() - this.getPosZ())));
             double ans = Math.abs(((angleAdd) - Math.abs(angle)) + angleAdd) - targetAngle;
             if(ans > 180 || ans < -180) {
                 ans = (ans > 180 ? -1 : 1) * (180 - (Math.abs(ans) - 180));
             }
             return ans;
         } else {
-            double angle = (target.posX - this.posX == 0) ? ((target.posZ - target.posZ > 0) ? 0 : 360) : Math.toDegrees(Math.atan(Math.abs(target.posZ - this.posZ) / Math.abs(target.posX - this.posX)));
+            double angle = (target.getPosX() - this.getPosX() == 0) ? ((target.getPosZ() - target.getPosZ() > 0) ? 0 : 360) : Math.toDegrees(Math.atan(Math.abs(target.getPosZ() - this.getPosZ()) / Math.abs(target.getPosX() - this.getPosX())));
             double ans = Math.abs(angle);
             if(ans > 180 || ans < -180) {
                 ans = (ans > 180 ? -1 : 1) * (180 - (Math.abs(ans) - 180));
@@ -301,8 +297,8 @@ public class EntityHidebehind extends EntityCreatureWithSelectiveTypes {
 
     @Override
     public boolean attackEntityAsMob(Entity entity) {
-        float f = (float) this.getAttribute(SharedMonsterAttributes.ATTACK_DAMAGE).getValue();
-        float f1 = (float) this.getAttribute(SharedMonsterAttributes.ATTACK_KNOCKBACK).getValue();
+        float f = (float) this.getAttribute(Attributes.ATTACK_DAMAGE).getValue();
+        float f1 = (float) this.getAttribute(Attributes.ATTACK_KNOCKBACK).getValue();
         if(entity instanceof LivingEntity) {
             f += EnchantmentHelper.getModifierForCreature(this.getHeldItemMainhand(), ((LivingEntity) entity).getCreatureAttribute());
             f1 += (float) EnchantmentHelper.getKnockbackModifier(this);
@@ -316,7 +312,7 @@ public class EntityHidebehind extends EntityCreatureWithSelectiveTypes {
         boolean flag = entity.attackEntityFrom(HIDEBEHIND, f);
         if(flag) {
             if(f1 > 0.0F && entity instanceof LivingEntity) {
-                ((LivingEntity) entity).knockBack(this, f1 * 0.5F, (double) MathHelper.sin(this.rotationYaw * ((float) Math.PI / 180F)), (double) (-MathHelper.cos(this.rotationYaw * ((float) Math.PI / 180F))));
+                ((LivingEntity) entity).applyKnockback(f1 * 0.5F, (double) MathHelper.sin(this.rotationYaw * ((float) Math.PI / 180F)), (double) (-MathHelper.cos(this.rotationYaw * ((float) Math.PI / 180F))));
                 this.setMotion(this.getMotion().mul(0.6D, 1.0D, 0.6D));
             }
 
@@ -340,14 +336,14 @@ public class EntityHidebehind extends EntityCreatureWithSelectiveTypes {
     }
 
     @Override
-    public void move(MoverType type, Vec3d pos) {
+    public void move(MoverType type, Vector3d pos) {
         if(this.noClip) {
             this.setBoundingBox(this.getBoundingBox().offset(pos));
             this.resetPositionToBB();
         } else {
             if(type == MoverType.PISTON) {
                 pos = this.handlePistonMovement(pos);
-                if(pos.equals(Vec3d.ZERO)) {
+                if(pos.equals(Vector3d.ZERO)) {
                     return;
                 }
             }
@@ -355,73 +351,60 @@ public class EntityHidebehind extends EntityCreatureWithSelectiveTypes {
             this.world.getProfiler().startSection("move");
             if(this.motionMultiplier.lengthSquared() > 1.0E-7D) {
                 pos = pos.mul(this.motionMultiplier);
-                this.motionMultiplier = Vec3d.ZERO;
-                this.setMotion(Vec3d.ZERO);
+                this.motionMultiplier = Vector3d.ZERO;
+                this.setMotion(Vector3d.ZERO);
             }
 
-            pos = this.handleSneakMovement(pos, type);
-            Vec3d vec3d = this.getAllowedMovement(pos);
-            if(vec3d.lengthSquared() > 1.0E-7D) {
-                this.setBoundingBox(this.getBoundingBox().offset(vec3d));
+            pos = this.maybeBackOffFromEdge(pos, type);
+            Vector3d vector3d = this.getAllowedMovement(pos);
+            if(vector3d.lengthSquared() > 1.0E-7D) {
+                this.setBoundingBox(this.getBoundingBox().offset(vector3d));
                 this.resetPositionToBB();
             }
 
             this.world.getProfiler().endSection();
             this.world.getProfiler().startSection("rest");
-            this.collidedHorizontally = !MathHelper.epsilonEquals(pos.x, vec3d.x) || !MathHelper.epsilonEquals(pos.z, vec3d.z);
-            this.collidedVertically = pos.y != vec3d.y;
+            this.collidedHorizontally = !MathHelper.epsilonEquals(pos.x, vector3d.x) || !MathHelper.epsilonEquals(pos.z, vector3d.z);
+            this.collidedVertically = pos.y != vector3d.y;
             this.onGround = this.collidedVertically && pos.y < 0.0D;
-            this.collided = this.collidedHorizontally || this.collidedVertically;
-            int i = MathHelper.floor(this.posX);
-            int j = MathHelper.floor(this.posY - (double) 0.2F);
-            int k = MathHelper.floor(this.posZ);
-            BlockPos blockpos = new BlockPos(i, j, k);
+            BlockPos blockpos = this.getOnPosition();
             BlockState blockstate = this.world.getBlockState(blockpos);
-            if(blockstate.isAir(this.world, blockpos)) {
-                BlockPos blockpos1 = blockpos.down();
-                BlockState blockstate1 = this.world.getBlockState(blockpos1);
-                if(blockstate.collisionExtendsVertically(this.world, blockpos, this)) {
-                    blockstate = blockstate1;
-                    blockpos = blockpos1;
-                }
+            this.updateFallState(vector3d.y, this.onGround, blockstate, blockpos);
+            Vector3d vector3d1 = this.getMotion();
+            if(pos.x != vector3d.x) {
+                this.setMotion(0.0D, vector3d1.y, vector3d1.z);
             }
 
-            this.updateFallState(vec3d.y, this.onGround, blockstate, blockpos);
-            Vec3d vec3d2 = this.getMotion();
-            if(pos.x != vec3d.x) {
-                this.setMotion(0.0D, vec3d2.y, vec3d2.z);
+            if(pos.z != vector3d.z) {
+                this.setMotion(vector3d1.x, vector3d1.y, 0.0D);
             }
 
-            if(pos.z != vec3d.z) {
-                this.setMotion(vec3d2.x, vec3d2.y, 0.0D);
+            Block block = blockstate.getBlock();
+            if(pos.y != vector3d.y) {
+                block.onLanded(this.world, this);
             }
 
-            Block block1 = blockstate.getBlock();
-            if(pos.y != vec3d.y) {
-                block1.onLanded(this.world, this);
+            if(this.onGround && !this.isSteppingCarefully()) {
+                block.onEntityWalk(this.world, blockpos, this);
             }
 
-            if(this.canTriggerWalking() && (!this.onGround || !this.isSneaking()) && !this.isPassenger()) {
-                double d2 = vec3d.x;
-                double d0 = vec3d.y;
-                double d1 = vec3d.z;
-                if(block1 != Blocks.LADDER && block1 != Blocks.SCAFFOLDING) {
-                    d0 = 0.0D;
+            if(this.canTriggerWalking() && !this.isPassenger()) {
+                double d0 = vector3d.x;
+                double d1 = vector3d.y;
+                double d2 = vector3d.z;
+                if(!block.isIn(BlockTags.CLIMBABLE)) {
+                    d1 = 0.0D;
                 }
 
-                if(this.onGround) {
-                    block1.onEntityWalk(this.world, blockpos, this);
-                }
-
-                this.distanceWalkedModified = (float) ((double) this.distanceWalkedModified + (double) MathHelper.sqrt(horizontalMag(vec3d)) * 0.6D);
-                this.distanceWalkedOnStepModified = (float) ((double) this.distanceWalkedOnStepModified + (double) MathHelper.sqrt(d2 * d2 + d0 * d0 + d1 * d1) * 0.6D);
+                this.distanceWalkedModified = (float) ((double) this.distanceWalkedModified + (double) MathHelper.sqrt(horizontalMag(vector3d)) * 0.6D);
+                this.distanceWalkedOnStepModified = (float) ((double) this.distanceWalkedOnStepModified + (double) MathHelper.sqrt(d0 * d0 + d1 * d1 + d2 * d2) * 0.6D);
                 if(this.distanceWalkedOnStepModified > this.nextStepDistance && !blockstate.isAir(this.world, blockpos)) {
                     this.nextStepDistance = this.determineNextStepDistance();
                     if(this.isInWater()) {
                         Entity entity = this.isBeingRidden() && this.getControllingPassenger() != null ? this.getControllingPassenger() : this;
                         float f = entity == this ? 0.35F : 0.4F;
-                        Vec3d vec3d1 = entity.getMotion();
-                        float f1 = MathHelper.sqrt(vec3d1.x * vec3d1.x * (double) 0.2F + vec3d1.y * vec3d1.y + vec3d1.z * vec3d1.z * (double) 0.2F) * f;
+                        Vector3d vector3d2 = entity.getMotion();
+                        float f1 = MathHelper.sqrt(vector3d2.x * vector3d2.x * (double) 0.2F + vector3d2.y * vector3d2.y + vector3d2.z * vector3d2.z * (double) 0.2F) * f;
                         if(f1 > 1.0F) {
                             f1 = 1.0F;
                         }
@@ -434,7 +417,6 @@ public class EntityHidebehind extends EntityCreatureWithSelectiveTypes {
             }
 
             try {
-                this.inLava = false;
                 this.doBlockCollisions();
             } catch(Throwable throwable) {
                 CrashReport crashreport = CrashReport.makeCrashReport(throwable, "Checking entity block collision");
@@ -442,46 +424,63 @@ public class EntityHidebehind extends EntityCreatureWithSelectiveTypes {
                 this.fillCrashReport(crashreportcategory);
                 throw new ReportedException(crashreport);
             }
+
+            float f2 = this.getSpeedFactor();
+            this.setMotion(this.getMotion().mul((double) f2, 1.0D, (double) f2));
+            if(BlockPos.getAllInBox(this.getBoundingBox().shrink(0.001D)).noneMatch((p_233572_0_) -> {
+                BlockState state = world.getBlockState(p_233572_0_);
+                return state.isIn(BlockTags.FIRE) || state.isIn(Blocks.LAVA) || state.isBurning(world, p_233572_0_);
+            }) && this.getFireTimer() <= 0) {
+                this.forceFireTicks(-this.getFireImmuneTicks());
+            }
+
+            if(this.isInWaterRainOrBubbleColumn() && this.isBurning()) {
+                this.playSound(SoundEvents.ENTITY_GENERIC_EXTINGUISH_FIRE, 0.7F, 1.6F + (this.rand.nextFloat() - this.rand.nextFloat()) * 0.4F);
+                this.forceFireTicks(-this.getFireImmuneTicks());
+            }
+
             this.world.getProfiler().endSection();
         }
     }
 
-    private Vec3d getAllowedMovement(Vec3d vec) {
+    private Vector3d getAllowedMovement(Vector3d vec) {
         AxisAlignedBB axisalignedbb = this.getBoundingBox();
         ISelectionContext iselectioncontext = ISelectionContext.forEntity(this);
         VoxelShape voxelshape = this.world.getWorldBorder().getShape();
         // get world shape as stream
         Stream<VoxelShape> stream = VoxelShapes.compare(voxelshape, VoxelShapes.create(axisalignedbb.shrink(1.0E-7D)), IBooleanFunction.AND) ? Stream.empty() : Stream.of(voxelshape);
         // get entity shape as stream
-        Stream<VoxelShape> stream1 = this.world.getEmptyCollisionShapes(this, axisalignedbb.expand(vec), ImmutableSet.of());
+        Stream<VoxelShape> stream1 = this.world.func_230318_c_(this, axisalignedbb.expand(vec), (p_233561_0_) -> {
+            return true;
+        });
         // concatenate and make reusable
         ReuseableStream<VoxelShape> reuseablestream = new ReuseableStream<>(Stream.concat(stream1, stream));
         // return movement vector if it is 0, otherwise
-        Vec3d vec3d = vec.lengthSquared() == 0.0D ? vec : transformMove(this, vec, axisalignedbb, this.world, iselectioncontext, reuseablestream);
+        Vector3d vec3d = vec.lengthSquared() == 0.0D ? vec : transformMove(this, vec, axisalignedbb, this.world, iselectioncontext, reuseablestream);
         boolean flag = vec.x != vec3d.x; // if vector is transformed over x
         boolean flag1 = vec.y != vec3d.y; // if vector is transformed over y
         boolean flag2 = vec.z != vec3d.z; // if vector is transformed over z
         boolean flag3 = this.onGround || flag1 && vec.y < 0.0D; // if on ground or transformed over y, and non-transformed vector is 0 (no
         // planned y movement?)
         if(this.stepHeight > 0.0F && flag3 && (flag || flag2)) { // if can step up and ^ and original vector transformed over either x or y
-            Vec3d vec3d1 = transformMove(this, new Vec3d(vec.x, (double) this.stepHeight, vec.z), axisalignedbb, this.world, iselectioncontext, reuseablestream);
-            Vec3d vec3d2 = transformMove(this, new Vec3d(0.0D, (double) this.stepHeight, 0.0D), axisalignedbb.expand(vec.x, 0.0D, vec.z), this.world, iselectioncontext, reuseablestream);
+            Vector3d vec3d1 = transformMove(this, new Vector3d(vec.x, (double) this.stepHeight, vec.z), axisalignedbb, this.world, iselectioncontext, reuseablestream);
+            Vector3d vec3d2 = transformMove(this, new Vector3d(0.0D, (double) this.stepHeight, 0.0D), axisalignedbb.expand(vec.x, 0.0D, vec.z), this.world, iselectioncontext, reuseablestream);
             if(vec3d2.y < (double) this.stepHeight) {
-                Vec3d vec3d3 = transformMove(this, new Vec3d(vec.x, 0.0D, vec.z), axisalignedbb.offset(vec3d2), this.world, iselectioncontext, reuseablestream).add(vec3d2);
+                Vector3d vec3d3 = transformMove(this, new Vector3d(vec.x, 0.0D, vec.z), axisalignedbb.offset(vec3d2), this.world, iselectioncontext, reuseablestream).add(vec3d2);
                 if(horizontalMag(vec3d3) > horizontalMag(vec3d1)) {
                     vec3d1 = vec3d3;
                 }
             }
 
             if(horizontalMag(vec3d1) > horizontalMag(vec3d)) {
-                return vec3d1.add(transformMove(this, new Vec3d(0.0D, -vec3d1.y + vec.y, 0.0D), axisalignedbb.offset(vec3d1), this.world, iselectioncontext, reuseablestream));
+                return vec3d1.add(transformMove(this, new Vector3d(0.0D, -vec3d1.y + vec.y, 0.0D), axisalignedbb.offset(vec3d1), this.world, iselectioncontext, reuseablestream));
             }
         }
 
         return vec3d;
     }
 
-    public static Vec3d transformMove(@Nullable Entity entity, Vec3d vec, AxisAlignedBB bb, World world, ISelectionContext context, ReuseableStream<VoxelShape> stream) {
+    public static Vector3d transformMove(@Nullable Entity entity, Vector3d vec, AxisAlignedBB bb, World world, ISelectionContext context, ReuseableStream<VoxelShape> stream) {
         boolean flag = vec.x == 0.0D;
         boolean flag1 = vec.y == 0.0D;
         boolean flag2 = vec.z == 0.0D;
@@ -540,7 +539,7 @@ public class EntityHidebehind extends EntityCreatureWithSelectiveTypes {
             if(!nearTree && hidebehind.getRNG().nextInt(5) == 0) {
                 int i = 12;
                 int j = 2;
-                BlockPos.MutableBlockPos blockpos$mutableblockpos = new BlockPos.MutableBlockPos();
+                BlockPos.Mutable blockpos$mutableblockpos = new BlockPos.Mutable();
                 BlockPos destinationBlock = null;
                 for(int k = 0; k <= j; k = k > 0 ? -k : 1 - k) {
                     for(int l = 0; l < i; ++l) {
@@ -628,7 +627,7 @@ public class EntityHidebehind extends EntityCreatureWithSelectiveTypes {
             } else if(this.target.getDistanceSq(this.hidebehind) > (double) (this.maxTargetDistance * this.maxTargetDistance)) {
                 return false;
             } else {
-                Vec3d vec3d = RandomPositionGenerator.findRandomTargetBlockTowards(this.hidebehind, 16, 7, new Vec3d(this.target.posX, this.target.posY, this.target.posZ));
+                Vector3d vec3d = RandomPositionGenerator.findRandomTargetBlockTowards(this.hidebehind, 16, 7, new Vector3d(this.target.getPosX(), this.target.getPosY(), this.target.getPosZ()));
                 if(vec3d == null) {
                     return false;
                 } else if(hidebehind.world.getLightValue(hidebehind.getPosition()) > 8) {
@@ -661,8 +660,8 @@ public class EntityHidebehind extends EntityCreatureWithSelectiveTypes {
     }
 
     @Override
-    public String[] getTypesFor(Biome biome, Set<Type> types) {
-        if(biome == Biomes.GIANT_SPRUCE_TAIGA || biome == Biomes.GIANT_SPRUCE_TAIGA_HILLS || biome == Biomes.GIANT_TREE_TAIGA || biome == Biomes.GIANT_TREE_TAIGA_HILLS) {
+    public String[] getTypesFor(RegistryKey<Biome> biomeKey, Biome biome, Set<Type> types, SpawnReason reason) {
+        if(biomeKey == Biomes.GIANT_SPRUCE_TAIGA || biomeKey == Biomes.GIANT_SPRUCE_TAIGA_HILLS || biomeKey == Biomes.GIANT_TREE_TAIGA || biomeKey == Biomes.GIANT_TREE_TAIGA_HILLS) {
             return new String[] { "mega_taiga", "mega_taiga", "mega_taiga", "darkforest" };
         }
         if(types.contains(Type.CONIFEROUS)) {
@@ -680,13 +679,17 @@ public class EntityHidebehind extends EntityCreatureWithSelectiveTypes {
 
         public HidebehindVariant(String nameTexture) {
             super(WhisperwoodsMod.MODID, nameTexture, "hidebehind_" + nameTexture);
-            this.openTexture = new ResourceLocation(WhisperwoodsMod.MODID, "textures/entities/hidebehind_" + nameTexture + "_open.png");
+            this.openTexture = new ResourceLocation(WhisperwoodsMod.MODID, "textures/entity/hidebehind_" + nameTexture + "_open.png");
         }
 
-        public ResourceLocation getHidebehindTexture(EntityHidebehind hidebehind) {
-            return hidebehind.getOpen() ? openTexture : texture;
+        @Override
+        public ResourceLocation getTexture(Entity entity) {
+            if(entity instanceof EntityHidebehind) {
+                return ((EntityHidebehind) entity).getOpen() ? openTexture : texture;
+            } else {
+                return texture;
+            }
         }
-
     }
 
 }
