@@ -38,6 +38,7 @@ import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.vector.Vector3d;
+import net.minecraft.world.Difficulty;
 import net.minecraft.world.DifficultyInstance;
 import net.minecraft.world.IServerWorld;
 import net.minecraft.world.World;
@@ -58,6 +59,7 @@ public class EntityWisp extends AnimalEntity implements IContainerEntity<EntityW
     public static final DataParameter<Float> PASSIVE_SCALE = EntityDataManager.createKey(EntityWisp.class, DataSerializers.FLOAT);
     public static final DataParameter<Integer> COLOR_VARIANT = EntityDataManager.createKey(EntityWisp.class, DataSerializers.VARINT);
     protected ResourceLocation targetTexture;
+    private boolean shouldBeHostile = false;
 
     protected EntityWisp(EntityType<? extends EntityWisp> entityType, World world) {
         super(entityType, world);
@@ -79,6 +81,13 @@ public class EntityWisp extends AnimalEntity implements IContainerEntity<EntityW
 
     public void tick() {
         super.tick();
+        if(this.isHostile && world.getDifficulty() == Difficulty.PEACEFUL) {
+            this.isHostile = false;
+            this.shouldBeHostile = true;
+        } else if(this.shouldBeHostile && world.getDifficulty() != Difficulty.PEACEFUL) {
+            this.isHostile = true;
+            this.shouldBeHostile = false;
+        }
         int state = this.dataManager.get(ATTACK_STATE);
         if(state == 0) {
             this.setMotion(this.getMotion().mul(0.5D, 0.6D, 0.5D));
@@ -235,6 +244,7 @@ public class EntityWisp extends AnimalEntity implements IContainerEntity<EntityW
         super.writeAdditional(compound);
         compound.putBoolean("is_hostile", isHostile);
         compound.putInt("color_variant", this.dataManager.get(COLOR_VARIANT));
+        compound.putBoolean("should_be_hositle", this.shouldBeHostile);
     }
 
     @Override
@@ -242,6 +252,7 @@ public class EntityWisp extends AnimalEntity implements IContainerEntity<EntityW
         super.readAdditional(compound);
         this.isHostile = compound.getBoolean("is_hostile");
         this.dataManager.set(COLOR_VARIANT, compound.getInt("color_variant"));
+        this.shouldBeHostile = compound.getBoolean("should_be_hostile");
     }
 
     @Override
