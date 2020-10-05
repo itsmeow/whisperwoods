@@ -34,6 +34,7 @@ import net.minecraft.network.datasync.EntityDataManager;
 import net.minecraft.tileentity.SkullTileEntity;
 import net.minecraft.util.DamageSource;
 import net.minecraft.util.EntityDamageSource;
+import net.minecraft.util.EntityPredicates;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
@@ -58,6 +59,8 @@ public class EntityWisp extends AnimalEntity implements IContainerEntity<EntityW
     public static final DataParameter<String> TARGET_NAME = EntityDataManager.createKey(EntityWisp.class, DataSerializers.STRING);
     public static final DataParameter<Float> PASSIVE_SCALE = EntityDataManager.createKey(EntityWisp.class, DataSerializers.FLOAT);
     public static final DataParameter<Integer> COLOR_VARIANT = EntityDataManager.createKey(EntityWisp.class, DataSerializers.VARINT);
+    private static final EntityPredicate PASSIVE_SCALE_PREDICATE = new EntityPredicate().allowInvulnerable().allowFriendlyFire().setSkipAttackChecks();
+    private static final EntityPredicate HOSTILE_TARGET_PREDICATE = EntityPredicate.DEFAULT.setCustomPredicate(EntityPredicates.CAN_HOSTILE_AI_TARGET::test);
     protected ResourceLocation targetTexture;
     private boolean shouldBeHostile = false;
 
@@ -115,7 +118,7 @@ public class EntityWisp extends AnimalEntity implements IContainerEntity<EntityW
         }
         if(!this.isHostile && !world.isRemote) {
             if(world.getEntitiesWithinAABB(PlayerEntity.class, this.getBoundingBox().grow(10)).size() > 0) {
-                PlayerEntity nearest = world.getClosestEntityWithinAABB(PlayerEntity.class, new EntityPredicate().allowInvulnerable().allowFriendlyFire().setSkipAttackChecks(), null, this.getPosX(), this.getPosY(), this.getPosZ(), this.getBoundingBox().grow(10));
+                PlayerEntity nearest = world.getClosestEntityWithinAABB(PlayerEntity.class, PASSIVE_SCALE_PREDICATE, null, this.getPosX(), this.getPosY(), this.getPosZ(), this.getBoundingBox().grow(10));
                 if(nearest != null) {
                     this.dataManager.set(PASSIVE_SCALE, nearest.getDistance(this) / 12F);
                 } else {
@@ -134,12 +137,9 @@ public class EntityWisp extends AnimalEntity implements IContainerEntity<EntityW
         if(this.getAttackTarget() != null && this.getAttackTarget().isInvulnerable()) {
             this.setAttackTarget(null);
         }
-        if(this.getAttackTarget() == null && this.isHostile) {
-            
-        }
         if((this.targetPosition != null && this.getPosition().distanceSq(this.targetPosition) < 4) || this.targetPosition == null || !this.isHostile || (this.isHostile && state == 0)) {
             if(this.getAttackTarget() == null && this.isHostile) {
-                this.setAttackTarget(world.getClosestEntityWithinAABB(PlayerEntity.class, EntityPredicate.DEFAULT, null, this.getPosX(), this.getPosY(), this.getPosZ(), this.getBoundingBox().grow(25)));
+                this.setAttackTarget(world.getClosestEntityWithinAABB(PlayerEntity.class, HOSTILE_TARGET_PREDICATE, null, this.getPosX(), this.getPosY(), this.getPosZ(), this.getBoundingBox().grow(25)));
             }
             if(this.isHostile && this.getAttackTarget() != null) {
                 this.targetPosition = this.getAttackTarget().getPosition();
@@ -222,7 +222,7 @@ public class EntityWisp extends AnimalEntity implements IContainerEntity<EntityW
 
     @Override
     protected void collideWithEntity(Entity entity) {
-        if(entity == this.getAttackTarget() && this.getAttackTarget() != null && entity instanceof PlayerEntity && this.dataManager.get(ATTACK_STATE) == 0) {
+        if(entity == this.getAttackTarget() && this.getAttackTarget() != null && entity instanceof PlayerEntity && HOSTILE_TARGET_PREDICATE.canTarget(this, (PlayerEntity) entity) && this.dataManager.get(ATTACK_STATE) == 0) {
             PlayerEntity player = (PlayerEntity) entity;
             this.dataManager.set(ATTACK_STATE, Integer.valueOf(1));
             this.dataManager.set(TARGET, player.getGameProfile().getId().toString());
