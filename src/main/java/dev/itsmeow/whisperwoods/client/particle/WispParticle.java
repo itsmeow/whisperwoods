@@ -20,7 +20,7 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 
 public class WispParticle extends SpriteTexturedParticle {
     private final IAnimatedSprite spriteSet;
-    private static final IParticleRenderType PARTICLE_SHEET_TRANSLUCENT_114 = new IParticleRenderType() {
+    public static final IParticleRenderType PARTICLE_SHEET_TRANSLUCENT_114 = new IParticleRenderType() {
         @SuppressWarnings("deprecation")
         public void beginRender(BufferBuilder bufferBuilder, TextureManager textureManager) {
             RenderSystem.depthMask(false);

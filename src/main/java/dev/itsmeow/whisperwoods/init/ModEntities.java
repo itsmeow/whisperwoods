@@ -13,6 +13,7 @@ import dev.itsmeow.imdlib.util.BiomeDictionary.Type;
 import dev.itsmeow.whisperwoods.WhisperwoodsMod;
 import dev.itsmeow.whisperwoods.entity.EntityHidebehind;
 import dev.itsmeow.whisperwoods.entity.EntityHidebehind.HidebehindVariant;
+import dev.itsmeow.whisperwoods.entity.EntityHirschgeist;
 import dev.itsmeow.whisperwoods.entity.EntityMoth;
 import dev.itsmeow.whisperwoods.entity.EntityWisp;
 import net.minecraft.entity.EntityClassification;
@@ -88,6 +89,17 @@ public class ModEntities {
         }
     })
     .biomes(Type.FOREST, Type.SWAMP));
+
+    public static final EntityTypeContainer<EntityHirschgeist> HIRSCHGEIST = H.add(entity(EntityHirschgeist.class, EntityHirschgeist::new, "hirschgeist", () -> MobEntity.func_233666_p_()
+    .createMutableAttribute(Attributes.MAX_HEALTH, 150.0D)
+    .createMutableAttribute(Attributes.FOLLOW_RANGE, 50.0D)
+    .createMutableAttribute(Attributes.MOVEMENT_SPEED, 0.65D)
+    .createMutableAttribute(Attributes.ATTACK_DAMAGE)
+    .createMutableAttribute(Attributes.ATTACK_DAMAGE, 6.0D))
+    .spawn(EntityClassification.CREATURE, 2, 1, 1)
+    .egg(0xfffff, 0x00000)
+    .size(3F, 4F)
+    .biomes(Type.FOREST));
 
     public static final LinkedHashMap<String, EntityTypeContainer<? extends MobEntity>> getEntities() {
         return H.ENTITIES;

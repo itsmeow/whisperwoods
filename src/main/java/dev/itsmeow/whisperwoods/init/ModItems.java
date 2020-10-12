@@ -3,6 +3,7 @@ package dev.itsmeow.whisperwoods.init;
 import java.util.function.Supplier;
 
 import dev.itsmeow.whisperwoods.WhisperwoodsMod;
+import dev.itsmeow.whisperwoods.item.ItemBlockHirschgeistSkull;
 import net.minecraft.block.Block;
 import net.minecraft.item.BlockItem;
 import net.minecraft.item.Item;
@@ -20,8 +21,8 @@ public class ModItems {
     public static RegistryObject<Item> GHOST_LIGHT_GOLD = rIB(ModBlocks.GHOST_LIGHT_GOLD);
     public static RegistryObject<Item> GHOST_LIGHT_TOXIC_GREEN = rIB(ModBlocks.GHOST_LIGHT_TOXIC_GREEN);
     public static RegistryObject<Item> GHOST_LIGHT_MAGIC_PURPLE = rIB(ModBlocks.GHOST_LIGHT_MAGIC_PURPLE);
+    public static RegistryObject<Item> HIRSCHGEIST_SKULL = r("hirschgeist_skull", () -> new ItemBlockHirschgeistSkull(ModBlocks.HIRSCHGEIST_SKULL.get()));
 
-    @SuppressWarnings("unused")
     private static RegistryObject<Item> r(String name, Supplier<Item> b) {
         return ITEMS.register(name, b);
     }

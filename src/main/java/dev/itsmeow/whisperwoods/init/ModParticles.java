@@ -6,6 +6,7 @@ import com.mojang.serialization.Codec;
 
 import dev.itsmeow.whisperwoods.WhisperwoodsMod;
 import dev.itsmeow.whisperwoods.particle.WispParticleData;
+import net.minecraft.particles.BasicParticleType;
 import net.minecraft.particles.IParticleData;
 import net.minecraft.particles.ParticleType;
 import net.minecraftforge.eventbus.api.IEventBus;
@@ -23,6 +24,7 @@ public class ModParticles {
             return WispParticleData.CODEC;
         }
     });
+    public static final RegistryObject<ParticleType<BasicParticleType>> FLAME = r("flame", () -> new BasicParticleType(false));
 
     private static <T extends IParticleData> RegistryObject<ParticleType<T>> r(String name, Supplier<ParticleType<T>> b) {
         return PARTICLES.register(name, b);
