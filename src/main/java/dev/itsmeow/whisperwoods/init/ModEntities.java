@@ -9,6 +9,10 @@ import dev.itsmeow.imdlib.entity.EntityRegistrarHandler;
 import dev.itsmeow.imdlib.entity.util.EntityTypeContainer;
 import dev.itsmeow.imdlib.entity.util.EntityTypeContainer.Builder;
 import dev.itsmeow.imdlib.entity.util.EntityTypeContainer.CustomConfigurationHolder;
+import dev.itsmeow.imdlib.entity.util.EntityTypeContainerContainable;
+import dev.itsmeow.imdlib.entity.util.IContainable;
+import dev.itsmeow.imdlib.item.IContainerItem;
+import dev.itsmeow.imdlib.item.ItemModEntityContainer;
 import dev.itsmeow.imdlib.util.BiomeDictionary.Type;
 import dev.itsmeow.whisperwoods.WhisperwoodsMod;
 import dev.itsmeow.whisperwoods.entity.EntityHidebehind;
@@ -21,6 +25,8 @@ import net.minecraft.entity.MobEntity;
 import net.minecraft.entity.ai.attributes.AttributeModifierMap;
 import net.minecraft.entity.ai.attributes.Attributes;
 import net.minecraft.entity.monster.MonsterEntity;
+import net.minecraft.item.Item;
+import net.minecraft.item.Items;
 import net.minecraft.world.Difficulty;
 import net.minecraft.world.World;
 import net.minecraftforge.common.ForgeConfigSpec;
@@ -29,7 +35,7 @@ public class ModEntities {
 
     public static final EntityRegistrarHandler H = IMDLib.entityHandler(WhisperwoodsMod.MODID);
 
-    public static final EntityTypeContainer<EntityMoth> MOTH = H.add(entity(EntityMoth.class, EntityMoth::new, "moth", () -> MobEntity.func_233666_p_().createMutableAttribute(Attributes.MAX_HEALTH, 2.0D))
+    public static final EntityTypeContainerContainable<EntityMoth, ItemModEntityContainer<EntityMoth>> MOTH = H.add(ModEntities.<EntityMoth, ItemModEntityContainer<EntityMoth>>entityContainable(EntityMoth.class, EntityMoth::new, "moth", () -> MobEntity.func_233666_p_().createMutableAttribute(Attributes.MAX_HEALTH, 2.0D))
     .spawn(EntityClassification.AMBIENT, 10, 1, 3)
     .egg(0x442516, 0xc66121)
     .size(0.35F, 0.35F)
@@ -56,7 +62,8 @@ public class ModEntities {
     "black_white_deaths_head",
     "brown_grey_deaths_head",
     "brown_orange_deaths_head")
-    .biomes(Type.FOREST, Type.SWAMP));
+    .biomes(Type.FOREST, Type.SWAMP)
+    .containers(ItemModEntityContainer.get("bottled_%s", WhisperwoodsMod.TAB), c -> Items.GLASS_BOTTLE, EntityMoth::bottleTooltip));
 
     public static final EntityTypeContainer<EntityHidebehind> HIDEBEHIND = H.add(entity(EntityHidebehind.class, EntityHidebehind::new, "hidebehind", () -> MobEntity.func_233666_p_().createMutableAttribute(Attributes.MAX_HEALTH, 20D).createMutableAttribute(Attributes.ATTACK_DAMAGE).createMutableAttribute(Attributes.ATTACK_DAMAGE, 15D))
     .spawn(EntityClassification.CREATURE, 5, 1, 1)
@@ -109,4 +116,7 @@ public class ModEntities {
         return EntityTypeContainer.Builder.create(entityClass, func, entityNameIn, attributes, WhisperwoodsMod.MODID);
     }
 
+    private static <T extends MobEntity & IContainable, I extends Item & IContainerItem<T>> EntityTypeContainerContainable.Builder<T, I> entityContainable(Class<T> EntityClass, Function<World, T> func, String entityNameIn, Supplier<AttributeModifierMap.MutableAttribute> attributes) {
+        return EntityTypeContainerContainable.Builder.create(EntityClass, func, entityNameIn, attributes, WhisperwoodsMod.MODID);
+    }
 }

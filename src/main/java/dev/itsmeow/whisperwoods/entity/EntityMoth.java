@@ -1,6 +1,11 @@
 package dev.itsmeow.whisperwoods.entity;
 
+import java.util.List;
+
+import javax.annotation.Nullable;
+
 import dev.itsmeow.imdlib.entity.util.EntityTypeContainer;
+import dev.itsmeow.imdlib.entity.util.EntityTypeContainerContainable;
 import dev.itsmeow.whisperwoods.init.ModEntities;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
@@ -11,8 +16,10 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityPredicate;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.MobEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
+import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.network.datasync.DataParameter;
@@ -24,10 +31,15 @@ import net.minecraft.util.Hand;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.vector.Vector3d;
+import net.minecraft.util.text.ITextComponent;
+import net.minecraft.util.text.StringTextComponent;
+import net.minecraft.util.text.Style;
+import net.minecraft.util.text.TextFormatting;
 import net.minecraft.world.LightType;
 import net.minecraft.world.World;
+import net.minecraftforge.common.util.Constants;
 
-public class EntityMoth extends EntityAnimalWithTypesAndSize {
+public class EntityMoth extends EntityAnimalWithTypesAndSizeContainable {
 
     private static final DataParameter<Integer> LANDED = EntityDataManager.createKey(EntityMoth.class, DataSerializers.VARINT);
     private static final EntityPredicate playerPredicate = (new EntityPredicate()).setDistance(4.0D).allowFriendlyFire().allowInvulnerable();
@@ -38,7 +50,7 @@ public class EntityMoth extends EntityAnimalWithTypesAndSize {
         this(ModEntities.MOTH.entityType, worldIn);
     }
 
-    protected EntityMoth(EntityType<? extends EntityAnimalWithTypesAndSize> type, World worldIn) {
+    protected EntityMoth(EntityType<? extends EntityAnimalWithTypesAndSizeContainable> type, World worldIn) {
         super(type, worldIn);
     }
 
@@ -267,4 +279,17 @@ public class EntityMoth extends EntityAnimalWithTypesAndSize {
         return null;
     }
 
+    @Override
+    public EntityTypeContainerContainable<?, ?> getContainableContainer() {
+        return ModEntities.MOTH;
+    }
+
+    public static void bottleTooltip(EntityTypeContainer<? extends MobEntity> container, ItemStack stack, @Nullable World worldIn, List<ITextComponent> tooltip) {
+        CompoundNBT tag = stack.getTag();
+        if(tag != null) {
+            if(tag.contains("SizeTag", Constants.NBT.TAG_FLOAT)) {
+                tooltip.add(new StringTextComponent("Size: " + tag.getFloat("SizeTag")).setStyle(Style.EMPTY.createStyleFromFormattings(new TextFormatting[] { TextFormatting.ITALIC, TextFormatting.GRAY })));
+            }
+        }
+    }
 }
