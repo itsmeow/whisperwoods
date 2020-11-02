@@ -874,7 +874,6 @@ public class ModelHirschgeist extends EntityModel<EntityHirschgeist> {
 
     @Override
     public void setRotationAngles(EntityHirschgeist entityIn, float limbSwing, float limbSwingAmount, float ageInTicks, float netHeadYaw, float headPitch) {
-
     }
 
     public static class TypeBasedModelRenderer extends ModelRenderer {
@@ -918,7 +917,7 @@ public class ModelHirschgeist extends EntityModel<EntityHirschgeist> {
         }
 
     }
-    
+
     public static class FlameTipModelRenderer extends BoneModelRenderer {
 
         public FlameTipModelRenderer(Model model, int texOffX, int texOffY) {
@@ -970,10 +969,20 @@ public class ModelHirschgeist extends EntityModel<EntityHirschgeist> {
             Tessellator tessellator = Tessellator.getInstance();
             BufferBuilder bufferbuilder = tessellator.getBuffer();
             Matrix4f d = stack.getLast().getMatrix();
-            // copy translations
-            Matrix4f matrix = Matrix4f.makeTranslate(d.m03, d.m13, d.m23);
-            // re-scale
+            float ticks = ((float) Minecraft.getInstance().player.ticksExisted % 30) / 30F;
+            Matrix4f matrix = Matrix4f.makeTranslate(d.m03 + ((float) Math.random() - 0.5F) / 100F, d.m13 + ((float) Math.random() - 0.5F) / 100F, d.m23 + ((float) Math.random() - 0.5F) / 100F);
+            float extraScale = (1F - ticks) + (float) Math.random() / 10F;
             matrix.mul(Matrix4f.makeScale(0.1F * scale, 0.1F * scale, 0.1F * scale));
+            bufferbuilder.begin(7, DefaultVertexFormats.POSITION_TEX);
+            bufferbuilder.pos(matrix, -1F, -1F, 0F).tex(1, 1).endVertex();
+            bufferbuilder.pos(matrix, -1F, 1F, 0F).tex(1, 0).endVertex();
+            bufferbuilder.pos(matrix, 1F, 1F, 0F).tex(0, 0).endVertex();
+            bufferbuilder.pos(matrix, 1F, -1F, 0F).tex(0, 1).endVertex();
+            bufferbuilder.finishDrawing();
+            WorldVertexBufferUploader.draw(bufferbuilder);
+            matrix = Matrix4f.makeTranslate(d.m03, d.m13, d.m23 + 0.01F);
+            matrix.mul(Matrix4f.makeScale(0.1F * scale, 0.1F * scale, 0.1F * scale));
+            matrix.mul(Matrix4f.makeScale(extraScale, extraScale, extraScale));
             bufferbuilder.begin(7, DefaultVertexFormats.POSITION_TEX);
             bufferbuilder.pos(matrix, -1F, -1F, 0F).tex(1, 1).endVertex();
             bufferbuilder.pos(matrix, -1F, 1F, 0F).tex(1, 0).endVertex();
@@ -1001,4 +1010,5 @@ public class ModelHirschgeist extends EntityModel<EntityHirschgeist> {
         modelRenderer.rotateAngleY = y;
         modelRenderer.rotateAngleZ = z;
     }
+
 }
