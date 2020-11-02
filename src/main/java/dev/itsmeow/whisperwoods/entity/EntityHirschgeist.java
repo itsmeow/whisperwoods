@@ -56,6 +56,19 @@ public class EntityHirschgeist extends MonsterEntity {
     }
 
     @Override
+    public boolean isEntityInsideOpaqueBlock() {
+        if(this.noClip) {
+            return false;
+        } else {
+            float f1 = this.getWidth() * 0.8F;
+            AxisAlignedBB axisalignedbb = AxisAlignedBB.withSizeAtOrigin((double) f1, (double) 0.1F, (double) f1).offset(this.getPosX(), this.getPosYEye(), this.getPosZ());
+            return this.world.func_241457_a_(this, axisalignedbb, (state, pos) -> {
+                return !state.isIn(BlockTags.LOGS) && state.isSuffocating(this.world, pos);
+            }).findAny().isPresent();
+        }
+    }
+
+    @Override
     public void move(MoverType type, Vector3d pos) {
         if(this.noClip) {
             this.setBoundingBox(this.getBoundingBox().offset(pos));
