@@ -104,7 +104,6 @@ public class BlockHandOfFate extends Block {
     @Nullable
     @Override
     public BlockState getStateForPlacement(BlockItemUseContext context) {
-        System.out.println(context.getPlacementYaw() % 360);
         return this.getDefaultState().with(ROTATION, Orientation.fromAngle((360F + (context.getPlacementYaw() % 360)) % 360F)).with(BlockStateProperties.WATERLOGGED, context.getWorld().getFluidState(context.getPos()).getFluid() == Fluids.WATER);
     }
 
