@@ -93,7 +93,7 @@ public class BlockHandOfFate extends Block {
 
     @Override
     public boolean isValidPosition(BlockState state, IWorldReader worldIn, BlockPos pos) {
-        return Block.hasEnoughSolidSide(worldIn, pos.down(), Direction.UP) && !worldIn.getBlockState(pos.up()).isSolid();
+        return Block.hasEnoughSolidSide(worldIn, pos.down(), Direction.UP) && (!worldIn.getBlockState(pos.up()).isSolid() || worldIn.getBlockState(pos.up()).getBlock() instanceof BlockGhostLight);
     }
 
     @Override
