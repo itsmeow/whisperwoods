@@ -7,6 +7,7 @@ import com.mojang.blaze3d.matrix.MatrixStack;
 import dev.itsmeow.imdlib.client.IMDLibClient;
 import dev.itsmeow.imdlib.client.render.RenderFactory;
 import dev.itsmeow.whisperwoods.WhisperwoodsMod;
+import dev.itsmeow.whisperwoods.block.BlockWispLantern;
 import dev.itsmeow.whisperwoods.client.particle.FlameParticle;
 import dev.itsmeow.whisperwoods.client.particle.WispParticle;
 import dev.itsmeow.whisperwoods.client.renderer.entity.RenderHirschgeist;
@@ -14,15 +15,19 @@ import dev.itsmeow.whisperwoods.client.renderer.entity.RenderWisp;
 import dev.itsmeow.whisperwoods.client.renderer.entity.model.ModelHidebehind;
 import dev.itsmeow.whisperwoods.client.renderer.entity.model.ModelMoth;
 import dev.itsmeow.whisperwoods.client.renderer.tile.RenderHGSkull;
+import dev.itsmeow.whisperwoods.client.renderer.tile.RenderTileHandOfFate;
 import dev.itsmeow.whisperwoods.client.renderer.tile.RenderTileGhostLight;
 import dev.itsmeow.whisperwoods.entity.EntityHidebehind;
+import dev.itsmeow.whisperwoods.init.ModBlocks;
 import dev.itsmeow.whisperwoods.init.ModEntities;
 import dev.itsmeow.whisperwoods.init.ModParticles;
 import dev.itsmeow.whisperwoods.init.ModTileEntities;
+import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.IRenderTypeBuffer;
 import net.minecraft.client.renderer.RenderState;
 import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.RenderTypeLookup;
 import net.minecraft.client.renderer.entity.layers.LayerRenderer;
 import net.minecraft.client.renderer.entity.model.EntityModel;
 import net.minecraft.client.renderer.texture.OverlayTexture;
@@ -43,6 +48,7 @@ public class ClientLifecycleHandler {
 
     public static class RenderTypes extends RenderType {
         protected static final RenderState.WriteMaskState NO_WRITE = new RenderState.WriteMaskState(false, false);
+        private static final RenderType TRANSLUCENT_DEPTH_MASK_OFF = makeType("translucent_depth_mask_off", DefaultVertexFormats.BLOCK, 7, 262144, true, true, RenderType.State.getBuilder().shadeModel(SHADE_ENABLED).lightmap(LIGHTMAP_ENABLED).texture(BLOCK_SHEET_MIPPED).transparency(TRANSLUCENT_TRANSPARENCY).target(field_239236_S_).writeMask(COLOR_WRITE).build(true));
 
         public RenderTypes() {
             super(null, null, 0, 0, false, false, null, null);
@@ -56,6 +62,10 @@ public class ClientLifecycleHandler {
         public static RenderType getEyesEntityCutoutNoCullDepthMaskOff(ResourceLocation locationIn) {
             RenderState.TextureState renderstate$texturestate = new RenderState.TextureState(locationIn, false, false);
             return makeType("eyes_entity_cutout_no_cull_depth_mask_off", DefaultVertexFormats.ENTITY, 7, 256, false, true, RenderType.State.getBuilder().texture(renderstate$texturestate).cull(CULL_DISABLED).transparency(ADDITIVE_TRANSPARENCY).writeMask(COLOR_WRITE).fog(BLACK_FOG).diffuseLighting(DIFFUSE_LIGHTING_ENABLED).alpha(DEFAULT_ALPHA).lightmap(LIGHTMAP_ENABLED).overlay(OVERLAY_ENABLED).build(false));
+        }
+
+        public static RenderType getTranslucentDepthMaskOff() {
+            return TRANSLUCENT_DEPTH_MASK_OFF;
         }
     }
 
@@ -90,6 +100,14 @@ public class ClientLifecycleHandler {
 
         ClientRegistry.bindTileEntityRenderer(ModTileEntities.GHOST_LIGHT.get(), RenderTileGhostLight::new);
         ClientRegistry.bindTileEntityRenderer(ModTileEntities.HG_SKULL.get(), RenderHGSkull::new);
+        ClientRegistry.bindTileEntityRenderer(ModTileEntities.HAND_OF_FATE.get(), RenderTileHandOfFate::new);
+
+        ModBlocks.getBlocks().forEach(blockEntry -> {
+            Block block = blockEntry.get();
+            if(block instanceof BlockWispLantern) {
+                RenderTypeLookup.setRenderLayer(block, t -> t == RenderType.getSolid() || t == RenderType.getTranslucent());
+            }
+        });
         LogManager.getLogger().info("Increasing wispiness of wisps...");
     }
 

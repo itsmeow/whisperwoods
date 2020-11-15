@@ -1,7 +1,124 @@
 {
-	"variants": {
-		"": {
-			"model": "minecraft:block/soul_sand"
-		}
-	}
+  "variants": {
+    "facing=up,top=north,waterlogged=false": {
+      "model": "minecraft:block/soul_sand"
+    },
+    "facing=north,top=north,waterlogged=false": {
+      "model": "minecraft:block/soul_sand"
+    },
+    "facing=south,top=north,waterlogged=false": {
+      "model": "minecraft:block/soul_sand"
+    },
+    "facing=west,top=north,waterlogged=false": {
+      "model": "minecraft:block/soul_sand"
+    },
+    "facing=east,top=north,waterlogged=false": {
+      "model": "minecraft:block/soul_sand"
+    },
+    "facing=up,top=south,waterlogged=false": {
+      "model": "minecraft:block/soul_sand"
+    },
+    "facing=north,top=south,waterlogged=false": {
+      "model": "minecraft:block/soul_sand"
+    },
+    "facing=south,top=south,waterlogged=false": {
+      "model": "minecraft:block/soul_sand"
+    },
+    "facing=west,top=south,waterlogged=false": {
+      "model": "minecraft:block/soul_sand"
+    },
+    "facing=east,top=south,waterlogged=false": {
+      "model": "minecraft:block/soul_sand"
+    },
+    "facing=up,top=west,waterlogged=false": {
+      "model": "minecraft:block/soul_sand"
+    },
+    "facing=north,top=west,waterlogged=false": {
+      "model": "minecraft:block/soul_sand"
+    },
+    "facing=south,top=west,waterlogged=false": {
+      "model": "minecraft:block/soul_sand"
+    },
+    "facing=west,top=west,waterlogged=false": {
+      "model": "minecraft:block/soul_sand"
+    },
+    "facing=east,top=west,waterlogged=false": {
+      "model": "minecraft:block/soul_sand"
+    },
+    "facing=up,top=east,waterlogged=false": {
+      "model": "minecraft:block/soul_sand"
+    },
+    "facing=north,top=east,waterlogged=false": {
+      "model": "minecraft:block/soul_sand"
+    },
+    "facing=south,top=east,waterlogged=false": {
+      "model": "minecraft:block/soul_sand"
+    },
+    "facing=west,top=east,waterlogged=false": {
+      "model": "minecraft:block/soul_sand"
+    },
+    "facing=east,top=east,waterlogged=false": {
+      "model": "minecraft:block/soul_sand"
+    },
+    "facing=up,top=north,waterlogged=true": {
+      "model": "minecraft:block/soul_sand"
+    },
+    "facing=north,top=north,waterlogged=true": {
+      "model": "minecraft:block/soul_sand"
+    },
+    "facing=south,top=north,waterlogged=true": {
+      "model": "minecraft:block/soul_sand"
+    },
+    "facing=west,top=north,waterlogged=true": {
+      "model": "minecraft:block/soul_sand"
+    },
+    "facing=east,top=north,waterlogged=true": {
+      "model": "minecraft:block/soul_sand"
+    },
+    "facing=up,top=south,waterlogged=true": {
+      "model": "minecraft:block/soul_sand"
+    },
+    "facing=north,top=south,waterlogged=true": {
+      "model": "minecraft:block/soul_sand"
+    },
+    "facing=south,top=south,waterlogged=true": {
+      "model": "minecraft:block/soul_sand"
+    },
+    "facing=west,top=south,waterlogged=true": {
+      "model": "minecraft:block/soul_sand"
+    },
+    "facing=east,top=south,waterlogged=true": {
+      "model": "minecraft:block/soul_sand"
+    },
+    "facing=up,top=west,waterlogged=true": {
+      "model": "minecraft:block/soul_sand"
+    },
+    "facing=north,top=west,waterlogged=true": {
+      "model": "minecraft:block/soul_sand"
+    },
+    "facing=south,top=west,waterlogged=true": {
+      "model": "minecraft:block/soul_sand"
+    },
+    "facing=west,top=west,waterlogged=true": {
+      "model": "minecraft:block/soul_sand"
+    },
+    "facing=east,top=west,waterlogged=true": {
+      "model": "minecraft:block/soul_sand"
+    },
+    "facing=up,top=east,waterlogged=true": {
+      "model": "minecraft:block/soul_sand"
+    },
+    "facing=north,top=east,waterlogged=true": {
+      "model": "minecraft:block/soul_sand"
+    },
+    "facing=south,top=east,waterlogged=true": {
+      "model": "minecraft:block/soul_sand"
+    },
+    "facing=west,top=east,waterlogged=true": {
+      "model": "minecraft:block/soul_sand"
+    },
+    "facing=east,top=east,waterlogged=true": {
+      "model": "minecraft:block/soul_sand"
+    }
+  }
 }

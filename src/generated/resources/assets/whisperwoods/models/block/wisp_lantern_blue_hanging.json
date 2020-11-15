@@ -1,0 +1,133 @@
+{
+  "parent": "minecraft:block/block",
+  "display": {
+    "thirdperson_lefthand": {
+      "rotation": [
+        69,
+        0,
+        0
+      ],
+      "translation": [
+        0,
+        -3.25,
+        -3.25
+      ],
+      "scale": [
+        0.6,
+        0.6,
+        0.6
+      ]
+    },
+    "thirdperson_righthand": {
+      "rotation": [
+        69,
+        0,
+        0
+      ],
+      "translation": [
+        0,
+        -3.25,
+        -3.25
+      ],
+      "scale": [
+        0.6,
+        0.6,
+        0.6
+      ]
+    }
+  },
+  "textures": {
+    "particle": "whisperwoods:blocks/wisp_lantern"
+  },
+  "loader": "forge:multi-layer",
+  "layers": {
+    "solid": {
+      "parent": "whisperwoods:block/wisp_lantern_hanging"
+    },
+    "translucent": {
+      "parent": "minecraft:block/block",
+      "textures": {
+        "lens": "whisperwoods:blocks/wisp_lantern_lens_blue"
+      },
+      "elements": [
+        {
+          "from": [
+            5,
+            2,
+            3.8
+          ],
+          "to": [
+            11,
+            8,
+            4.8
+          ],
+          "rotation": {
+            "origin": [
+              0,
+              8,
+              0
+            ],
+            "axis": "z",
+            "angle": 0.0
+          },
+          "faces": {
+            "down": {
+              "texture": "#lens",
+              "uv": [
+                6.5,
+                12.0,
+                3.5,
+                12.5
+              ]
+            },
+            "up": {
+              "texture": "#lens",
+              "uv": [
+                3.5,
+                12.5,
+                0.5,
+                12.0
+              ]
+            },
+            "north": {
+              "texture": "#lens",
+              "uv": [
+                0.5,
+                12.5,
+                3.5,
+                15.5
+              ]
+            },
+            "south": {
+              "texture": "#lens",
+              "uv": [
+                4.0,
+                12.5,
+                7.0,
+                15.5
+              ]
+            },
+            "west": {
+              "texture": "#lens",
+              "uv": [
+                3.5,
+                12.5,
+                4.0,
+                15.5
+              ]
+            },
+            "east": {
+              "texture": "#lens",
+              "uv": [
+                0.0,
+                12.5,
+                0.5,
+                15.5
+              ]
+            }
+          }
+        }
+      ]
+    }
+  }
+}

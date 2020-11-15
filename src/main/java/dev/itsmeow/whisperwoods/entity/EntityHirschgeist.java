@@ -68,6 +68,7 @@ public class EntityHirschgeist extends MonsterEntity {
         }
     }
 
+    @SuppressWarnings("deprecation")
     @Override
     public void move(MoverType type, Vector3d pos) {
         if(this.noClip) {

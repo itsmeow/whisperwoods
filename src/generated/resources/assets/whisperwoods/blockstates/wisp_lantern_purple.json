@@ -1,0 +1,94 @@
+{
+  "variants": {
+    "facing=down,horizontal=north": {
+      "model": "whisperwoods:block/wisp_lantern_purple_sitting"
+    },
+    "facing=up,horizontal=north": {
+      "model": "whisperwoods:block/wisp_lantern_purple_hanging"
+    },
+    "facing=north,horizontal=north": {
+      "model": "whisperwoods:block/wisp_lantern_purple_wall",
+      "y": 180
+    },
+    "facing=south,horizontal=north": {
+      "model": "whisperwoods:block/wisp_lantern_purple_wall"
+    },
+    "facing=west,horizontal=north": {
+      "model": "whisperwoods:block/wisp_lantern_purple_wall",
+      "y": 90
+    },
+    "facing=east,horizontal=north": {
+      "model": "whisperwoods:block/wisp_lantern_purple_wall",
+      "y": 270
+    },
+    "facing=down,horizontal=south": {
+      "model": "whisperwoods:block/wisp_lantern_purple_sitting",
+      "y": 180
+    },
+    "facing=up,horizontal=south": {
+      "model": "whisperwoods:block/wisp_lantern_purple_hanging",
+      "y": 180
+    },
+    "facing=north,horizontal=south": {
+      "model": "whisperwoods:block/wisp_lantern_purple_wall",
+      "y": 180
+    },
+    "facing=south,horizontal=south": {
+      "model": "whisperwoods:block/wisp_lantern_purple_wall"
+    },
+    "facing=west,horizontal=south": {
+      "model": "whisperwoods:block/wisp_lantern_purple_wall",
+      "y": 90
+    },
+    "facing=east,horizontal=south": {
+      "model": "whisperwoods:block/wisp_lantern_purple_wall",
+      "y": 270
+    },
+    "facing=down,horizontal=west": {
+      "model": "whisperwoods:block/wisp_lantern_purple_sitting",
+      "y": 270
+    },
+    "facing=up,horizontal=west": {
+      "model": "whisperwoods:block/wisp_lantern_purple_hanging",
+      "y": 270
+    },
+    "facing=north,horizontal=west": {
+      "model": "whisperwoods:block/wisp_lantern_purple_wall",
+      "y": 180
+    },
+    "facing=south,horizontal=west": {
+      "model": "whisperwoods:block/wisp_lantern_purple_wall"
+    },
+    "facing=west,horizontal=west": {
+      "model": "whisperwoods:block/wisp_lantern_purple_wall",
+      "y": 90
+    },
+    "facing=east,horizontal=west": {
+      "model": "whisperwoods:block/wisp_lantern_purple_wall",
+      "y": 270
+    },
+    "facing=down,horizontal=east": {
+      "model": "whisperwoods:block/wisp_lantern_purple_sitting",
+      "y": 90
+    },
+    "facing=up,horizontal=east": {
+      "model": "whisperwoods:block/wisp_lantern_purple_hanging",
+      "y": 90
+    },
+    "facing=north,horizontal=east": {
+      "model": "whisperwoods:block/wisp_lantern_purple_wall",
+      "y": 180
+    },
+    "facing=south,horizontal=east": {
+      "model": "whisperwoods:block/wisp_lantern_purple_wall"
+    },
+    "facing=west,horizontal=east": {
+      "model": "whisperwoods:block/wisp_lantern_purple_wall",
+      "y": 90
+    },
+    "facing=east,horizontal=east": {
+      "model": "whisperwoods:block/wisp_lantern_purple_wall",
+      "y": 270
+    }
+  }
+}

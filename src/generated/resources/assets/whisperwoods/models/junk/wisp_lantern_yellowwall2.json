@@ -1,0 +1,85 @@
+{
+  "parent": "minecraft:block/block",
+  "textures": {
+    "lens": "whisperwoods:blocks/wisp_lantern_lens_yellow"
+  },
+  "elements": [
+    {
+      "from": [
+        5,
+        2,
+        7.8
+      ],
+      "to": [
+        11,
+        8,
+        8.8
+      ],
+      "rotation": {
+        "origin": [
+          0,
+          8,
+          0
+        ],
+        "axis": "z",
+        "angle": 0.0
+      },
+      "faces": {
+        "down": {
+          "texture": "#lens",
+          "uv": [
+            6.5,
+            12.0,
+            3.5,
+            12.5
+          ]
+        },
+        "up": {
+          "texture": "#lens",
+          "uv": [
+            3.5,
+            12.5,
+            0.5,
+            12.0
+          ]
+        },
+        "north": {
+          "texture": "#lens",
+          "uv": [
+            0.5,
+            12.5,
+            3.5,
+            15.5
+          ]
+        },
+        "south": {
+          "texture": "#lens",
+          "uv": [
+            4.0,
+            12.5,
+            7.0,
+            15.5
+          ]
+        },
+        "west": {
+          "texture": "#lens",
+          "uv": [
+            3.5,
+            12.5,
+            4.0,
+            15.5
+          ]
+        },
+        "east": {
+          "texture": "#lens",
+          "uv": [
+            0.0,
+            12.5,
+            0.5,
+            15.5
+          ]
+        }
+      }
+    }
+  ]
+}

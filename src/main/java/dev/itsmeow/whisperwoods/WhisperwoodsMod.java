@@ -21,7 +21,6 @@ import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.config.ModConfig;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.event.lifecycle.FMLLoadCompleteEvent;
-import net.minecraftforge.fml.event.lifecycle.GatherDataEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 
 @Mod(value = WhisperwoodsMod.MODID)
@@ -34,7 +33,6 @@ public class WhisperwoodsMod {
         IEventBus modBus = FMLJavaModLoadingContext.get().getModEventBus();
         modBus.addListener(this::setup);
         modBus.addListener(this::loadComplete);
-        modBus.addListener(this::dataSetup);
         ModBlocks.subscribe(modBus);
         ModItems.subscribe(modBus);
         ModSounds.subscribe(modBus);
@@ -69,7 +67,4 @@ public class WhisperwoodsMod {
         ModLoadingContext.get().registerConfig(ModConfig.Type.SERVER, WhisperwoodsConfig.getServerSpec());
     }
 
-    public void dataSetup(final GatherDataEvent event) {
-        ModEntities.H.gatherData(event.getGenerator(), event.getExistingFileHelper());
-    }
 }

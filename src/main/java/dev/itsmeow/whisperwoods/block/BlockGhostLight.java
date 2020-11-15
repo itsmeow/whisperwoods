@@ -1,6 +1,7 @@
 package dev.itsmeow.whisperwoods.block;
 
 import dev.itsmeow.whisperwoods.tileentity.TileEntityGhostLight;
+import dev.itsmeow.whisperwoods.util.IHaveColor;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockRenderType;
 import net.minecraft.block.BlockState;
@@ -14,7 +15,7 @@ import net.minecraft.util.math.shapes.VoxelShape;
 import net.minecraft.util.math.shapes.VoxelShapes;
 import net.minecraft.world.IBlockReader;
 
-public class BlockGhostLight extends Block {
+public class BlockGhostLight extends Block implements IHaveColor {
 
     private static VoxelShape SHAPE;
     static {

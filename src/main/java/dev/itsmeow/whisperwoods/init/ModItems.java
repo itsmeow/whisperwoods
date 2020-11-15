@@ -1,5 +1,6 @@
 package dev.itsmeow.whisperwoods.init;
 
+import java.util.Collection;
 import java.util.function.Supplier;
 
 import dev.itsmeow.whisperwoods.WhisperwoodsMod;
@@ -22,6 +23,12 @@ public class ModItems {
     public static RegistryObject<Item> GHOST_LIGHT_TOXIC_GREEN = rIB(ModBlocks.GHOST_LIGHT_TOXIC_GREEN);
     public static RegistryObject<Item> GHOST_LIGHT_MAGIC_PURPLE = rIB(ModBlocks.GHOST_LIGHT_MAGIC_PURPLE);
     public static RegistryObject<Item> HIRSCHGEIST_SKULL = r("hirschgeist_skull", () -> new ItemBlockHirschgeistSkull(ModBlocks.HIRSCHGEIST_SKULL.get()));
+    public static RegistryObject<Item> WISP_LANTERN_BLUE = rIB(ModBlocks.WISP_LANTERN_BLUE);
+    public static RegistryObject<Item> WISP_LANTERN_ORANGE = rIB(ModBlocks.WISP_LANTERN_ORANGE);
+    public static RegistryObject<Item> WISP_LANTERN_YELLOW = rIB(ModBlocks.WISP_LANTERN_YELLOW);
+    public static RegistryObject<Item> WISP_LANTERN_GREEN = rIB(ModBlocks.WISP_LANTERN_GREEN);
+    public static RegistryObject<Item> WISP_LANTERN_PURPLE = rIB(ModBlocks.WISP_LANTERN_PURPLE);
+    public static RegistryObject<Item> HAND_OF_FATE = rIB(ModBlocks.HAND_OF_FATE);
 
     private static RegistryObject<Item> r(String name, Supplier<Item> b) {
         return ITEMS.register(name, b);
@@ -33,6 +40,10 @@ public class ModItems {
 
     public static void subscribe(IEventBus modEventBus) {
         ITEMS.register(modEventBus);
+    }
+
+    public static Collection<RegistryObject<Item>> getItems() {
+        return ITEMS.getEntries();
     }
 
 }

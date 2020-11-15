@@ -335,6 +335,7 @@ public class EntityHidebehind extends EntityCreatureWithSelectiveTypes {
         return flag;
     }
 
+    @SuppressWarnings("deprecation")
     @Override
     public void move(MoverType type, Vector3d pos) {
         if(this.noClip) {
