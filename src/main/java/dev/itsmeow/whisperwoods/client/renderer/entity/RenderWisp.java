@@ -29,7 +29,7 @@ public class RenderWisp extends LivingRenderer<EntityWisp, EntityModel<EntityWis
 
     @Override
     public void render(EntityWisp entity, float entityYaw, float partialTicks, MatrixStack stack, IRenderTypeBuffer bufferIn, int packedLightIn) {
-        int color = getColorVariant(entity.getDataManager().get(EntityWisp.COLOR_VARIANT));
+        int color = entity.getWispColor().getColor();
         float r = (color >> 16) & 0xFF;
         float g = (color >> 8) & 0xFF;
         float b = color & 0xFF;
@@ -75,23 +75,6 @@ public class RenderWisp extends LivingRenderer<EntityWisp, EntityModel<EntityWis
                 entity.getPosY() + (entity.getRNG().nextFloat() * 2F - 1F) / 5 + 1.1F,
                 entity.getPosZ() + (entity.getRNG().nextFloat() * 2F - 1F) / 10, 0, 0.02F, 0);
             }
-        }
-    }
-
-    private static int getColorVariant(int variant) {
-        switch(variant) {
-        case 1:
-            return 0x00efef;
-        case 2:
-            return 0xf28900;
-        case 3:
-            return 0xffc61c;
-        case 4:
-            return 0x2bff39;
-        case 5:
-            return 0xca27ea;
-        default:
-            return 0xff0000;
         }
     }
 

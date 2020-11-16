@@ -11,8 +11,9 @@ import com.mojang.authlib.minecraft.MinecraftProfileTexture.Type;
 
 import dev.itsmeow.imdlib.entity.util.EntityTypeContainer;
 import dev.itsmeow.imdlib.entity.util.IContainerEntity;
-import dev.itsmeow.whisperwoods.init.ModBlocks;
 import dev.itsmeow.whisperwoods.init.ModEntities;
+import dev.itsmeow.whisperwoods.util.WispColors;
+import dev.itsmeow.whisperwoods.util.WispColors.WispColor;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.client.Minecraft;
@@ -70,6 +71,14 @@ public class EntityWisp extends AnimalEntity implements IContainerEntity<EntityW
 
     public EntityWisp(World world) {
         this(ModEntities.WISP.entityType, world);
+    }
+
+    public WispColor getWispColor() {
+        int c = this.dataManager.get(COLOR_VARIANT);
+        if(c <= WispColors.values().length && c > 0) {
+            return WispColors.values()[c - 1];
+        }
+        return WispColors.BLUE;
     }
 
     @Override
@@ -268,25 +277,21 @@ public class EntityWisp extends AnimalEntity implements IContainerEntity<EntityW
     }
 
     private static Item getItemForVariant(int variant) {
-        Block block = null;
-        switch(variant) {
-        case 1: block = ModBlocks.GHOST_LIGHT_ELECTRIC_BLUE.get(); break;
-        case 2: block = ModBlocks.GHOST_LIGHT_FIERY_ORANGE.get(); break;
-        case 3: block = ModBlocks.GHOST_LIGHT_GOLD.get(); break;
-        case 4: block = ModBlocks.GHOST_LIGHT_TOXIC_GREEN.get(); break;
-        case 5: block = ModBlocks.GHOST_LIGHT_MAGIC_PURPLE.get(); break;
+        if(variant <= WispColors.values().length && variant > 0) {
+            Block block = WispColors.values()[variant - 1].getGhostLight().get();
+            if(block == null) {
+                return null;
+            }
+            return block.asItem();
         }
-        if(block == null) {
-            return null;
-        }
-        return block.asItem();
+        return null;
     }
 
     @Override
     @Nullable
     public ILivingEntityData onInitialSpawn(IServerWorld world, DifficultyInstance difficulty, SpawnReason reason, @Nullable ILivingEntityData livingdata, CompoundNBT compound) {
         boolean hostile = this.getRNG().nextInt(HOSTILE_CHANCE) == 0;
-        int colorVariant = this.getRNG().nextInt(5) + 1;
+        int colorVariant = this.getRNG().nextInt(WispColors.values().length) + 1;
 
         if(livingdata instanceof WispData) {
             hostile = ((WispData) livingdata).isHostile;

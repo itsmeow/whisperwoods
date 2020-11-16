@@ -11,6 +11,7 @@ import dev.itsmeow.whisperwoods.init.ModItems;
 import dev.itsmeow.whisperwoods.init.ModParticles;
 import dev.itsmeow.whisperwoods.init.ModSounds;
 import dev.itsmeow.whisperwoods.init.ModTileEntities;
+import dev.itsmeow.whisperwoods.network.WWNetwork;
 import net.minecraft.item.ItemGroup;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.NonNullList;
@@ -38,6 +39,7 @@ public class WhisperwoodsMod {
         ModSounds.subscribe(modBus);
         ModTileEntities.subscribe(modBus);
         ModParticles.subscribe(modBus);
+        WWNetwork.subscribe(modBus);
         MinecraftForge.EVENT_BUS.addListener(WhisperwoodsConfig::onBiomeLoad);
         ModLoadingContext.get().registerConfig(ModConfig.Type.CLIENT, WhisperwoodsConfig.getClientSpec());
         LOGGER.info("Spooking you...");
