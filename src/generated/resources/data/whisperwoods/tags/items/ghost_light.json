@@ -1,0 +1,10 @@
+{
+  "replace": false,
+  "values": [
+    "whisperwoods:ghost_light_electric_blue",
+    "whisperwoods:ghost_light_fiery_orange",
+    "whisperwoods:ghost_light_gold",
+    "whisperwoods:ghost_light_magic_purple",
+    "whisperwoods:ghost_light_toxic_green"
+  ]
+}

@@ -1,0 +1,32 @@
+{
+  "parent": "minecraft:recipes/root",
+  "rewards": {
+    "recipes": [
+      "whisperwoods:wisp_lantern_green"
+    ]
+  },
+  "criteria": {
+    "has_ghost_light": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "tag": "whisperwoods:ghost_light"
+          }
+        ]
+      }
+    },
+    "has_the_recipe": {
+      "trigger": "minecraft:recipe_unlocked",
+      "conditions": {
+        "recipe": "whisperwoods:wisp_lantern_green"
+      }
+    }
+  },
+  "requirements": [
+    [
+      "has_ghost_light",
+      "has_the_recipe"
+    ]
+  ]
+}

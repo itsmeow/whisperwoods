@@ -1,0 +1,10 @@
+{
+  "replace": false,
+  "values": [
+    "whisperwoods:wisp_lantern_blue",
+    "whisperwoods:wisp_lantern_orange",
+    "whisperwoods:wisp_lantern_yellow",
+    "whisperwoods:wisp_lantern_purple",
+    "whisperwoods:wisp_lantern_green"
+  ]
+}

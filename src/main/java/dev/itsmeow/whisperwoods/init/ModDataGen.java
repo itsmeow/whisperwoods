@@ -13,13 +13,18 @@ import com.mojang.datafixers.util.Pair;
 
 import dev.itsmeow.whisperwoods.WhisperwoodsMod;
 import dev.itsmeow.whisperwoods.block.BlockWispLantern;
+import dev.itsmeow.whisperwoods.util.WispColors;
+import dev.itsmeow.whisperwoods.util.WispColors.WispColor;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockRenderType;
 import net.minecraft.client.renderer.RenderType;
+import net.minecraft.data.BlockTagsProvider;
 import net.minecraft.data.DataGenerator;
 import net.minecraft.data.IFinishedRecipe;
+import net.minecraft.data.ItemTagsProvider;
 import net.minecraft.data.LootTableProvider;
 import net.minecraft.data.RecipeProvider;
+import net.minecraft.data.ShapedRecipeBuilder;
 import net.minecraft.data.loot.BlockLootTables;
 import net.minecraft.item.BlockItem;
 import net.minecraft.item.Item;
@@ -39,6 +44,7 @@ import net.minecraftforge.client.model.generators.ItemModelProvider;
 import net.minecraftforge.client.model.generators.ModelBuilder.Perspective;
 import net.minecraftforge.client.model.generators.ModelFile.ExistingModelFile;
 import net.minecraftforge.client.model.generators.loaders.MultiLayerModelBuilder;
+import net.minecraftforge.common.Tags;
 import net.minecraftforge.common.data.ExistingFileHelper;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.RegistryObject;
@@ -50,11 +56,54 @@ public class ModDataGen {
 
     @SubscribeEvent
     public static void gatherData(GatherDataEvent event) {
+        WWBlockTagsProvider blockTags = new WWBlockTagsProvider(event.getGenerator(), event.getExistingFileHelper());
+        event.getGenerator().addProvider(blockTags);
+        event.getGenerator().addProvider(new WWItemTagsProvider(event.getGenerator(), blockTags, event.getExistingFileHelper()));
         event.getGenerator().addProvider(new WWBlockStateProvider(event.getGenerator(), event.getExistingFileHelper()));
         event.getGenerator().addProvider(new WWItemModelProvider(event.getGenerator(), event.getExistingFileHelper()));
         event.getGenerator().addProvider(new WWLootTableProvider(event.getGenerator()));
         event.getGenerator().addProvider(new WWRecipeProvider(event.getGenerator()));
         ModEntities.H.gatherData(event.getGenerator(), event.getExistingFileHelper());
+    }
+
+    public static class WWBlockTagsProvider extends BlockTagsProvider {
+
+        public WWBlockTagsProvider(DataGenerator generator, ExistingFileHelper existingFileHelper) {
+            super(generator, WhisperwoodsMod.MODID, existingFileHelper);
+        }
+
+        @Override
+        public String getName() {
+            return WhisperwoodsMod.MODID + "_block_tags";
+        }
+
+        @Override
+        protected void registerTags() {
+            Builder<Block> ghostLights = this.getOrCreateBuilder(ModTags.Blocks.GHOST_LIGHT);
+            Builder<Block> wispLanterns = this.getOrCreateBuilder(ModTags.Blocks.WISP_LANTERN);
+            for(WispColor color : WispColors.values()) {
+                ghostLights.add(color.getGhostLight().get());
+                wispLanterns.add(color.getLantern().get());
+            }
+        }
+    }
+
+    public static class WWItemTagsProvider extends ItemTagsProvider {
+
+        public WWItemTagsProvider(DataGenerator generator, WWBlockTagsProvider blockTagProvider, ExistingFileHelper existingFileHelper) {
+            super(generator, blockTagProvider, WhisperwoodsMod.MODID, existingFileHelper);
+        }
+
+        @Override
+        public String getName() {
+            return WhisperwoodsMod.MODID + "_item_tags";
+        }
+
+        @Override
+        protected void registerTags() {
+            this.copy(ModTags.Blocks.GHOST_LIGHT, ModTags.Items.GHOST_LIGHT);
+            this.copy(ModTags.Blocks.WISP_LANTERN, ModTags.Items.WISP_LANTERN);
+        }
     }
 
     public static class WWItemModelProvider extends ItemModelProvider {
@@ -93,7 +142,16 @@ public class ModDataGen {
 
         @Override
         protected void registerRecipes(Consumer<IFinishedRecipe> consumer) {
+            ModBlocks.getBlocks().forEach(blockEntry -> {
+                Block block = blockEntry.get();
+                if(block instanceof BlockWispLantern) {
+                    this.makeLanternRecipe(consumer, (BlockWispLantern) block);
+                }
+            });
+        }
 
+        protected void makeLanternRecipe(Consumer<IFinishedRecipe> consumer, BlockWispLantern block) {
+            ShapedRecipeBuilder.shapedRecipe(block.asItem()).key('l', WispColors.byColor(block.getColor()).getGhostLight().get()).key('n', Tags.Items.NUGGETS_IRON).patternLine("nnn").patternLine("nln").patternLine("nnn").addCriterion("has_ghost_light", hasItem(ModTags.Items.GHOST_LIGHT)).build(consumer);
         }
 
     }
@@ -146,7 +204,6 @@ public class ModDataGen {
         }
 
         protected BlockModelBuilder wispLanternModel(Block block, String ext) {
-            String uniquePrefix = "junk/" + block.getRegistryName().getPath().toString() + ext;
             String lensName = block.getRegistryName().getPath().replace("wisp_lantern", "wisp_lantern_lens");
             ResourceLocation parent = rl("block/wisp_lantern_" + ext);
             final Map<Direction, Float[]> uvs = new HashMap<Direction, Float[]>();
@@ -171,8 +228,8 @@ public class ModDataGen {
             .end()
             .end()
             .customLoader(MultiLayerModelBuilder::begin)
-            .submodel(RenderType.getSolid(), this.models().withExistingParent(uniquePrefix, parent))
-            .submodel(RenderType.getTranslucent(), this.models().withExistingParent(uniquePrefix + "2", "minecraft:block/block")
+            .submodel(RenderType.getSolid(), nestedParent(parent))
+            .submodel(RenderType.getTranslucent(), nestedParent("minecraft:block/block")
             .element()
             .from(5, 2, ext.equals("wall") ? 7.8F : 3.8F)
             .to(11, 8, ext.equals("wall") ? 8.8F : 4.8F)
@@ -189,6 +246,14 @@ public class ModDataGen {
 
         protected ResourceLocation blockModelExtRL(Block block, String ext) {
             return rl("block/" + block.getRegistryName().getPath() + "_" + ext);
+        }
+
+        protected BlockModelBuilder nestedParent(String parent) {
+            return nestedParent(new ResourceLocation(parent));
+        }
+
+        protected BlockModelBuilder nestedParent(ResourceLocation parent) {
+            return this.models().nested().parent(this.models().getExistingFile(parent));
         }
         
         protected static ResourceLocation rl(String text) {

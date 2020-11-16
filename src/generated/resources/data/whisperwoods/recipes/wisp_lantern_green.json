@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "nnn",
+    "nln",
+    "nnn"
+  ],
+  "key": {
+    "l": {
+      "item": "whisperwoods:ghost_light_toxic_green"
+    },
+    "n": {
+      "tag": "forge:nuggets/iron"
+    }
+  },
+  "result": {
+    "item": "whisperwoods:wisp_lantern_green"
+  }
+}
