@@ -51,6 +51,7 @@ public class HOFEffectPacket {
                 }
             }
         });
+        ctx.get().setPacketHandled(true);
     }
 
 }
