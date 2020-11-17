@@ -12,6 +12,7 @@ import com.mojang.authlib.minecraft.MinecraftProfileTexture.Type;
 import dev.itsmeow.imdlib.entity.util.EntityTypeContainer;
 import dev.itsmeow.imdlib.entity.util.IContainerEntity;
 import dev.itsmeow.whisperwoods.init.ModEntities;
+import dev.itsmeow.whisperwoods.init.ModItems;
 import dev.itsmeow.whisperwoods.util.WispColors;
 import dev.itsmeow.whisperwoods.util.WispColors.WispColor;
 import net.minecraft.block.Block;
@@ -23,9 +24,11 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityPredicate;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.ILivingEntityData;
+import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.SpawnReason;
 import net.minecraft.entity.passive.AnimalEntity;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.inventory.EquipmentSlotType;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.CompoundNBT;
@@ -61,7 +64,7 @@ public class EntityWisp extends AnimalEntity implements IContainerEntity<EntityW
     public static final DataParameter<Float> PASSIVE_SCALE = EntityDataManager.createKey(EntityWisp.class, DataSerializers.FLOAT);
     public static final DataParameter<Integer> COLOR_VARIANT = EntityDataManager.createKey(EntityWisp.class, DataSerializers.VARINT);
     private static final EntityPredicate PASSIVE_SCALE_PREDICATE = new EntityPredicate().allowInvulnerable().allowFriendlyFire().setSkipAttackChecks();
-    private static final EntityPredicate HOSTILE_TARGET_PREDICATE = EntityPredicate.DEFAULT.setCustomPredicate(EntityPredicates.CAN_HOSTILE_AI_TARGET::test);
+    private static final EntityPredicate HOSTILE_TARGET_PREDICATE = EntityPredicate.DEFAULT.setCustomPredicate(e -> EntityPredicates.CAN_HOSTILE_AI_TARGET.test(e) && (!(e instanceof LivingEntity) || ((LivingEntity)e).getItemStackFromSlot(EquipmentSlotType.HEAD).getItem() != ModItems.HIRSCHGEIST_SKULL.get()));
     protected ResourceLocation targetTexture;
     private boolean shouldBeHostile = false;
 
