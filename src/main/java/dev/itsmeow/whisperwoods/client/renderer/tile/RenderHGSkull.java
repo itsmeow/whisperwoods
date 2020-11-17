@@ -41,7 +41,7 @@ public class RenderHGSkull extends TileEntityRenderer<TileEntityHGSkull> {
 
     public void render(MatrixStack matrixStackIn, IRenderTypeBuffer bufferIn, int packedLightIn, int packedOverlayIn, @Nullable Direction facing, float skullRotation) {
         matrixStackIn.push();
-        translateHead(matrixStackIn, facing, 1.25F);
+        translateHead(matrixStackIn, facing, 1.32F);
         matrixStackIn.scale(-1.0F, -1.0F, 1.0F);
         float rotX = 0F;
         if(facing != null) {
