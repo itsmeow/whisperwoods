@@ -29,6 +29,12 @@
 	"block.whisperwoods.wisp_lantern_green": "Toxic Green Wisp Lantern",
 	"block.whisperwoods.wisp_lantern_purple": "Magic Purple Wisp Lantern",
 	"block.whisperwoods.hand_of_fate": "Hand of Fate",
+	"block.whisperwoods.hand_of_fate.tooltip.shiftdown": "Hold SHIFT to show recipes",
+	"block.whisperwoods.hand_of_fate.tooltip.recipehint": "Right-click the Hand with one of the following.",
+	"block.whisperwoods.hand_of_fate.tooltip.recipe.wisp": "Wisp Summoning",
+	"block.whisperwoods.hand_of_fate.tooltip.recipe.wisp.hint": "(when used with a Ghost Light inserted, it will create wisps of matching color)",
+	"block.whisperwoods.hand_of_fate.tooltip.recipe.hirschgeist": "Hirschgeist Summoning",
+    "block.whisperwoods.hand_of_fate.tooltip.recipe.hirschgeist.hint": "(requires any Ghost Light to be inserted)",
 
 	"item.whisperwoods.bottled_moth": "Bottled Moth",
 

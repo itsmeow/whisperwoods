@@ -17,7 +17,9 @@ import dev.itsmeow.whisperwoods.entity.EntityWisp;
 import dev.itsmeow.whisperwoods.init.ModEntities;
 import dev.itsmeow.whisperwoods.init.ModTileEntities;
 import dev.itsmeow.whisperwoods.network.HOFEffectPacket;
+import dev.itsmeow.whisperwoods.network.HOFEffectPacket.HOFEffectType;
 import dev.itsmeow.whisperwoods.network.WWNetwork;
+import dev.itsmeow.whisperwoods.util.WWServerTaskQueue;
 import dev.itsmeow.whisperwoods.util.WispColors;
 import dev.itsmeow.whisperwoods.util.WispColors.WispColor;
 import net.minecraft.block.Block;
@@ -38,6 +40,7 @@ import net.minecraft.util.Direction;
 import net.minecraft.util.Hand;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.SoundCategory;
+import net.minecraft.util.SoundEvent;
 import net.minecraft.util.SoundEvents;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
@@ -46,9 +49,12 @@ import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.shapes.VoxelShape;
 import net.minecraft.util.math.shapes.VoxelShapes;
 import net.minecraft.util.math.vector.Vector3f;
+import net.minecraft.util.text.TextFormatting;
 import net.minecraft.world.IWorldReader;
 import net.minecraft.world.World;
 import net.minecraft.world.server.ServerWorld;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.common.util.Constants;
 import net.minecraftforge.event.ForgeEventFactory;
 import net.minecraftforge.fml.network.PacketDistributor;
@@ -57,12 +63,24 @@ import net.minecraftforge.registries.ForgeRegistries;
 public class TileEntityHandOfFate extends TileEntity {
 
     public static final ImmutableBiMap<String, HOFRecipe> RECIPES = ImmutableBiMap.of(
-    "hirschgeist", new HOFRecipe(Items.BONE, Items.DIAMOND, Items.SOUL_SAND),
-    "wisp", new HOFRecipe(Items.BLAZE_POWDER, Items.GLOWSTONE_DUST, Items.SOUL_SAND));
+    "hirschgeist", new HOFRecipe(TextFormatting.AQUA, true, Items.BONE, Items.DIAMOND, Items.SOUL_SAND),
+    "wisp", new HOFRecipe(TextFormatting.GOLD, false, Items.BLAZE_POWDER, Items.GLOWSTONE_DUST, Items.SOUL_SAND));
     private final CurrentRecipeContainer recipeContainer = new CurrentRecipeContainer();
+    private Item toDisplay = null;
+    private boolean displayDirty = true;
+    @OnlyIn(Dist.CLIENT)
+    public float lastAnimationY = 0F;
 
     public TileEntityHandOfFate() {
         super(ModTileEntities.HAND_OF_FATE.get());
+    }
+
+    public Item getDisplayItem() {
+        if(displayDirty) {
+            this.toDisplay = this.getRecipeContainer().getDisplayItem();
+            this.displayDirty = false;
+        }
+        return this.toDisplay;
     }
 
     public boolean isLit() {
@@ -95,6 +113,7 @@ public class TileEntityHandOfFate extends TileEntity {
                                 held.shrink(1);
                             }
                             player.playSound(SoundEvents.BLOCK_END_PORTAL_FRAME_FILL, 1F, 1F);
+                            this.displayDirty = true;
                             return ActionResultType.CONSUME;
                         }
                     }
@@ -107,6 +126,7 @@ public class TileEntityHandOfFate extends TileEntity {
                     this.onRecipeComplete(this.getRecipeContainer().getCurrentRecipe(), state, worldIn, pos, player, hand, hit);
                 }
                 player.playSound(SoundEvents.BLOCK_END_PORTAL_FRAME_FILL, 1F, 1F);
+                this.displayDirty = true;
                 return ActionResultType.CONSUME;
             }
         }
@@ -116,9 +136,17 @@ public class TileEntityHandOfFate extends TileEntity {
     public void onRecipeComplete(HOFRecipe recipe, BlockState state, World worldIn, BlockPos pos, PlayerEntity player, Hand hand, BlockRayTraceResult hit) {
         if(!world.isRemote && worldIn instanceof ServerWorld) {
             ServerWorld world = (ServerWorld) worldIn;
+            Consumer<HOFEffectPacket> sender = p -> WWNetwork.HANDLER.send(PacketDistributor.TRACKING_CHUNK.with(() -> world.getChunkAt(pos)), p);
+            Consumer<SoundEvent> soundPlayer = s -> world.playSound(null, pos.getX(), pos.getY(), pos.getZ(), s, SoundCategory.BLOCKS, 1F, 1F);
             switch(recipe.getName()) {
             case "hirschgeist":
-
+                HOFEffectPacket hgpk = new HOFEffectPacket(HOFEffectType.HIRSCHGEIST, new Vector3f(pos.getX() + 0.5F, pos.getY() + 1F, pos.getZ() + 0.5F), WispColors.BLUE.getColor());
+                sender.accept(hgpk);
+                soundPlayer.accept(SoundEvents.ENTITY_EVOKER_CAST_SPELL);
+                soundPlayer.accept(SoundEvents.BLOCK_BELL_RESONATE);
+                WWServerTaskQueue.schedule(50, () -> {
+                    ModEntities.HIRSCHGEIST.entityType.spawn((ServerWorld) worldIn, null, null, pos.up(), SpawnReason.EVENT, false, false);
+                });
                 break;
             case "wisp":
                 EntityWisp wisp = ModEntities.WISP.entityType.create(world);
@@ -141,15 +169,14 @@ public class TileEntityHandOfFate extends TileEntity {
                 }
 
                 int color = wisp.getWispColor().getColor();
-                HOFEffectPacket packet = new HOFEffectPacket(new Vector3f(pos.getX() + 0.5F, pos.getY() + 1F, pos.getZ() + 0.5F), color);
-                Consumer<HOFEffectPacket> sender = p -> WWNetwork.HANDLER.send(PacketDistributor.TRACKING_CHUNK.with(() -> world.getChunkAt(pos)), p);
+                HOFEffectPacket packet = new HOFEffectPacket(HOFEffectType.CIRCLE, new Vector3f(pos.getX() + 0.5F, pos.getY() + 1F, pos.getZ() + 0.5F), color);
                 sender.accept(packet);
                 if(wisp.isHostile) {
-                    HOFEffectPacket packet2 = new HOFEffectPacket(new Vector3f(pos.getX() + 0.5F, pos.getY() + 1F, pos.getZ() + 0.5F), 0xFF0000);
+                    HOFEffectPacket packet2 = new HOFEffectPacket(HOFEffectType.CIRCLE, new Vector3f(pos.getX() + 0.5F, pos.getY() + 1F, pos.getZ() + 0.5F), 0xFF0000);
                     sender.accept(packet2);
 
                 }
-                world.playSound(null, pos.getX(), pos.getY(), pos.getZ(), wisp.isHostile ? SoundEvents.ENTITY_ELDER_GUARDIAN_CURSE : SoundEvents.ENTITY_EVOKER_CAST_SPELL, SoundCategory.BLOCKS, 1F, 1F);
+                soundPlayer.accept(wisp.isHostile ? SoundEvents.ENTITY_ELDER_GUARDIAN_CURSE : SoundEvents.ENTITY_EVOKER_CAST_SPELL);
                 break;
             default:
                 break;
@@ -170,13 +197,13 @@ public class TileEntityHandOfFate extends TileEntity {
     @Override
     public void read(BlockState state, CompoundNBT nbt) {
         super.read(state, nbt);
-        
+        this.getRecipeContainer().read(state, nbt);
     }
 
     @Override
     public CompoundNBT write(CompoundNBT compound) {
         CompoundNBT c = super.write(compound);
-
+        this.getRecipeContainer().write(compound);
         return c;
     }
 
@@ -352,14 +379,26 @@ public class TileEntityHandOfFate extends TileEntity {
 
     public static class HOFRecipe {
 
+        private TextFormatting color;
+        private boolean bold;
         private String name = null;
         public final ImmutableList<Item> items;
 
-        public HOFRecipe(Item... items) {
+        public HOFRecipe(TextFormatting color, boolean bold, Item... items) {
             if(items.length < 1) {
                 throw new IllegalArgumentException("HOFRecipe constructor: \"items\" must have at least one item!");
             }
+            this.color = color;
+            this.bold = bold;
             this.items = ImmutableList.<Item>copyOf(items);
+        }
+
+        public TextFormatting getColor() {
+            return color;
+        }
+
+        public boolean isBold() {
+            return bold;
         }
 
         public String getName() {

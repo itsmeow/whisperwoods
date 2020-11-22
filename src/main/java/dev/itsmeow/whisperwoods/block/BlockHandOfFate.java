@@ -1,11 +1,17 @@
 package dev.itsmeow.whisperwoods.block;
 
+import java.util.List;
+
 import javax.annotation.Nullable;
 
 import dev.itsmeow.whisperwoods.tileentity.TileEntityHandOfFate;
+import dev.itsmeow.whisperwoods.tileentity.TileEntityHandOfFate.HOFRecipe;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockRenderType;
 import net.minecraft.block.BlockState;
+import net.minecraft.client.gui.screen.Screen;
+import net.minecraft.client.resources.I18n;
+import net.minecraft.client.util.ITooltipFlag;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.fluid.FluidState;
 import net.minecraft.fluid.Fluids;
@@ -27,9 +33,16 @@ import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.shapes.ISelectionContext;
 import net.minecraft.util.math.shapes.VoxelShape;
 import net.minecraft.util.math.shapes.VoxelShapes;
+import net.minecraft.util.text.IFormattableTextComponent;
+import net.minecraft.util.text.ITextComponent;
+import net.minecraft.util.text.Style;
+import net.minecraft.util.text.TextFormatting;
+import net.minecraft.util.text.TranslationTextComponent;
 import net.minecraft.world.IBlockReader;
 import net.minecraft.world.IWorldReader;
 import net.minecraft.world.World;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 
 public class BlockHandOfFate extends Block {
 
@@ -115,6 +128,31 @@ public class BlockHandOfFate extends Block {
     @Override
     public TileEntity createTileEntity(BlockState state, IBlockReader worldIn) {
         return new TileEntityHandOfFate();
+    }
+
+    @OnlyIn(Dist.CLIENT)
+    @Override
+    public void addInformation(ItemStack stack, IBlockReader worldIn, List<ITextComponent> tooltip, ITooltipFlag flagIn) {
+        super.addInformation(stack, worldIn, tooltip, flagIn);
+        Style gIS = Style.EMPTY.applyFormatting(TextFormatting.GRAY).setItalic(true);
+        String tooltipPrefix = "block.whisperwoods.hand_of_fate.tooltip.";
+        String recipePrefix = tooltipPrefix + "recipe.";
+        if(Screen.hasShiftDown()) {
+            tooltip.add(new TranslationTextComponent(tooltipPrefix + "recipehint").setStyle(gIS));
+            for(String recipeKey : TileEntityHandOfFate.RECIPES.keySet()) {
+                HOFRecipe recipe = TileEntityHandOfFate.RECIPES.get(recipeKey);
+                IFormattableTextComponent t = new TranslationTextComponent(recipePrefix + recipeKey)
+                .setStyle(Style.EMPTY.applyFormatting(recipe.getColor()).setBold(recipe.isBold()))
+                .appendString(": ")
+                .append(new TranslationTextComponent(recipe.getFirst().getTranslationKey()).setStyle(Style.EMPTY.applyFormatting(TextFormatting.WHITE).setBold(false)));
+                if(I18n.hasKey(recipePrefix + recipeKey + ".hint")) {
+                    t.appendString(" ").append(new TranslationTextComponent(recipePrefix + recipeKey + ".hint").setStyle(Style.EMPTY.applyFormatting(TextFormatting.GRAY).setBold(false)));
+                }
+                tooltip.add(t);
+            }
+        } else {
+            tooltip.add(new TranslationTextComponent(tooltipPrefix + "shiftdown").setStyle(gIS));
+        }
     }
 
     public enum Orientation implements IStringSerializable {

@@ -21,6 +21,7 @@ import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.particles.ParticleTypes;
 import net.minecraft.util.ResourceLocation;
+import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.vector.Vector3f;
 
 public class RenderTileHandOfFate extends TileEntityRenderer<TileEntityHandOfFate> {
@@ -55,16 +56,22 @@ public class RenderTileHandOfFate extends TileEntityRenderer<TileEntityHandOfFat
             }
         }
         stack.pop();
-        Item display = te.getRecipeContainer().getDisplayItem();
+        Item display = te.getDisplayItem();
         if(display != null) {
             stack.push();
-            stack.translate(0.5F, 2F, 0.5F);
-            stack.rotate(Vector3f.YP.rotationDegrees(rotation + (rot.getHorizontalAngle() % 90F == 0 ? 0F : 90F)));
-            stack.scale(0.25F, 0.25F, 0.25F);
-            if(istack == null || istack.getItem() != display) {
-                istack = new ItemStack(display);
+            {
+                stack.translate(0.5F, 1.5F, 0.5F);
+                @SuppressWarnings("resource")
+                float y = MathHelper.sin((float) Minecraft.getInstance().world.getGameTime() * 0.05F) / 8F;
+                stack.translate(0F, MathHelper.lerp(partialTicks, te.lastAnimationY, y), 0F);
+                te.lastAnimationY = y;
+                stack.rotate(Vector3f.YP.rotationDegrees(rotation + (rot.getHorizontalAngle() % 90F == 0 ? 0F : 90F)));
+                stack.scale(0.25F, 0.25F, 0.25F);
+                if(istack == null || istack.getItem() != display) {
+                    istack = new ItemStack(display);
+                }
+                Minecraft.getInstance().getItemRenderer().renderItem(istack, TransformType.NONE, combinedLightIn, combinedOverlayIn, stack, bufferIn);
             }
-            Minecraft.getInstance().getItemRenderer().renderItem(istack, TransformType.NONE, combinedLightIn, combinedOverlayIn, stack, bufferIn);
             stack.pop();
         }
     }
