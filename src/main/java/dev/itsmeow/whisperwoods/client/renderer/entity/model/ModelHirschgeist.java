@@ -20,6 +20,7 @@ import net.minecraft.client.renderer.model.Model;
 import net.minecraft.client.renderer.model.ModelRenderer;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import net.minecraft.util.ResourceLocation;
+import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.vector.Matrix4f;
 
 /**
@@ -159,6 +160,7 @@ public class ModelHirschgeist extends EntityModel<EntityHirschgeist> {
     public TypeBasedModelRenderer spineEcto;
     public TypeBasedModelRenderer backFlameL01;
     public TypeBasedModelRenderer backFlameR01;
+    private boolean isDaytime = false;
 
     public ModelHirschgeist() {
         this.textureWidth = 128;
@@ -869,11 +871,22 @@ public class ModelHirschgeist extends EntityModel<EntityHirschgeist> {
 
     public void renderSpecial(ResourceLocation texture, MatrixStack stack, IRenderTypeBuffer typeBuffer, IVertexBuilder bufferIn, int packedLightIn, int packedOverlayIn, float red, float green, float blue, float alpha) {
         this.spine01.renderSpecial(false, texture, stack, typeBuffer, bufferIn, packedLightIn, packedOverlayIn, red, green, blue, alpha);
-        this.spine01.renderSpecial(true, texture, stack, typeBuffer, bufferIn, packedLightIn, packedOverlayIn, red, green, blue, alpha);
+        if(!isDaytime)
+            this.spine01.renderSpecial(true, texture, stack, typeBuffer, bufferIn, packedLightIn, packedOverlayIn, red, green, blue, alpha);
     }
 
     @Override
     public void setRotationAngles(EntityHirschgeist entityIn, float limbSwing, float limbSwingAmount, float ageInTicks, float netHeadYaw, float headPitch) {
+        this.isDaytime = entityIn.isDaytimeClient();
+        this.lArm00.rotateAngleX = MathHelper.cos(limbSwing * 0.6662F) * 1.4F * limbSwingAmount - 1.1344640137963142F;
+        this.rArm00.rotateAngleX = MathHelper.cos(limbSwing * 0.6662F + (float) Math.PI) * 1.4F * limbSwingAmount - 1.1344640137963142F;
+        this.rLeg00.rotateAngleX = MathHelper.cos(limbSwing * 0.6662F) * 1.4F * limbSwingAmount + 1.5707963267948966F;
+        this.lLeg00.rotateAngleX = MathHelper.cos(limbSwing * 0.6662F + (float) Math.PI) * 1.4F * limbSwingAmount + 1.5707963267948966F;
+        if(entityIn.getTargetDistance() >= 0 && entityIn.getTargetDistance() < 10D) {
+            this.neck01.rotateAngleX = MathHelper.cos(entityIn.getSwingProgress(Minecraft.getInstance().getRenderPartialTicks()) * ((float) Math.PI / 2F)) - 0.9250245035569946F;
+        } else {
+            this.neck01.rotateAngleX = -0.9250245035569946F;
+        }
     }
 
     public static class TypeBasedModelRenderer extends ModelRenderer {

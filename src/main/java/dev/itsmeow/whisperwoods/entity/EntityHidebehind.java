@@ -12,19 +12,12 @@ import dev.itsmeow.imdlib.util.BiomeDictionary.Type;
 import dev.itsmeow.whisperwoods.WhisperwoodsMod;
 import dev.itsmeow.whisperwoods.init.ModEntities;
 import dev.itsmeow.whisperwoods.init.ModSounds;
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.Blocks;
-import net.minecraft.crash.CrashReport;
-import net.minecraft.crash.CrashReportCategory;
-import net.minecraft.crash.ReportedException;
 import net.minecraft.enchantment.EnchantmentHelper;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityPredicate;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.MobEntity;
-import net.minecraft.entity.MoverType;
 import net.minecraft.entity.SpawnReason;
 import net.minecraft.entity.ai.RandomPositionGenerator;
 import net.minecraft.entity.ai.attributes.Attributes;
@@ -47,7 +40,6 @@ import net.minecraft.util.EntityDamageSource;
 import net.minecraft.util.RegistryKey;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.ReuseableStream;
-import net.minecraft.util.SoundEvents;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
@@ -335,116 +327,8 @@ public class EntityHidebehind extends EntityCreatureWithSelectiveTypes {
         return flag;
     }
 
-    @SuppressWarnings("deprecation")
     @Override
-    public void move(MoverType type, Vector3d pos) {
-        if(this.noClip) {
-            this.setBoundingBox(this.getBoundingBox().offset(pos));
-            this.resetPositionToBB();
-        } else {
-            if(type == MoverType.PISTON) {
-                pos = this.handlePistonMovement(pos);
-                if(pos.equals(Vector3d.ZERO)) {
-                    return;
-                }
-            }
-
-            this.world.getProfiler().startSection("move");
-            if(this.motionMultiplier.lengthSquared() > 1.0E-7D) {
-                pos = pos.mul(this.motionMultiplier);
-                this.motionMultiplier = Vector3d.ZERO;
-                this.setMotion(Vector3d.ZERO);
-            }
-
-            pos = this.maybeBackOffFromEdge(pos, type);
-            Vector3d vector3d = this.getAllowedMovement(pos);
-            if(vector3d.lengthSquared() > 1.0E-7D) {
-                this.setBoundingBox(this.getBoundingBox().offset(vector3d));
-                this.resetPositionToBB();
-            }
-
-            this.world.getProfiler().endSection();
-            this.world.getProfiler().startSection("rest");
-            this.collidedHorizontally = !MathHelper.epsilonEquals(pos.x, vector3d.x) || !MathHelper.epsilonEquals(pos.z, vector3d.z);
-            this.collidedVertically = pos.y != vector3d.y;
-            this.onGround = this.collidedVertically && pos.y < 0.0D;
-            BlockPos blockpos = this.getOnPosition();
-            BlockState blockstate = this.world.getBlockState(blockpos);
-            this.updateFallState(vector3d.y, this.onGround, blockstate, blockpos);
-            Vector3d vector3d1 = this.getMotion();
-            if(pos.x != vector3d.x) {
-                this.setMotion(0.0D, vector3d1.y, vector3d1.z);
-            }
-
-            if(pos.z != vector3d.z) {
-                this.setMotion(vector3d1.x, vector3d1.y, 0.0D);
-            }
-
-            Block block = blockstate.getBlock();
-            if(pos.y != vector3d.y) {
-                block.onLanded(this.world, this);
-            }
-
-            if(this.onGround && !this.isSteppingCarefully()) {
-                block.onEntityWalk(this.world, blockpos, this);
-            }
-
-            if(this.canTriggerWalking() && !this.isPassenger()) {
-                double d0 = vector3d.x;
-                double d1 = vector3d.y;
-                double d2 = vector3d.z;
-                if(!block.isIn(BlockTags.CLIMBABLE)) {
-                    d1 = 0.0D;
-                }
-
-                this.distanceWalkedModified = (float) ((double) this.distanceWalkedModified + (double) MathHelper.sqrt(horizontalMag(vector3d)) * 0.6D);
-                this.distanceWalkedOnStepModified = (float) ((double) this.distanceWalkedOnStepModified + (double) MathHelper.sqrt(d0 * d0 + d1 * d1 + d2 * d2) * 0.6D);
-                if(this.distanceWalkedOnStepModified > this.nextStepDistance && !blockstate.isAir(this.world, blockpos)) {
-                    this.nextStepDistance = this.determineNextStepDistance();
-                    if(this.isInWater()) {
-                        Entity entity = this.isBeingRidden() && this.getControllingPassenger() != null ? this.getControllingPassenger() : this;
-                        float f = entity == this ? 0.35F : 0.4F;
-                        Vector3d vector3d2 = entity.getMotion();
-                        float f1 = MathHelper.sqrt(vector3d2.x * vector3d2.x * (double) 0.2F + vector3d2.y * vector3d2.y + vector3d2.z * vector3d2.z * (double) 0.2F) * f;
-                        if(f1 > 1.0F) {
-                            f1 = 1.0F;
-                        }
-
-                        this.playSwimSound(f1);
-                    } else {
-                        this.playStepSound(blockpos, blockstate);
-                    }
-                }
-            }
-
-            try {
-                this.doBlockCollisions();
-            } catch(Throwable throwable) {
-                CrashReport crashreport = CrashReport.makeCrashReport(throwable, "Checking entity block collision");
-                CrashReportCategory crashreportcategory = crashreport.makeCategory("Entity being checked for collision");
-                this.fillCrashReport(crashreportcategory);
-                throw new ReportedException(crashreport);
-            }
-
-            float f2 = this.getSpeedFactor();
-            this.setMotion(this.getMotion().mul((double) f2, 1.0D, (double) f2));
-            if(BlockPos.getAllInBox(this.getBoundingBox().shrink(0.001D)).noneMatch((p_233572_0_) -> {
-                BlockState state = world.getBlockState(p_233572_0_);
-                return state.isIn(BlockTags.FIRE) || state.isIn(Blocks.LAVA) || state.isBurning(world, p_233572_0_);
-            }) && this.getFireTimer() <= 0) {
-                this.forceFireTicks(-this.getFireImmuneTicks());
-            }
-
-            if(this.isInWaterRainOrBubbleColumn() && this.isBurning()) {
-                this.playSound(SoundEvents.ENTITY_GENERIC_EXTINGUISH_FIRE, 0.7F, 1.6F + (this.rand.nextFloat() - this.rand.nextFloat()) * 0.4F);
-                this.forceFireTicks(-this.getFireImmuneTicks());
-            }
-
-            this.world.getProfiler().endSection();
-        }
-    }
-
-    private Vector3d getAllowedMovement(Vector3d vec) {
+    public Vector3d getAllowedMovement(Vector3d vec) {
         AxisAlignedBB axisalignedbb = this.getBoundingBox();
         ISelectionContext iselectioncontext = ISelectionContext.forEntity(this);
         VoxelShape voxelshape = this.world.getWorldBorder().getShape();

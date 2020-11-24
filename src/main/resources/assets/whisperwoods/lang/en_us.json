@@ -16,6 +16,7 @@
 	"entity.whisperwoods.hidebehind": "Hidebehind",
 	"entity.whisperwoods.wisp": "Wisp",
 	"entity.whisperwoods.hirschgeist": "Hirschgeist",
+	"entity.whisperwoods.hirschgeist.message.invulnerable": "The Hirschgeist is immortal during the daytime. Try fighting it later.",
 
 	"block.whisperwoods.ghost_light_electric_blue": "Electric Blue Ghost Light",
 	"block.whisperwoods.ghost_light_fiery_orange": "Fiery Orange Ghost Light",
