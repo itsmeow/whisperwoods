@@ -1,10 +1,9 @@
 package dev.itsmeow.whisperwoods.tileentity;
 
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.function.Consumer;
-import java.util.stream.Stream;
 
 import javax.annotation.Nullable;
 
@@ -25,7 +24,10 @@ import dev.itsmeow.whisperwoods.util.WispColors.WispColor;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.entity.SpawnReason;
+import net.minecraft.entity.item.ItemEntity;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.inventory.InventoryHelper;
+import net.minecraft.item.BlockItem;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
@@ -34,6 +36,7 @@ import net.minecraft.nbt.ListNBT;
 import net.minecraft.nbt.StringNBT;
 import net.minecraft.network.NetworkManager;
 import net.minecraft.network.play.server.SUpdateTileEntityPacket;
+import net.minecraft.tileentity.ITickableTileEntity;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.ActionResultType;
 import net.minecraft.util.Direction;
@@ -46,11 +49,9 @@ import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.BlockRayTraceResult;
 import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.math.shapes.VoxelShape;
 import net.minecraft.util.math.shapes.VoxelShapes;
 import net.minecraft.util.math.vector.Vector3f;
 import net.minecraft.util.text.TextFormatting;
-import net.minecraft.world.IWorldReader;
 import net.minecraft.world.World;
 import net.minecraft.world.server.ServerWorld;
 import net.minecraftforge.api.distmarker.Dist;
@@ -60,7 +61,7 @@ import net.minecraftforge.event.ForgeEventFactory;
 import net.minecraftforge.fml.network.PacketDistributor;
 import net.minecraftforge.registries.ForgeRegistries;
 
-public class TileEntityHandOfFate extends TileEntity {
+public class TileEntityHandOfFate extends TileEntity implements ITickableTileEntity {
 
     public static final ImmutableBiMap<String, HOFRecipe> RECIPES = ImmutableBiMap.of(
     "hirschgeist", new HOFRecipe(TextFormatting.AQUA, true, Items.BONE, Items.DIAMOND, Items.SOUL_SAND),
@@ -83,6 +84,12 @@ public class TileEntityHandOfFate extends TileEntity {
         return this.toDisplay;
     }
 
+    public void notifyUpdate() {
+        if(world != null && pos != null) {
+            world.notifyBlockUpdate(this.getPos(), this.getBlockState(), this.getBlockState(), 3);
+        }
+    }
+
     public boolean isLit() {
         Block b = this.getBlockState().getBlock();
         if(b instanceof BlockHandOfFate) {
@@ -100,50 +107,94 @@ public class TileEntityHandOfFate extends TileEntity {
         return recipeContainer;
     }
 
+    protected void playSound(SoundEvent sound, float vol, float pitch) {
+        this.world.playSound(null, this.getPos().getX(), this.getPos().getY(), this.getPos().getZ(), sound, SoundCategory.BLOCKS, vol, pitch);
+    }
+
+    protected void sendToTrackers(HOFEffectPacket pkt) {
+        WWNetwork.HANDLER.send(PacketDistributor.TRACKING_CHUNK.with(() -> world.getChunkAt(pos)), pkt);
+    }
+
+    @Override
+    public void tick() {
+        if(this.world != null && this.pos != null && this.world.getGameTime() % 5 == 0 && this.getBlockState() != null && !world.isRemote) {
+            BlockState state = this.getBlockState();
+            List<ItemEntity> items = this.world.getEntitiesWithinAABB(ItemEntity.class, state.getCollisionShape(world, pos).getBoundingBox().offset(pos).grow(0.25D));
+            for(ItemEntity item : items) {
+                if(item.isAlive()) {
+                    ItemStack stack = item.getItem();
+                    if(stack.getCount() > 0) {
+                        ActionResultType r = this.reactToItem(stack, state, world, pos);
+                        if(r == ActionResultType.CONSUME) {
+                            item.getItem().shrink(1);
+                            this.playSound(SoundEvents.BLOCK_END_PORTAL_FRAME_FILL, 1F, 1F);
+                            this.displayDirty = true;
+                            if(item.getItem() == null || item.getItem().getCount() == 0) {
+                                item.remove();
+                            }
+                            this.notifyUpdate();
+                            break;
+                        } else if(stack.getItem() instanceof BlockItem && world.isAirBlock(this.pos.up())) {
+                            BlockItem i = (BlockItem) stack.getItem();
+                            if(i.getBlock() instanceof BlockGhostLight) {
+                                item.getItem().shrink(1);
+                                this.playSound(SoundEvents.BLOCK_END_PORTAL_FRAME_FILL, 1F, 1F);
+                                world.setBlockState(pos.up(), i.getBlock().getDefaultState());
+                            }
+                            if(item.getItem() == null || item.getItem().getCount() == 0) {
+                                item.remove();
+                            }
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+    }
+
     public ActionResultType onBlockActivated(BlockState state, World worldIn, BlockPos pos, PlayerEntity player, Hand hand, BlockRayTraceResult hit) {
-        ItemStack held = player.getHeldItem(hand);
+        ActionResultType r = this.reactToItem(player.getHeldItem(hand), state, worldIn, pos);
+        if(r == ActionResultType.CONSUME) {
+            if(!player.isCreative()) {
+                player.getHeldItem(hand).shrink(1);
+            }
+            this.playSound(SoundEvents.BLOCK_END_PORTAL_FRAME_FILL, 1F, 1F);
+            this.displayDirty = true;
+        }
+        return r;
+    }
+
+    public ActionResultType reactToItem(ItemStack stack, BlockState state, World worldIn, BlockPos pos) {
         boolean lit = this.isLit() || this.hasBlaze();
-        if(lit || held.getItem() == Items.BLAZE_POWDER) {
+        if(lit || stack.getItem() == Items.BLAZE_POWDER) {
             if(!this.getRecipeContainer().hasRecipe()) {
                 for(HOFRecipe recipe : RECIPES.values()) {
-                    if(recipe.isFirst(held.getItem())) {
+                    if(recipe.isFirst(stack.getItem())) {
                         this.getRecipeContainer().setRecipe(recipe);
-                        if(this.getRecipeContainer().checkedAdd(held.getItem())) {
-                            if(!player.isCreative()) {
-                                held.shrink(1);
-                            }
-                            player.playSound(SoundEvents.BLOCK_END_PORTAL_FRAME_FILL, 1F, 1F);
-                            this.displayDirty = true;
+                        if(this.getRecipeContainer().checkedAdd(stack.getItem())) {
                             return ActionResultType.CONSUME;
                         }
                     }
                 }
-            } else if(this.getRecipeContainer().checkedAdd(held.getItem())) {
-                if(!player.isCreative()) {
-                    held.shrink(1);
-                }
+            } else if(this.getRecipeContainer().checkedAdd(stack.getItem())) {
                 if(this.getRecipeContainer().isRecipeComplete()) {
-                    this.onRecipeComplete(this.getRecipeContainer().getCurrentRecipe(), state, worldIn, pos, player, hand, hit);
+                    this.onRecipeComplete(this.getRecipeContainer().getCurrentRecipe(), state, worldIn, pos);
                 }
-                player.playSound(SoundEvents.BLOCK_END_PORTAL_FRAME_FILL, 1F, 1F);
-                this.displayDirty = true;
                 return ActionResultType.CONSUME;
             }
         }
         return ActionResultType.PASS;
     }
 
-    public void onRecipeComplete(HOFRecipe recipe, BlockState state, World worldIn, BlockPos pos, PlayerEntity player, Hand hand, BlockRayTraceResult hit) {
+    public void onRecipeComplete(HOFRecipe recipe, BlockState state, World worldIn, BlockPos pos) {
         if(!world.isRemote && worldIn instanceof ServerWorld) {
             ServerWorld world = (ServerWorld) worldIn;
-            Consumer<HOFEffectPacket> sender = p -> WWNetwork.HANDLER.send(PacketDistributor.TRACKING_CHUNK.with(() -> world.getChunkAt(pos)), p);
-            Consumer<SoundEvent> soundPlayer = s -> world.playSound(null, pos.getX(), pos.getY(), pos.getZ(), s, SoundCategory.BLOCKS, 1F, 1F);
             switch(recipe.getName()) {
             case "hirschgeist":
                 HOFEffectPacket hgpk = new HOFEffectPacket(HOFEffectType.HIRSCHGEIST, new Vector3f(pos.getX() + 0.5F, pos.getY() + 1F, pos.getZ() + 0.5F), WispColors.BLUE.getColor());
-                sender.accept(hgpk);
-                soundPlayer.accept(SoundEvents.ENTITY_EVOKER_CAST_SPELL);
-                soundPlayer.accept(SoundEvents.BLOCK_BELL_RESONATE);
+                this.sendToTrackers(hgpk);
+                this.playSound(SoundEvents.ENTITY_EVOKER_CAST_SPELL, 1F, 1F);
+                this.playSound(SoundEvents.BLOCK_BELL_RESONATE, 1F, 1F);
                 WWServerTaskQueue.schedule(50, () -> {
                     ModEntities.HIRSCHGEIST.entityType.spawn((ServerWorld) worldIn, null, null, pos.up(), SpawnReason.EVENT, false, false);
                 });
@@ -158,7 +209,7 @@ public class TileEntityHandOfFate extends TileEntity {
                     wColor = WispColors.values()[wisp.getRNG().nextInt(WispColors.values().length)];
                 }
                 wisp.setPosition((double)pos.getX() + 0.5D, (double)(pos.getY() + 1), (double)pos.getZ() + 0.5D);
-                double d0 = bbOffset(world, pos, false, wisp.getBoundingBox());
+                double d0 = 1.0D + VoxelShapes.getAllowedOffset(Direction.Axis.Y, wisp.getBoundingBox(), world.func_234867_d_(null, new AxisAlignedBB(pos), e -> true), -1.0D);
                 wisp.setLocationAndAngles((double) pos.getX() + 0.5D, (double) pos.getY() + d0, (double) pos.getZ() + 0.5D, MathHelper.wrapDegrees(world.rand.nextFloat() * 360.0F), 0.0F);
                 wisp.rotationYawHead = wisp.rotationYaw;
                 wisp.renderYawOffset = wisp.rotationYaw;
@@ -170,34 +221,27 @@ public class TileEntityHandOfFate extends TileEntity {
 
                 int color = wisp.getWispColor().getColor();
                 HOFEffectPacket packet = new HOFEffectPacket(HOFEffectType.CIRCLE, new Vector3f(pos.getX() + 0.5F, pos.getY() + 1F, pos.getZ() + 0.5F), color);
-                sender.accept(packet);
+                this.sendToTrackers(packet);
                 if(wisp.isHostile) {
                     HOFEffectPacket packet2 = new HOFEffectPacket(HOFEffectType.CIRCLE, new Vector3f(pos.getX() + 0.5F, pos.getY() + 1F, pos.getZ() + 0.5F), 0xFF0000);
-                    sender.accept(packet2);
+                    this.sendToTrackers(packet2);
 
                 }
-                soundPlayer.accept(wisp.isHostile ? SoundEvents.ENTITY_ELDER_GUARDIAN_CURSE : SoundEvents.ENTITY_EVOKER_CAST_SPELL);
+                this.playSound(wisp.isHostile ? SoundEvents.ENTITY_ELDER_GUARDIAN_CURSE : SoundEvents.ENTITY_EVOKER_CAST_SPELL, 1F, 1F);
                 break;
             default:
                 break;
             }
+            this.notifyUpdate();
         }
         this.getRecipeContainer().setRecipe(null);
-    }
-
-    private static double bbOffset(IWorldReader world, BlockPos pos, boolean down, AxisAlignedBB bb) {
-        AxisAlignedBB axisalignedbb = new AxisAlignedBB(pos);
-        if(down) {
-            axisalignedbb = axisalignedbb.expand(0.0D, -1.0D, 0.0D);
-        }
-        Stream<VoxelShape> stream = world.func_234867_d_(null, axisalignedbb, e -> true);
-        return 1.0D + VoxelShapes.getAllowedOffset(Direction.Axis.Y, bb, stream, down ? -2.0D : -1.0D);
     }
 
     @Override
     public void read(BlockState state, CompoundNBT nbt) {
         super.read(state, nbt);
         this.getRecipeContainer().read(state, nbt);
+        this.displayDirty = true;
     }
 
     @Override
@@ -230,6 +274,19 @@ public class TileEntityHandOfFate extends TileEntity {
     @Override
     public void handleUpdateTag(BlockState state, CompoundNBT tag) {
         this.read(state, tag);
+    }
+
+    public void dropItems(World worldIn, BlockPos pos) {
+        if(this.getRecipeContainer().hasRecipe() && this.getRecipeContainer().data != null) {
+            this.getRecipeContainer().data.getItemData().forEach((i, v) -> {
+                if(v) {
+                    Item toDrop = ForgeRegistries.ITEMS.getValue(new ResourceLocation(i));
+                    if(toDrop != null) {
+                        InventoryHelper.spawnItemStack(world, pos.getX(), pos.getY(), pos.getZ(), new ItemStack(toDrop));
+                    }
+                }
+            });
+        }
     }
 
     public static class CurrentRecipeContainer {
@@ -302,6 +359,8 @@ public class TileEntityHandOfFate extends TileEntity {
                 if(this.data != null) {
                     this.data.read(state, nbt);
                 }
+            } else {
+                this.setRecipe(null);
             }
         }
 
@@ -359,6 +418,8 @@ public class TileEntityHandOfFate extends TileEntity {
         public void read(BlockState state, CompoundNBT nbt) {
             if(nbt.contains("items", Constants.NBT.TAG_LIST)) {
                 nbt.getList("items", Constants.NBT.TAG_STRING).forEach(i -> data.put(i.getString(), true));
+            } else {
+                data.keySet().forEach((i) -> data.put(i, false));
             }
         }
 

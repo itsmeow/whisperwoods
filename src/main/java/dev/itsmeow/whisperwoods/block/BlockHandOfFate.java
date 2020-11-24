@@ -26,6 +26,7 @@ import net.minecraft.util.ActionResultType;
 import net.minecraft.util.Direction;
 import net.minecraft.util.Hand;
 import net.minecraft.util.IStringSerializable;
+import net.minecraft.util.SoundCategory;
 import net.minecraft.util.SoundEvents;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.BlockRayTraceResult;
@@ -67,6 +68,18 @@ public class BlockHandOfFate extends Block {
         return world.getBlockState(pos).getBlock() == this && world.getBlockState(pos.up()).getBlock() instanceof BlockGhostLight;
     }
 
+    @SuppressWarnings("deprecation")
+    @Override
+    public void onReplaced(BlockState state, World worldIn, BlockPos pos, BlockState newState, boolean isMoving) {
+        if(!state.isIn(newState.getBlock())) {
+            TileEntity te = worldIn.getTileEntity(pos);
+            if(te instanceof TileEntityHandOfFate) {
+                ((TileEntityHandOfFate)te).dropItems(worldIn, pos);
+            }
+            super.onReplaced(state, worldIn, pos, newState, isMoving);
+        }
+    }
+
     @Override
     public ActionResultType onBlockActivated(BlockState state, World worldIn, BlockPos pos, PlayerEntity player, Hand hand, BlockRayTraceResult hit) {
         ItemStack held = player.getHeldItem(hand);
@@ -77,7 +90,7 @@ public class BlockHandOfFate extends Block {
                 if(!player.isCreative()) {
                     held.shrink(1);
                 }
-                player.playSound(SoundEvents.BLOCK_END_PORTAL_FRAME_FILL, 1F, 1F);
+                worldIn.playSound(null, pos.getX(), pos.getY(), pos.getZ(), SoundEvents.BLOCK_END_PORTAL_FRAME_FILL, SoundCategory.BLOCKS, 1F, 1F);
                 worldIn.setBlockState(pos.up(), i.getBlock().getDefaultState());
                 return ActionResultType.CONSUME;
             } else {
