@@ -34,8 +34,8 @@ public class RenderWisp extends LivingRenderer<EntityWisp, EntityModel<EntityWis
         float g = (color >> 8) & 0xFF;
         float b = color & 0xFF;
         float scale = 1;
-        if(entity.getDataManager().get(EntityWisp.ATTACK_STATE) > 0) {
-            UUID target = UUID.fromString(entity.getDataManager().get(EntityWisp.TARGET));
+        if(entity.hasSoul()) {
+            UUID target = UUID.fromString(entity.getDataManager().get(EntityWisp.TARGET_ID));
             String name = entity.getDataManager().get(EntityWisp.TARGET_NAME);
             if(target != null && name != null && !name.equals("")) {
                 stack.push();

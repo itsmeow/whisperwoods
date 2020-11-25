@@ -28,6 +28,7 @@ public class WWNetwork {
 
     private static void setup(final FMLCommonSetupEvent event) {
         addPkt(HOFEffectPacket.class, HOFEffectPacket::encode, HOFEffectPacket::decode, HOFEffectPacket::handle, NetworkDirection.PLAY_TO_CLIENT);
+        addPkt(WispAttackPacket.class, WispAttackPacket::encode, WispAttackPacket::decode, WispAttackPacket::handle, NetworkDirection.PLAY_TO_CLIENT);
     }
 
     protected static <MSG> void addPkt(Class<MSG> messageType, BiConsumer<MSG, PacketBuffer> encoder, Function<PacketBuffer, MSG> decoder, BiConsumer<MSG, Supplier<NetworkEvent.Context>> messageConsumer) {

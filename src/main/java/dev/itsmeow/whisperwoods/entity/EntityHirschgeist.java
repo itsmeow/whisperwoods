@@ -13,6 +13,7 @@ import net.minecraft.block.BlockState;
 import net.minecraft.entity.AreaEffectCloudEntity;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.SpawnReason;
 import net.minecraft.entity.ai.goal.*;
 import net.minecraft.entity.monster.IMob;
 import net.minecraft.entity.monster.MonsterEntity;
@@ -48,6 +49,7 @@ import net.minecraft.world.BossInfo;
 import net.minecraft.world.IBlockReader;
 import net.minecraft.world.World;
 import net.minecraft.world.server.ServerBossInfo;
+import net.minecraft.world.server.ServerWorld;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
@@ -79,6 +81,7 @@ public class EntityHirschgeist extends MonsterEntity implements IMob, IOverrideC
 
         });
         this.goalSelector.addGoal(2, new FlameAttackGoal(this));
+        this.goalSelector.addGoal(3, new SummonWispsGoal(this));
         this.goalSelector.addGoal(3, new LookAtGoal(this, PlayerEntity.class, 20F));
         this.targetSelector.addGoal(1, new NearestAttackableTargetGoal<>(this, PlayerEntity.class, false));
     }
@@ -211,7 +214,7 @@ public class EntityHirschgeist extends MonsterEntity implements IMob, IOverrideC
 
     @Override
     public boolean isInvulnerableTo(DamageSource source) {
-        return (this.isDaytime() && source != DamageSource.OUT_OF_WORLD && !source.isCreativePlayer()) || source.getTrueSource() == this || source == DamageSource.MAGIC || source == DamageSource.IN_FIRE || source == DamageSource.ON_FIRE || source == DamageSource.LAVA;
+        return (this.isDaytime() && source != DamageSource.OUT_OF_WORLD && !source.isCreativePlayer()) || source.getTrueSource() instanceof EntityHirschgeist || source == DamageSource.MAGIC || source == DamageSource.IN_FIRE || source == DamageSource.ON_FIRE || source == DamageSource.LAVA;
     }
 
     @Override
@@ -355,5 +358,37 @@ public class EntityHirschgeist extends MonsterEntity implements IMob, IOverrideC
             this.flameTicks = 0;
         }
 
+    }
+
+    public static class SummonWispsGoal extends Goal {
+        private final EntityHirschgeist parent;
+
+        public SummonWispsGoal(EntityHirschgeist parent) {
+            this.parent = parent;
+        }
+
+        @Override
+        public boolean shouldExecute() {
+            return this.parent.getAttackTarget() != null && this.parent.getRNG().nextInt(500) == 0 && this.parent.world.getEntitiesWithinAABB(EntityWisp.class, this.parent.getBoundingBox().grow(10D), wisp -> wisp.isHirschgeistSummon()).size() == 0;
+        }
+
+        @Override
+        public void startExecuting() {
+            if(parent.world instanceof ServerWorld) {
+                for(int i = 0; i < 3; i++) {
+                    EntityWisp wisp = ModEntities.WISP.entityType.create((ServerWorld) parent.world, null, null, null, parent.getPosition().add(parent.getRNG().nextInt(8) - 4 + 0.5D, parent.getRNG().nextInt(4) + 1 + 0.5D, parent.getRNG().nextInt(8) - 4 + 0.5D), SpawnReason.REINFORCEMENT, false, false);
+                    wisp.setHirschgeistSummon(true);
+                    if (parent.getAttackTarget() != null) {
+                        wisp.setAttackTarget(parent.getAttackTarget());
+                    }
+                    parent.world.addEntity(wisp);
+                }
+            }
+        }
+
+        @Override
+        public boolean shouldContinueExecuting() {
+            return false;
+        }
     }
 }

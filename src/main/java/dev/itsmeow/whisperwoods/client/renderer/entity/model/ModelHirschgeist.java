@@ -878,10 +878,11 @@ public class ModelHirschgeist extends EntityModel<EntityHirschgeist> {
     @Override
     public void setRotationAngles(EntityHirschgeist entityIn, float limbSwing, float limbSwingAmount, float ageInTicks, float netHeadYaw, float headPitch) {
         this.isDaytime = entityIn.isDaytimeClient();
-        this.lArm00.rotateAngleX = MathHelper.cos(limbSwing * 0.6662F) * 1.4F * limbSwingAmount - 1.1344640137963142F;
-        this.rArm00.rotateAngleX = MathHelper.cos(limbSwing * 0.6662F + (float) Math.PI) * 1.4F * limbSwingAmount - 1.1344640137963142F;
-        this.rLeg00.rotateAngleX = MathHelper.cos(limbSwing * 0.6662F) * 1.4F * limbSwingAmount + 1.5707963267948966F;
-        this.lLeg00.rotateAngleX = MathHelper.cos(limbSwing * 0.6662F + (float) Math.PI) * 1.4F * limbSwingAmount + 1.5707963267948966F;
+        float factor = 0.8F;
+        this.lArm00.rotateAngleX = MathHelper.cos(limbSwing * 0.6662F) * factor * limbSwingAmount - 1.1344640137963142F;
+        this.rArm00.rotateAngleX = MathHelper.cos(limbSwing * 0.6662F + (float) Math.PI) * factor * limbSwingAmount - 1.1344640137963142F;
+        this.rLeg00.rotateAngleX = MathHelper.cos(limbSwing * 0.6662F) * factor * limbSwingAmount + 1.5707963267948966F;
+        this.lLeg00.rotateAngleX = MathHelper.cos(limbSwing * 0.6662F + (float) Math.PI) * factor * limbSwingAmount + 1.5707963267948966F;
         if(entityIn.getTargetDistance() >= 0 && entityIn.getTargetDistance() < 10D) {
             this.neck01.rotateAngleX = MathHelper.cos(entityIn.getSwingProgress(Minecraft.getInstance().getRenderPartialTicks()) * ((float) Math.PI / 2F)) - 0.9250245035569946F;
         } else {
