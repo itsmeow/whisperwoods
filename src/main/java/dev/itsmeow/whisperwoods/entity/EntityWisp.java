@@ -63,7 +63,7 @@ public class EntityWisp extends AnimalEntity implements IContainerEntity<EntityW
     protected ResourceLocation targetTexture;
     private boolean shouldBeHostile = false;
     private int attackCooldown = 0;
-    private boolean isHirschgeistSummon;
+    private boolean isHirschgeistSummon = false;
 
     protected EntityWisp(EntityType<? extends EntityWisp> entityType, World world) {
         super(entityType, world);
