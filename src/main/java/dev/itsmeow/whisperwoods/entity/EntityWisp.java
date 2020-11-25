@@ -124,7 +124,9 @@ public class EntityWisp extends AnimalEntity implements IContainerEntity<EntityW
                 soul = world.getServer().getPlayerList().getPlayerByUsername(this.dataManager.get(TARGET_NAME));
             }
             resetAttackState();
-            soul.attackEntityFrom(WISP, 3000F);
+            if(soul != null && HOSTILE_TARGET_PREDICATE.canTarget(this, soul)) {
+                soul.attackEntityFrom(WISP, 3000F);
+            }
             this.targetPosition = null;
             this.setAttackTarget(null);
         }
