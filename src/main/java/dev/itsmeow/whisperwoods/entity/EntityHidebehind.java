@@ -1,24 +1,14 @@
 package dev.itsmeow.whisperwoods.entity;
 
-import java.util.EnumSet;
-import java.util.Set;
-import java.util.stream.Stream;
-
-import javax.annotation.Nullable;
-
 import dev.itsmeow.imdlib.entity.util.EntityTypeContainer;
 import dev.itsmeow.imdlib.entity.util.EntityVariant;
 import dev.itsmeow.imdlib.util.BiomeDictionary.Type;
 import dev.itsmeow.whisperwoods.WhisperwoodsMod;
 import dev.itsmeow.whisperwoods.init.ModEntities;
 import dev.itsmeow.whisperwoods.init.ModSounds;
+import dev.itsmeow.whisperwoods.util.IOverrideCollisions;
 import net.minecraft.enchantment.EnchantmentHelper;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityPredicate;
-import net.minecraft.entity.EntityType;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.MobEntity;
-import net.minecraft.entity.SpawnReason;
+import net.minecraft.entity.*;
 import net.minecraft.entity.ai.RandomPositionGenerator;
 import net.minecraft.entity.ai.attributes.Attributes;
 import net.minecraft.entity.ai.goal.Goal;
@@ -28,32 +18,26 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.network.datasync.DataParameter;
 import net.minecraft.network.datasync.DataSerializers;
 import net.minecraft.network.datasync.EntityDataManager;
-import net.minecraft.pathfinding.GroundPathNavigator;
-import net.minecraft.pathfinding.PathFinder;
-import net.minecraft.pathfinding.PathNavigator;
-import net.minecraft.pathfinding.PathNodeType;
-import net.minecraft.pathfinding.WalkNodeProcessor;
+import net.minecraft.pathfinding.*;
 import net.minecraft.tags.BlockTags;
-import net.minecraft.util.DamageSource;
-import net.minecraft.util.Direction;
-import net.minecraft.util.EntityDamageSource;
-import net.minecraft.util.RegistryKey;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.ReuseableStream;
+import net.minecraft.util.*;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.math.shapes.IBooleanFunction;
 import net.minecraft.util.math.shapes.ISelectionContext;
 import net.minecraft.util.math.shapes.VoxelShape;
-import net.minecraft.util.math.shapes.VoxelShapes;
 import net.minecraft.util.math.vector.Vector3d;
 import net.minecraft.world.IBlockReader;
 import net.minecraft.world.World;
 import net.minecraft.world.biome.Biome;
 import net.minecraft.world.biome.Biomes;
 
-public class EntityHidebehind extends EntityCreatureWithSelectiveTypes {
+import javax.annotation.Nullable;
+import java.util.EnumSet;
+import java.util.Set;
+import java.util.stream.Stream;
+
+public class EntityHidebehind extends EntityCreatureWithSelectiveTypes implements IOverrideCollisions<EntityCreatureWithTypes> {
 
     public final DamageSource HIDEBEHIND = new EntityDamageSource("hidebehind", this).setDamageIsAbsolute().setDamageBypassesArmor();
     protected static final DataParameter<Byte> HIDING = EntityDataManager.<Byte>createKey(EntityHidebehind.class, DataSerializers.BYTE);
@@ -329,51 +313,19 @@ public class EntityHidebehind extends EntityCreatureWithSelectiveTypes {
 
     @Override
     public Vector3d getAllowedMovement(Vector3d vec) {
-        AxisAlignedBB axisalignedbb = this.getBoundingBox();
-        ISelectionContext iselectioncontext = ISelectionContext.forEntity(this);
-        VoxelShape voxelshape = this.world.getWorldBorder().getShape();
-        // get world shape as stream
-        Stream<VoxelShape> stream = VoxelShapes.compare(voxelshape, VoxelShapes.create(axisalignedbb.shrink(1.0E-7D)), IBooleanFunction.AND) ? Stream.empty() : Stream.of(voxelshape);
-        // get entity shape as stream
-        Stream<VoxelShape> stream1 = this.world.func_230318_c_(this, axisalignedbb.expand(vec), (p_233561_0_) -> {
-            return true;
-        });
-        // concatenate and make reusable
-        ReuseableStream<VoxelShape> reuseablestream = new ReuseableStream<>(Stream.concat(stream1, stream));
-        // return movement vector if it is 0, otherwise
-        Vector3d vec3d = vec.lengthSquared() == 0.0D ? vec : transformMove(this, vec, axisalignedbb, this.world, iselectioncontext, reuseablestream);
-        boolean flag = vec.x != vec3d.x; // if vector is transformed over x
-        boolean flag1 = vec.y != vec3d.y; // if vector is transformed over y
-        boolean flag2 = vec.z != vec3d.z; // if vector is transformed over z
-        boolean flag3 = this.onGround || flag1 && vec.y < 0.0D; // if on ground or transformed over y, and non-transformed vector is 0 (no
-        // planned y movement?)
-        if(this.stepHeight > 0.0F && flag3 && (flag || flag2)) { // if can step up and ^ and original vector transformed over either x or y
-            Vector3d vec3d1 = transformMove(this, new Vector3d(vec.x, (double) this.stepHeight, vec.z), axisalignedbb, this.world, iselectioncontext, reuseablestream);
-            Vector3d vec3d2 = transformMove(this, new Vector3d(0.0D, (double) this.stepHeight, 0.0D), axisalignedbb.expand(vec.x, 0.0D, vec.z), this.world, iselectioncontext, reuseablestream);
-            if(vec3d2.y < (double) this.stepHeight) {
-                Vector3d vec3d3 = transformMove(this, new Vector3d(vec.x, 0.0D, vec.z), axisalignedbb.offset(vec3d2), this.world, iselectioncontext, reuseablestream).add(vec3d2);
-                if(horizontalMag(vec3d3) > horizontalMag(vec3d1)) {
-                    vec3d1 = vec3d3;
-                }
-            }
-
-            if(horizontalMag(vec3d1) > horizontalMag(vec3d)) {
-                return vec3d1.add(transformMove(this, new Vector3d(0.0D, -vec3d1.y + vec.y, 0.0D), axisalignedbb.offset(vec3d1), this.world, iselectioncontext, reuseablestream));
-            }
-        }
-
-        return vec3d;
+        return allowedMove(vec);
     }
 
-    public static Vector3d transformMove(@Nullable Entity entity, Vector3d vec, AxisAlignedBB bb, World world, ISelectionContext context, ReuseableStream<VoxelShape> stream) {
+    @Override
+    public Vector3d transformMove(@Nullable Entity entity, Vector3d vec, AxisAlignedBB bb, World world, ISelectionContext context, ReuseableStream<VoxelShape> stream) {
         boolean flag = vec.x == 0.0D;
         boolean flag1 = vec.y == 0.0D;
         boolean flag2 = vec.z == 0.0D;
         if((!flag || !flag1) && (!flag || !flag2) && (!flag1 || !flag2)) { // if moving somehow
-            ReuseableStream<VoxelShape> reuseablestream = new ReuseableStream<>(Stream.concat(stream.createStream(), world.getCollisionShapes(entity, bb.expand(vec))).filter(shape -> {
+            ReuseableStream<VoxelShape> reusableStream = new ReuseableStream<>(Stream.concat(stream.createStream(), world.getCollisionShapes(entity, bb.expand(vec))).filter(shape -> {
                 return !world.getBlockState(new BlockPos(shape.getBoundingBox().minX, shape.getBoundingBox().minY, shape.getBoundingBox().minZ)).getBlock().isIn(BlockTags.LEAVES);
             }));
-            return collideBoundingBox(vec, bb, reuseablestream);
+            return collideBoundingBox(vec, bb, reusableStream);
         } else {
             return getAllowedMovement(vec, bb, world, context, stream);
         }
