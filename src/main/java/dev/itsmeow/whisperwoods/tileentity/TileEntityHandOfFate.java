@@ -1,15 +1,7 @@
 package dev.itsmeow.whisperwoods.tileentity;
 
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import javax.annotation.Nullable;
-
 import com.google.common.collect.ImmutableBiMap;
 import com.google.common.collect.ImmutableList;
-
 import dev.itsmeow.whisperwoods.block.BlockGhostLight;
 import dev.itsmeow.whisperwoods.block.BlockHandOfFate;
 import dev.itsmeow.whisperwoods.entity.EntityWisp;
@@ -38,13 +30,7 @@ import net.minecraft.network.NetworkManager;
 import net.minecraft.network.play.server.SUpdateTileEntityPacket;
 import net.minecraft.tileentity.ITickableTileEntity;
 import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.ActionResultType;
-import net.minecraft.util.Direction;
-import net.minecraft.util.Hand;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.SoundCategory;
-import net.minecraft.util.SoundEvent;
-import net.minecraft.util.SoundEvents;
+import net.minecraft.util.*;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.BlockRayTraceResult;
@@ -54,12 +40,16 @@ import net.minecraft.util.math.vector.Vector3f;
 import net.minecraft.util.text.TextFormatting;
 import net.minecraft.world.World;
 import net.minecraft.world.server.ServerWorld;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.common.util.Constants;
 import net.minecraftforge.event.ForgeEventFactory;
 import net.minecraftforge.fml.network.PacketDistributor;
 import net.minecraftforge.registries.ForgeRegistries;
+
+import javax.annotation.Nullable;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 public class TileEntityHandOfFate extends TileEntity implements ITickableTileEntity {
 
@@ -69,7 +59,6 @@ public class TileEntityHandOfFate extends TileEntity implements ITickableTileEnt
     private final CurrentRecipeContainer recipeContainer = new CurrentRecipeContainer();
     private Item toDisplay = null;
     private boolean displayDirty = true;
-    @OnlyIn(Dist.CLIENT)
     public float lastAnimationY = 0F;
 
     public TileEntityHandOfFate() {

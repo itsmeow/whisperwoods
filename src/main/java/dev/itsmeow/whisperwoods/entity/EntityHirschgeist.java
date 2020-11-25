@@ -84,6 +84,7 @@ public class EntityHirschgeist extends MonsterEntity implements IMob, IOverrideC
         this.goalSelector.addGoal(3, new SummonWispsGoal(this));
         this.goalSelector.addGoal(3, new LookAtGoal(this, PlayerEntity.class, 20F));
         this.targetSelector.addGoal(1, new NearestAttackableTargetGoal<>(this, PlayerEntity.class, false));
+        this.targetSelector.addGoal(2, new HurtByTargetGoal(this));
     }
 
     @Override
