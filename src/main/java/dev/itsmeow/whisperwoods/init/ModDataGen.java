@@ -12,6 +12,7 @@ import com.google.common.collect.ImmutableList;
 import com.mojang.datafixers.util.Pair;
 
 import dev.itsmeow.whisperwoods.WhisperwoodsMod;
+import dev.itsmeow.whisperwoods.block.BlockHandOfFate;
 import dev.itsmeow.whisperwoods.block.BlockWispLantern;
 import dev.itsmeow.whisperwoods.util.WispColors;
 import dev.itsmeow.whisperwoods.util.WispColors.WispColor;
@@ -28,12 +29,14 @@ import net.minecraft.data.ShapedRecipeBuilder;
 import net.minecraft.data.loot.BlockLootTables;
 import net.minecraft.item.BlockItem;
 import net.minecraft.item.Item;
+import net.minecraft.item.Items;
 import net.minecraft.loot.LootParameterSet;
 import net.minecraft.loot.LootParameterSets;
 import net.minecraft.loot.LootTable;
 import net.minecraft.loot.LootTable.Builder;
 import net.minecraft.loot.ValidationTracker;
 import net.minecraft.state.properties.BlockStateProperties;
+import net.minecraft.tags.ItemTags;
 import net.minecraft.util.Direction;
 import net.minecraft.util.Direction.Axis;
 import net.minecraft.util.ResourceLocation;
@@ -146,12 +149,33 @@ public class ModDataGen {
                 Block block = blockEntry.get();
                 if(block instanceof BlockWispLantern) {
                     this.makeLanternRecipe(consumer, (BlockWispLantern) block);
+                } else if(block instanceof BlockHandOfFate) {
+                    this.makeHOFRecipe(consumer, (BlockHandOfFate) block);
                 }
             });
         }
 
+        protected  void makeHOFRecipe(Consumer<IFinishedRecipe> consumer, BlockHandOfFate block) {
+            ShapedRecipeBuilder.shapedRecipe(block.asItem())
+                    .key('i', Items.IRON_BARS)
+                    .key('b', Items.BLAZE_POWDER)
+                    .key('s', Tags.Items.STONE)
+                    .patternLine("ibi")
+                    .patternLine(" i ")
+                    .patternLine("sss")
+                    .addCriterion("has_blaze_powder", hasItem(Items.BLAZE_POWDER))
+                    .build(consumer);
+        }
+
         protected void makeLanternRecipe(Consumer<IFinishedRecipe> consumer, BlockWispLantern block) {
-            ShapedRecipeBuilder.shapedRecipe(block.asItem()).key('l', WispColors.byColor(block.getColor()).getGhostLight().get()).key('n', Tags.Items.NUGGETS_IRON).patternLine("nnn").patternLine("nln").patternLine("nnn").addCriterion("has_ghost_light", hasItem(ModTags.Items.GHOST_LIGHT)).build(consumer);
+            ShapedRecipeBuilder.shapedRecipe(block.asItem())
+                    .key('l', WispColors.byColor(block.getColor()).getGhostLight().get())
+                    .key('n', Tags.Items.NUGGETS_IRON)
+                    .patternLine("nnn")
+                    .patternLine("nln")
+                    .patternLine("nnn")
+                    .addCriterion("has_ghost_light", hasItem(ModTags.Items.GHOST_LIGHT))
+                    .build(consumer);
         }
 
     }

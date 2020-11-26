@@ -1,0 +1,22 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "ibi",
+    " i ",
+    "sss"
+  ],
+  "key": {
+    "i": {
+      "item": "minecraft:iron_bars"
+    },
+    "b": {
+      "item": "minecraft:blaze_powder"
+    },
+    "s": {
+      "tag": "forge:stone"
+    }
+  },
+  "result": {
+    "item": "whisperwoods:hand_of_fate"
+  }
+}
