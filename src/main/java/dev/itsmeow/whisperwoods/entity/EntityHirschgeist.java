@@ -10,10 +10,7 @@ import dev.itsmeow.whisperwoods.init.ModEntities;
 import dev.itsmeow.whisperwoods.util.IOverrideCollisions;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
-import net.minecraft.entity.AreaEffectCloudEntity;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.SpawnReason;
+import net.minecraft.entity.*;
 import net.minecraft.entity.ai.goal.*;
 import net.minecraft.entity.monster.IMob;
 import net.minecraft.entity.monster.MonsterEntity;
@@ -45,9 +42,7 @@ import net.minecraft.util.math.shapes.VoxelShape;
 import net.minecraft.util.math.vector.Vector3d;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.TranslationTextComponent;
-import net.minecraft.world.BossInfo;
-import net.minecraft.world.IBlockReader;
-import net.minecraft.world.World;
+import net.minecraft.world.*;
 import net.minecraft.world.server.ServerBossInfo;
 import net.minecraft.world.server.ServerWorld;
 import net.minecraftforge.api.distmarker.Dist;
@@ -59,6 +54,7 @@ public class EntityHirschgeist extends MonsterEntity implements IMob, IOverrideC
     public static final DataParameter<Float> DISTANCE_TO_TARGET = EntityDataManager.createKey(EntityHirschgeist.class, DataSerializers.FLOAT);
     public static final DataParameter<Boolean> DAYTIME = EntityDataManager.createKey(EntityHirschgeist.class, DataSerializers.BOOLEAN);
     private final ServerBossInfo bossInfo = (ServerBossInfo) (new ServerBossInfo(this.getDisplayName(), BossInfo.Color.BLUE, BossInfo.Overlay.PROGRESS)).setDarkenSky(false);
+    private boolean wasSummoned = false;
 
     public EntityHirschgeist(World p_i48553_2_) {
         super(ModEntities.HIRSCHGEIST.entityType, p_i48553_2_);
@@ -85,6 +81,15 @@ public class EntityHirschgeist extends MonsterEntity implements IMob, IOverrideC
         this.goalSelector.addGoal(3, new LookAtGoal(this, PlayerEntity.class, 20F));
         this.targetSelector.addGoal(1, new NearestAttackableTargetGoal<>(this, PlayerEntity.class, false));
         this.targetSelector.addGoal(2, new HurtByTargetGoal(this));
+    }
+
+    @Nullable
+    @Override
+    public ILivingEntityData onInitialSpawn(IServerWorld worldIn, DifficultyInstance difficultyIn, SpawnReason reason, @Nullable ILivingEntityData spawnDataIn, @Nullable CompoundNBT dataTag) {
+        if(reason == SpawnReason.EVENT || reason == SpawnReason.MOB_SUMMONED) {
+            this.setWasSummoned();
+        }
+        return super.onInitialSpawn(worldIn, difficultyIn, reason, spawnDataIn, dataTag);
     }
 
     @Override
@@ -131,7 +136,15 @@ public class EntityHirschgeist extends MonsterEntity implements IMob, IOverrideC
         if (this.hasCustomName()) {
             this.bossInfo.setName(this.getDisplayName());
         }
+        if(compound.getBoolean("summoned")) {
+            this.setWasSummoned();
+        }
+    }
 
+    @Override
+    public void writeAdditional(CompoundNBT compound) {
+        super.writeAdditional(compound);
+        compound.putBoolean("summoned", this.wasSummoned());
     }
 
     @Override
@@ -279,6 +292,19 @@ public class EntityHirschgeist extends MonsterEntity implements IMob, IOverrideC
         } else {
             return getAllowedMovement(vec, bb, world, context, stream);
         }
+    }
+
+    @Override
+    public boolean canDespawn(double distanceToClosestPlayer) {
+        return despawn(distanceToClosestPlayer) && !this.wasSummoned();
+    }
+
+    public boolean wasSummoned() {
+        return this.wasSummoned;
+    }
+
+    public void setWasSummoned() {
+        this.wasSummoned = true;
     }
 
     @Override
