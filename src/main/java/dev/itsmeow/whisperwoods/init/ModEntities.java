@@ -15,11 +15,8 @@ import dev.itsmeow.imdlib.item.IContainerItem;
 import dev.itsmeow.imdlib.item.ItemModEntityContainer;
 import dev.itsmeow.imdlib.util.BiomeDictionary.Type;
 import dev.itsmeow.whisperwoods.WhisperwoodsMod;
-import dev.itsmeow.whisperwoods.entity.EntityHidebehind;
+import dev.itsmeow.whisperwoods.entity.*;
 import dev.itsmeow.whisperwoods.entity.EntityHidebehind.HidebehindVariant;
-import dev.itsmeow.whisperwoods.entity.EntityHirschgeist;
-import dev.itsmeow.whisperwoods.entity.EntityMoth;
-import dev.itsmeow.whisperwoods.entity.EntityWisp;
 import net.minecraft.entity.EntityClassification;
 import net.minecraft.entity.MobEntity;
 import net.minecraft.entity.ai.attributes.AttributeModifierMap;
@@ -108,7 +105,17 @@ public class ModEntities {
     .size(3F, 4F)
     .biomes(Type.FOREST));
 
-    public static final LinkedHashMap<String, EntityTypeContainer<? extends MobEntity>> getEntities() {
+    public static final EntityTypeContainer<EntityZotzpyre> ZOTZPYRE = H.add(entity(EntityZotzpyre.class, EntityZotzpyre::new, "zotzpyre", () -> MobEntity.func_233666_p_()
+    .createMutableAttribute(Attributes.MAX_HEALTH, 20.0D)
+    .createMutableAttribute(Attributes.ATTACK_DAMAGE, 3.0D))
+    .spawn(EntityClassification.MONSTER, 30, 1, 1)
+    .defaultPlacement(EntityZotzpyre::canSpawn)
+    .egg(0x321e13, 0x543a28).size(1F, 1F)
+    .despawn()
+    .biomes(Type.FOREST, Type.JUNGLE, Type.BEACH, Type.CONIFEROUS, Type.LUSH, Type.WASTELAND, Type.SWAMP, Type.HILLS, Type.MOUNTAIN)
+    .variants(5));
+
+    public static LinkedHashMap<String, EntityTypeContainer<? extends MobEntity>> getEntities() {
         return H.ENTITIES;
     }
 

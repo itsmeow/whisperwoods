@@ -1,9 +1,6 @@
 package dev.itsmeow.whisperwoods.client.init;
 
-import org.apache.logging.log4j.LogManager;
-
 import com.mojang.blaze3d.matrix.MatrixStack;
-
 import dev.itsmeow.imdlib.client.IMDLibClient;
 import dev.itsmeow.imdlib.client.render.RenderFactory;
 import dev.itsmeow.whisperwoods.WhisperwoodsMod;
@@ -12,16 +9,15 @@ import dev.itsmeow.whisperwoods.client.particle.FlameParticle;
 import dev.itsmeow.whisperwoods.client.particle.WispParticle;
 import dev.itsmeow.whisperwoods.client.renderer.entity.RenderHirschgeist;
 import dev.itsmeow.whisperwoods.client.renderer.entity.RenderWisp;
+import dev.itsmeow.whisperwoods.client.renderer.entity.layer.LayerEyes;
 import dev.itsmeow.whisperwoods.client.renderer.entity.model.ModelHidebehind;
 import dev.itsmeow.whisperwoods.client.renderer.entity.model.ModelMoth;
+import dev.itsmeow.whisperwoods.client.renderer.entity.model.ModelZotzpyre;
 import dev.itsmeow.whisperwoods.client.renderer.tile.RenderHGSkull;
-import dev.itsmeow.whisperwoods.client.renderer.tile.RenderTileHandOfFate;
 import dev.itsmeow.whisperwoods.client.renderer.tile.RenderTileGhostLight;
+import dev.itsmeow.whisperwoods.client.renderer.tile.RenderTileHandOfFate;
 import dev.itsmeow.whisperwoods.entity.EntityHidebehind;
-import dev.itsmeow.whisperwoods.init.ModBlocks;
-import dev.itsmeow.whisperwoods.init.ModEntities;
-import dev.itsmeow.whisperwoods.init.ModParticles;
-import dev.itsmeow.whisperwoods.init.ModTileEntities;
+import dev.itsmeow.whisperwoods.init.*;
 import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.IRenderTypeBuffer;
@@ -40,6 +36,7 @@ import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.client.registry.ClientRegistry;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
+import org.apache.logging.log4j.LogManager;
 
 @Mod.EventBusSubscriber(modid = WhisperwoodsMod.MODID, value = Dist.CLIENT, bus = Mod.EventBusSubscriber.Bus.MOD)
 public class ClientLifecycleHandler {
@@ -81,15 +78,13 @@ public class ClientLifecycleHandler {
         .mSingle(new ModelHidebehind())
         .renderLayer((e, a, b, c, t) -> RenderType.getEntityTranslucent(t, true))
         .layer(mgr -> new LayerRenderer<EntityHidebehind, EntityModel<EntityHidebehind>>(mgr) {
-            protected final ResourceLocation GLOW = new ResourceLocation(WhisperwoodsMod.MODID, "textures/entity/hidebehind_glow.png");
-            protected final ResourceLocation GLOW_OPEN = new ResourceLocation(WhisperwoodsMod.MODID, "textures/entity/hidebehind_open_glow.png");
             @Override
             public void render(MatrixStack matrixStackIn, IRenderTypeBuffer bufferIn, int packedLightIn, EntityHidebehind entity, float limbSwing, float limbSwingAmount, float partialTicks, float ageInTicks, float netHeadYaw, float headPitch) {
                 if(!entity.isInvisible()) {
                     matrixStackIn.push();
                     this.getEntityModel().setLivingAnimations(entity, limbSwing, limbSwingAmount, partialTicks);
                     this.getEntityModel().setRotationAngles(entity, limbSwing, limbSwingAmount, ageInTicks, netHeadYaw, headPitch);
-                    this.getEntityModel().render(matrixStackIn, bufferIn.getBuffer(entity.getOpen() ? RenderTypes.getEyesDepthMaskOff(GLOW_OPEN) : RenderTypes.getEyesDepthMaskOff(GLOW)), 15728640, OverlayTexture.NO_OVERLAY, 1.0F, 1.0F, 1.0F, 1.0F);
+                    this.getEntityModel().render(matrixStackIn, bufferIn.getBuffer(entity.getOpen() ? RenderTypes.getEyesDepthMaskOff(ModResources.HIDEBEHIND_OPEN_GLOW) : RenderTypes.getEyesDepthMaskOff(ModResources.HIDEBEHIND_GLOW)), 15728640, OverlayTexture.NO_OVERLAY, 1.0F, 1.0F, 1.0F, 1.0F);
                     matrixStackIn.pop();
                 }
             }
@@ -97,6 +92,8 @@ public class ClientLifecycleHandler {
 
         RenderFactory.addRender(ModEntities.WISP.entityType, RenderWisp::new);
         RenderFactory.addRender(ModEntities.HIRSCHGEIST.entityType, RenderHirschgeist::new);
+
+        R.addRender(ModEntities.ZOTZPYRE.entityType, 0.4F, r -> r.tVariant().mSingle(new ModelZotzpyre<>()).layer(t -> new LayerEyes<>(t, ModResources.ZOTZPYRE_EYES)));
 
         ClientRegistry.bindTileEntityRenderer(ModTileEntities.GHOST_LIGHT.get(), RenderTileGhostLight::new);
         ClientRegistry.bindTileEntityRenderer(ModTileEntities.HG_SKULL.get(), RenderHGSkull::new);
