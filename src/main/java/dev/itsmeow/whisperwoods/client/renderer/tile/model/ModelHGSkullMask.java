@@ -277,8 +277,7 @@ public class ModelHGSkullMask<T extends LivingEntity> extends BipedModel<T> {
 
     @Override
     public void setRotationAngles(T entityIn, float limbSwing, float limbSwingAmount, float ageInTicks, float netHeadYaw, float headPitch) {
-        this.bipedHead.rotateAngleX = (float) Math.toRadians(headPitch);
-        this.bipedHead.rotateAngleY = (float) Math.toRadians(netHeadYaw);
+        super.setRotationAngles(entityIn, limbSwing, limbSwingAmount, ageInTicks, netHeadYaw, headPitch);
     }
 
     public void setRotateAngle(ModelRenderer modelRenderer, float x, float y, float z) {
