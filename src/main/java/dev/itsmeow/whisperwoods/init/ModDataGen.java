@@ -3,12 +3,14 @@ package dev.itsmeow.whisperwoods.init;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Sets;
 import com.mojang.datafixers.util.Pair;
 
 import dev.itsmeow.whisperwoods.WhisperwoodsMod;
@@ -27,19 +29,19 @@ import net.minecraft.data.LootTableProvider;
 import net.minecraft.data.RecipeProvider;
 import net.minecraft.data.ShapedRecipeBuilder;
 import net.minecraft.data.loot.BlockLootTables;
+import net.minecraft.data.loot.EntityLootTables;
+import net.minecraft.entity.EntityType;
 import net.minecraft.item.BlockItem;
 import net.minecraft.item.Item;
 import net.minecraft.item.Items;
-import net.minecraft.loot.LootParameterSet;
-import net.minecraft.loot.LootParameterSets;
-import net.minecraft.loot.LootTable;
+import net.minecraft.loot.*;
 import net.minecraft.loot.LootTable.Builder;
-import net.minecraft.loot.ValidationTracker;
+import net.minecraft.loot.functions.SetCount;
 import net.minecraft.state.properties.BlockStateProperties;
-import net.minecraft.tags.ItemTags;
 import net.minecraft.util.Direction;
 import net.minecraft.util.Direction.Axis;
 import net.minecraft.util.ResourceLocation;
+import net.minecraft.util.registry.Registry;
 import net.minecraftforge.client.model.generators.BlockModelBuilder;
 import net.minecraftforge.client.model.generators.BlockStateProvider;
 import net.minecraftforge.client.model.generators.ConfiguredModel;
@@ -293,16 +295,31 @@ public class ModDataGen {
 
         @Override
         public String getName() {
-            return WhisperwoodsMod.MODID + "_block_loot_tables";
+            return WhisperwoodsMod.MODID + "_loot_tables";
         }
 
         @Override
         protected List<Pair<Supplier<Consumer<BiConsumer<ResourceLocation, Builder>>>, LootParameterSet>> getTables() {
-            return ImmutableList.of(Pair.of(WWBlockLootTables::new, LootParameterSets.BLOCK));
+            return ImmutableList.of(Pair.of(WWBlockLootTables::new, LootParameterSets.BLOCK), Pair.of(WWEntityLootTables::new, LootParameterSets.ENTITY));
         }
 
         @Override
         protected void validate(Map<ResourceLocation, LootTable> map, ValidationTracker validationtracker) {
+        }
+
+        public static class WWEntityLootTables extends EntityLootTables {
+            @Override
+            protected void addTables() {
+                for(EntityType<?> type : getKnownEntities()) {
+                    this.registerLootTable(type, LootTable.builder());
+                }
+                this.registerLootTable(ModEntities.HIRSCHGEIST.entityType, LootTable.builder().addLootPool(LootPool.builder().rolls(ConstantRange.of(1)).addEntry(ItemLootEntry.builder(ModItems.HIRSCHGEIST_SKULL.get())).acceptFunction(SetCount.builder(ConstantRange.of(1)))));
+            }
+
+            @Override
+            protected Iterable<EntityType<?>> getKnownEntities() {
+                return ModEntities.getEntities().values().stream().map(e -> e.entityType).collect(Collectors.toList());
+            }
         }
 
         public static class WWBlockLootTables extends BlockLootTables {
