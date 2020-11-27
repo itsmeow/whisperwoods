@@ -1,13 +1,9 @@
 package dev.itsmeow.whisperwoods.entity;
 
-import java.util.EnumSet;
-import java.util.stream.Stream;
-
-import javax.annotation.Nullable;
-
 import dev.itsmeow.imdlib.entity.util.EntityTypeContainer;
 import dev.itsmeow.whisperwoods.init.ModEntities;
 import dev.itsmeow.whisperwoods.util.IOverrideCollisions;
+import dev.itsmeow.whisperwoods.util.StopSpinningGroundPathNavigator;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.entity.*;
@@ -21,20 +17,11 @@ import net.minecraft.network.datasync.DataParameter;
 import net.minecraft.network.datasync.DataSerializers;
 import net.minecraft.network.datasync.EntityDataManager;
 import net.minecraft.particles.ParticleTypes;
-import net.minecraft.pathfinding.GroundPathNavigator;
-import net.minecraft.pathfinding.PathFinder;
-import net.minecraft.pathfinding.PathNavigator;
-import net.minecraft.pathfinding.PathNodeType;
-import net.minecraft.pathfinding.PathType;
-import net.minecraft.pathfinding.WalkNodeProcessor;
+import net.minecraft.pathfinding.*;
 import net.minecraft.potion.EffectInstance;
 import net.minecraft.potion.Effects;
 import net.minecraft.tags.BlockTags;
-import net.minecraft.util.DamageSource;
-import net.minecraft.util.ReuseableStream;
-import net.minecraft.util.SoundEvent;
-import net.minecraft.util.SoundEvents;
-import net.minecraft.util.Util;
+import net.minecraft.util.*;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.shapes.ISelectionContext;
@@ -47,6 +34,10 @@ import net.minecraft.world.server.ServerBossInfo;
 import net.minecraft.world.server.ServerWorld;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
+
+import javax.annotation.Nullable;
+import java.util.EnumSet;
+import java.util.stream.Stream;
 
 public class EntityHirschgeist extends MonsterEntity implements IMob, IOverrideCollisions<EntityHirschgeist> {
 
@@ -94,7 +85,7 @@ public class EntityHirschgeist extends MonsterEntity implements IMob, IOverrideC
 
     @Override
     protected PathNavigator createNavigator(World worldIn) {
-        return new GroundPathNavigator(this, worldIn) {
+        return new StopSpinningGroundPathNavigator(this, worldIn) {
             @Override
             protected PathFinder getPathFinder(int i1) {
                 this.nodeProcessor = new WalkNodeProcessor() {

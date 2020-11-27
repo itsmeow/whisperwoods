@@ -7,6 +7,8 @@ import dev.itsmeow.whisperwoods.WhisperwoodsMod;
 import dev.itsmeow.whisperwoods.init.ModEntities;
 import dev.itsmeow.whisperwoods.init.ModSounds;
 import dev.itsmeow.whisperwoods.util.IOverrideCollisions;
+import dev.itsmeow.whisperwoods.util.StopSpinningGroundPathNavigator;
+import net.minecraft.block.TorchBlock;
 import net.minecraft.enchantment.EnchantmentHelper;
 import net.minecraft.entity.*;
 import net.minecraft.entity.ai.RandomPositionGenerator;
@@ -14,11 +16,16 @@ import net.minecraft.entity.ai.attributes.Attributes;
 import net.minecraft.entity.ai.goal.Goal;
 import net.minecraft.entity.ai.goal.SwimGoal;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.item.BlockItem;
+import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.network.datasync.DataParameter;
 import net.minecraft.network.datasync.DataSerializers;
 import net.minecraft.network.datasync.EntityDataManager;
-import net.minecraft.pathfinding.*;
+import net.minecraft.pathfinding.PathFinder;
+import net.minecraft.pathfinding.PathNavigator;
+import net.minecraft.pathfinding.PathNodeType;
+import net.minecraft.pathfinding.WalkNodeProcessor;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.util.*;
 import net.minecraft.util.math.AxisAlignedBB;
@@ -116,17 +123,17 @@ public class EntityHidebehind extends EntityCreatureWithSelectiveTypes implement
                 }
             }
             if(fixed) {
-                this.setPosition(destinationBlock.getX(), destinationBlock.getY(), destinationBlock.getZ());
+                this.setPositionAndUpdate(destinationBlock.getX(), destinationBlock.getY(), destinationBlock.getZ());
             }
         }
         float atkTicks = attackSequenceTicks();
-        if(this.getHiding() && Math.abs(this.getTargetViewingAngle()) >= 70) {
+        if(this.getHiding() && !this.isBeingViewed()) {
             this.setHiding(false);
         }
         if(this.getAttackTarget() == null) {
             this.setAttackTarget(world.getClosestEntityWithinAABB(PlayerEntity.class, EntityPredicate.DEFAULT, null, this.getPosX(), this.getPosY(), this.getPosZ(), this.getBoundingBox().grow(25)));
         }
-        if(this.getAttackTarget() != null && this.getAttackTarget().getDistanceSq(this) < 5D && atkTicks == 0 && !this.getHiding()) {
+        if(this.getAttackTarget() != null && this.getAttackTarget().getDistanceSq(this) < 5D && atkTicks == 0 && !this.getHiding() && this.isEntityAttackable(this.getAttackTarget())) {
             if(this.getAttackTarget() instanceof PlayerEntity) {
                 PlayerEntity player = (PlayerEntity) this.getAttackTarget();
                 if(!this.world.isRemote && this.getRNG().nextInt(20) == 0) {
@@ -175,6 +182,12 @@ public class EntityHidebehind extends EntityCreatureWithSelectiveTypes implement
         }
     }
 
+    public boolean isEntityAttackable(LivingEntity target) {
+        Item mainItem = target.getHeldItem(Hand.MAIN_HAND).getItem();
+        Item offItem = target.getHeldItem(Hand.OFF_HAND).getItem();
+        return world.getLight(target.getPosition()) < 8 && !(mainItem instanceof BlockItem && ((BlockItem)mainItem).getBlock() instanceof TorchBlock) && !(offItem instanceof BlockItem && ((BlockItem)offItem).getBlock() instanceof TorchBlock);
+    }
+
     @Override
     protected float getWaterSlowDown() {
         return 1.0F;
@@ -211,6 +224,10 @@ public class EntityHidebehind extends EntityCreatureWithSelectiveTypes implement
         }
     }
 
+    public boolean isBeingViewed() {
+        return Math.abs(this.getTargetViewingAngle()) <= 50;
+    }
+
     /**
      * @return The viewing angle of the attack target (0 when looking directly at
      *         HB, 180 if opposite). If there is no target, returns -1000
@@ -220,25 +237,7 @@ public class EntityHidebehind extends EntityCreatureWithSelectiveTypes implement
         if(target == null) {
             return -1000;
         }
-        float targetAngle = Math.abs(this.getAttackTarget().rotationYawHead % 360);
-        boolean xNeg = target.getPosX() - this.getPosX() <= 0;
-        boolean zNeg = target.getPosZ() - this.getPosZ() <= 0;
-        double angleAdd = xNeg ? (zNeg ? 0 : 90) : (zNeg ? 180 : 0);
-        if(!(!xNeg && !zNeg)) {
-            double angle = (target.getPosZ() - this.getPosZ() == 0) ? ((target.getPosX() - target.getPosX() > 0) ? 90 : -90) : Math.toDegrees(Math.atan(Math.abs(target.getPosX() - this.getPosX()) / Math.abs(target.getPosZ() - this.getPosZ())));
-            double ans = Math.abs(((angleAdd) - Math.abs(angle)) + angleAdd) - targetAngle;
-            if(ans > 180 || ans < -180) {
-                ans = (ans > 180 ? -1 : 1) * (180 - (Math.abs(ans) - 180));
-            }
-            return ans;
-        } else {
-            double angle = (target.getPosX() - this.getPosX() == 0) ? ((target.getPosZ() - target.getPosZ() > 0) ? 0 : 360) : Math.toDegrees(Math.atan(Math.abs(target.getPosZ() - this.getPosZ()) / Math.abs(target.getPosX() - this.getPosX())));
-            double ans = Math.abs(angle);
-            if(ans > 180 || ans < -180) {
-                ans = (ans > 180 ? -1 : 1) * (180 - (Math.abs(ans) - 180));
-            }
-            return 90 - ans - (targetAngle - 270) - 90;
-        }
+        return MathHelper.wrapDegrees(getRequiredViewingAngle() - MathHelper.wrapDegrees(getAttackTarget().rotationYaw));
     }
 
     /**
@@ -250,25 +249,7 @@ public class EntityHidebehind extends EntityCreatureWithSelectiveTypes implement
         if(target == null) {
             return -1000;
         }
-        float targetAngle = 0;
-        boolean xNeg = target.getPosX() - this.getPosX() <= 0;
-        boolean zNeg = target.getPosZ() - this.getPosZ() <= 0;
-        double angleAdd = xNeg ? (zNeg ? 0 : 90) : (zNeg ? 180 : 0);
-        if(!(!xNeg && !zNeg)) {
-            double angle = (target.getPosZ() - this.getPosZ() == 0) ? ((target.getPosX() - target.getPosX() > 0) ? 90 : -90) : Math.toDegrees(Math.atan(Math.abs(target.getPosX() - this.getPosX()) / Math.abs(target.getPosZ() - this.getPosZ())));
-            double ans = Math.abs(((angleAdd) - Math.abs(angle)) + angleAdd) - targetAngle;
-            if(ans > 180 || ans < -180) {
-                ans = (ans > 180 ? -1 : 1) * (180 - (Math.abs(ans) - 180));
-            }
-            return ans;
-        } else {
-            double angle = (target.getPosX() - this.getPosX() == 0) ? ((target.getPosZ() - target.getPosZ() > 0) ? 0 : 360) : Math.toDegrees(Math.atan(Math.abs(target.getPosZ() - this.getPosZ()) / Math.abs(target.getPosX() - this.getPosX())));
-            double ans = Math.abs(angle);
-            if(ans > 180 || ans < -180) {
-                ans = (ans > 180 ? -1 : 1) * (180 - (Math.abs(ans) - 180));
-            }
-            return 90 - ans - (targetAngle - 270) - 90;
-        }
+        return MathHelper.wrapDegrees(90D + Math.toDegrees(Math.atan2(target.getPosZ() - this.getPosZ(), target.getPosX() - this.getPosX())));
     }
 
     @Override
@@ -333,35 +314,36 @@ public class EntityHidebehind extends EntityCreatureWithSelectiveTypes implement
 
     public static class HideFromTargetGoal extends Goal {
         private final EntityHidebehind hidebehind;
-        private LivingEntity target;
 
         public HideFromTargetGoal(EntityHidebehind hb) {
             this.hidebehind = hb;
             this.setMutexFlags(EnumSet.of(Goal.Flag.MOVE));
         }
 
+        @Override
         public boolean shouldExecute() {
-            this.target = this.hidebehind.getAttackTarget();
-            return target != null && Math.abs(hidebehind.getTargetViewingAngle()) < 70 && hidebehind.attackSequenceTicks() == 0;
-
+            return hidebehind.getAttackTarget() != null && (hidebehind.isBeingViewed() || !hidebehind.isEntityAttackable(hidebehind.getAttackTarget())) && hidebehind.attackSequenceTicks() == 0;
         }
 
+        @Override
         public boolean shouldContinueExecuting() {
-            this.target = this.hidebehind.getAttackTarget();
-            return target != null && Math.abs(hidebehind.getTargetViewingAngle()) < 70 && hidebehind.attackSequenceTicks() == 0;
+            return this.shouldExecute();
         }
 
+        @Override
         public void resetTask() {
-            this.target = null;
             hidebehind.setHiding(false);
         }
 
+        @Override
         public void startExecuting() {
             hidebehind.setHiding(true);
+            this.hidebehind.getNavigator().clearPath();
         }
 
         @Override
         public void tick() {
+            this.hidebehind.getNavigator().clearPath();
             boolean nearTree = false;
             for(Direction dir : Direction.values()) {
                 if(!nearTree) {
@@ -402,7 +384,7 @@ public class EntityHidebehind extends EntityCreatureWithSelectiveTypes implement
                     }
                 }
                 if(fixed) {
-                    hidebehind.setPosition(destinationBlock.getX(), destinationBlock.getY(), destinationBlock.getZ());
+                    hidebehind.setPositionAndUpdate(destinationBlock.getX(), destinationBlock.getY(), destinationBlock.getZ());
                 }
             }
         }
@@ -413,7 +395,7 @@ public class EntityHidebehind extends EntityCreatureWithSelectiveTypes implement
         super.registerData();
         this.dataManager.register(HIDING, (byte) 0);
         this.dataManager.register(OPEN, (byte) 0);
-        this.dataManager.register(ATTACK_SEQUENCE_TICKS, Integer.valueOf(0));
+        this.dataManager.register(ATTACK_SEQUENCE_TICKS, 0);
     }
 
     @Override
@@ -421,12 +403,13 @@ public class EntityHidebehind extends EntityCreatureWithSelectiveTypes implement
         return new HidebehindGroundNavigator(this, world);
     }
 
-    public static class HidebehindGroundNavigator extends GroundPathNavigator {
+    public static class HidebehindGroundNavigator extends StopSpinningGroundPathNavigator {
 
         public HidebehindGroundNavigator(MobEntity entityliving, World world) {
             super(entityliving, world);
         }
 
+        @Override
         protected PathFinder getPathFinder(int i1) {
             this.nodeProcessor = new HidebehindNodeProcessor();
             this.nodeProcessor.setCanEnterDoors(true);
@@ -434,6 +417,7 @@ public class EntityHidebehind extends EntityCreatureWithSelectiveTypes implement
         }
 
         public static class HidebehindNodeProcessor extends WalkNodeProcessor {
+            @Override
             protected PathNodeType func_215744_a(IBlockReader reader, boolean b1, boolean b2, BlockPos pos, PathNodeType typeIn) {
                 return typeIn == PathNodeType.LEAVES ? PathNodeType.OPEN : super.func_215744_a(reader, b1, b2, pos, typeIn);
             }
@@ -454,37 +438,29 @@ public class EntityHidebehind extends EntityCreatureWithSelectiveTypes implement
             this.setMutexFlags(EnumSet.of(Goal.Flag.MOVE, Goal.Flag.LOOK));
         }
 
-        /**
-         * Returns whether the EntityAIBase should begin execution.
-         */
+        @Override
         public boolean shouldExecute() {
             this.target = this.hidebehind.getAttackTarget();
-            if(this.target == null) {
-                return false;
-            } else if(this.target.getDistanceSq(this.hidebehind) > (double) (this.maxTargetDistance * this.maxTargetDistance)) {
+            if(this.target == null || this.target.getDistanceSq(this.hidebehind) > (double) (this.maxTargetDistance * this.maxTargetDistance)) {
                 return false;
             } else {
                 Vector3d vec3d = RandomPositionGenerator.findRandomTargetBlockTowards(this.hidebehind, 16, 7, new Vector3d(this.target.getPosX(), this.target.getPosY(), this.target.getPosZ()));
-                if(vec3d == null) {
-                    return false;
-                } else if(hidebehind.world.getLightValue(hidebehind.getPosition()) > 8) {
-                    return false;
-                } else if(hidebehind.attackSequenceTicks() > 0 || hidebehind.getHiding()) {
-                    return false;
-                } else {
-                    return true;
-                }
+                return vec3d != null && hidebehind.isEntityAttackable(target) && hidebehind.attackSequenceTicks() <= 0 && !hidebehind.getHiding();
             }
         }
 
+        @Override
         public boolean shouldContinueExecuting() {
-            return !hidebehind.getHiding() && !this.hidebehind.getNavigator().noPath() && this.target.isAlive() && this.target.getDistanceSq(this.hidebehind) < (double) (this.maxTargetDistance * this.maxTargetDistance) && hidebehind.attackSequenceTicks() == 0;
+            return !hidebehind.getHiding() && !this.hidebehind.getNavigator().noPath() && this.target.isAlive() && this.target.getDistanceSq(this.hidebehind) < (double) (this.maxTargetDistance * this.maxTargetDistance) && hidebehind.attackSequenceTicks() == 0 && hidebehind.isEntityAttackable(target);
         }
 
+        @Override
         public void resetTask() {
             this.target = null;
+            this.hidebehind.getNavigator().clearPath();
         }
 
+        @Override
         public void startExecuting() {
             this.hidebehind.lookController.setLookPositionWithEntity(this.target, 1000, 1000);
             this.hidebehind.getNavigator().tryMoveToEntityLiving(this.hidebehind.getAttackTarget(), this.speed);
