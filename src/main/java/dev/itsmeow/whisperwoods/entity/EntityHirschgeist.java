@@ -52,6 +52,7 @@ public class EntityHirschgeist extends MonsterEntity implements IMob, IOverrideC
 
     public EntityHirschgeist(World p_i48553_2_) {
         super(ModEntities.HIRSCHGEIST.entityType, p_i48553_2_);
+        this.experienceValue = 150;
     }
 
     @Override
