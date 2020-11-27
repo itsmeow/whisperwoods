@@ -2,11 +2,9 @@ package dev.itsmeow.whisperwoods.entity;
 
 import dev.itsmeow.imdlib.entity.util.EntityTypeContainer;
 import dev.itsmeow.whisperwoods.init.ModEntities;
-import dev.itsmeow.whisperwoods.util.StopSpinningClimberPathNavigator;
 import net.minecraft.enchantment.EnchantmentHelper;
 import net.minecraft.entity.*;
-import net.minecraft.entity.ai.attributes.Attributes;
-import net.minecraft.entity.ai.attributes.ModifiableAttributeInstance;
+import net.minecraft.entity.ai.attributes.IAttributeInstance;
 import net.minecraft.entity.ai.goal.*;
 import net.minecraft.entity.monster.IMob;
 import net.minecraft.entity.passive.AmbientEntity;
@@ -18,23 +16,21 @@ import net.minecraft.network.datasync.DataParameter;
 import net.minecraft.network.datasync.DataSerializers;
 import net.minecraft.network.datasync.EntityDataManager;
 import net.minecraft.network.play.server.SSetPassengersPacket;
+import net.minecraft.pathfinding.ClimberPathNavigator;
 import net.minecraft.pathfinding.PathNavigator;
 import net.minecraft.pathfinding.WalkAndSwimNodeProcessor;
 import net.minecraft.potion.EffectInstance;
 import net.minecraft.potion.Effects;
 import net.minecraft.util.DamageSource;
-import net.minecraft.util.RegistryKey;
 import net.minecraft.util.SoundEvent;
 import net.minecraft.util.SoundEvents;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.math.vector.Vector3d;
-import net.minecraft.util.registry.Registry;
+import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.Difficulty;
 import net.minecraft.world.IWorld;
 import net.minecraft.world.World;
 import net.minecraftforge.common.BiomeDictionary;
-import net.minecraftforge.common.ForgeMod;
 
 import java.util.Random;
 
@@ -60,13 +56,20 @@ public class EntityZotzpyre extends EntityMonsterWithTypes {
     }
 
     protected PathNavigator createNavigator(World worldIn) {
-        return new StopSpinningClimberPathNavigator(this, worldIn);
+        return new ClimberPathNavigator(this, worldIn);
     }
 
     @Override
     protected void registerData() {
         super.registerData();
         this.dataManager.register(CLIMBING, (byte) 0);
+    }
+
+    @Override
+    protected void registerAttributes() {
+        super.registerAttributes();
+        this.getAttribute(SharedMonsterAttributes.MAX_HEALTH).setBaseValue(20.0D);
+        this.getAttribute(SharedMonsterAttributes.ATTACK_DAMAGE).setBaseValue(3.0D);
     }
 
     @Override
@@ -105,8 +108,8 @@ public class EntityZotzpyre extends EntityMonsterWithTypes {
 
     /* prevent slowdown in air */
     @Override
-    public void travel(Vector3d vec) {
-        ModifiableAttributeInstance gravity = this.getAttribute(ForgeMod.ENTITY_GRAVITY.get());
+    public void travel(Vec3d vec) {
+        IAttributeInstance gravity = this.getAttribute(ENTITY_GRAVITY);
         boolean flag = this.getMotion().y <= 0.0D;
         double d0 = gravity != null ? gravity.getValue() : 0.08D;
         double d1 = this.getPosY();
@@ -126,17 +129,17 @@ public class EntityZotzpyre extends EntityMonsterWithTypes {
             f = 0.96F;
         }
 
-        f1 *= this.getAttribute(ForgeMod.SWIM_SPEED.get()).getValue();
+        f1 *= this.getAttribute(SWIM_SPEED).getValue();
         this.moveRelative(f1, vec);
         this.move(MoverType.SELF, this.getMotion());
-        Vector3d vec3d1 = this.getMotion();
+        Vec3d vec3d1 = this.getMotion();
         if (this.collidedHorizontally && this.isOnLadder()) {
-            vec3d1 = new Vector3d(vec3d1.x, 0.2D, vec3d1.z);
+            vec3d1 = new Vec3d(vec3d1.x, 0.2D, vec3d1.z);
         }
 
         this.setMotion(vec3d1.mul(f, 0.8F, f));
         if (!this.hasNoGravity() && !this.isSprinting()) {
-            Vector3d vec3d2 = this.getMotion();
+            Vec3d vec3d2 = this.getMotion();
             double d2;
             if (flag && Math.abs(vec3d2.y - 0.005D) >= 0.003D && Math.abs(vec3d2.y - d0 / 16.0D) < 0.003D) {
                 d2 = -0.003D;
@@ -147,7 +150,7 @@ public class EntityZotzpyre extends EntityMonsterWithTypes {
             this.setMotion(vec3d2.x, d2, vec3d2.z);
         }
 
-        Vector3d vec3d6 = this.getMotion();
+        Vec3d vec3d6 = this.getMotion();
         if (this.collidedHorizontally && this.isOffsetPositionInLiquid(vec3d6.x, vec3d6.y + (double) 0.6F - this.getPosY() + d1, vec3d6.z)) {
             this.setMotion(vec3d6.x, 0.3F, vec3d6.z);
         }
@@ -287,9 +290,8 @@ public class EntityZotzpyre extends EntityMonsterWithTypes {
         }
     }
 
-    @SuppressWarnings("deprecation")
     public static boolean canSpawn(EntityType<EntityZotzpyre> type, IWorld world, SpawnReason reason, BlockPos pos, Random rand) {
-        if (pos.getY() >= world.getSeaLevel() && !BiomeDictionary.getTypes(RegistryKey.getOrCreateKey(Registry.BIOME_KEY, world.getBiome(pos).getRegistryName())).contains(BiomeDictionary.Type.JUNGLE)) {
+        if (pos.getY() >= world.getSeaLevel() && !BiomeDictionary.getTypes(world.getBiome(pos)).contains(BiomeDictionary.Type.JUNGLE)) {
             return false;
         } else {
             return canMonsterSpawn(type, world, reason, pos, rand);
@@ -311,7 +313,7 @@ public class EntityZotzpyre extends EntityMonsterWithTypes {
 
     @Override
     public boolean attackEntityAsMob(Entity entityIn) {
-        float f = (float) this.getAttribute(Attributes.ATTACK_DAMAGE).getValue();
+        float f = (float) this.getAttribute(SharedMonsterAttributes.ATTACK_DAMAGE).getValue();
         boolean flag = entityIn.attackEntityFrom(DamageSource.causeMobDamage(this), f);
         if (flag) {
             this.lastAttack = this.ticksExisted;

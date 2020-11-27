@@ -22,7 +22,7 @@ import net.minecraft.item.ItemGroup;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.ItemUseContext;
 import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.state.Property;
+import net.minecraft.state.IProperty;
 import net.minecraft.state.StateContainer;
 import net.minecraft.util.ActionResultType;
 import net.minecraft.util.NonNullList;
@@ -85,7 +85,7 @@ public class ItemBlockArmor extends ArmorItem {
                         itemstack.shrink(1);
                     }
 
-                    return ActionResultType.func_233537_a_(world.isRemote);
+                    return world.isRemote ? ActionResultType.SUCCESS : ActionResultType.CONSUME;
                 }
             }
         }
@@ -124,7 +124,7 @@ public class ItemBlockArmor extends ArmorItem {
             StateContainer<Block, BlockState> statecontainer = p_219985_4_.getBlock().getStateContainer();
 
             for(String s : compoundnbt1.keySet()) {
-                Property<?> property = statecontainer.getProperty(s);
+                IProperty<?> property = statecontainer.getProperty(s);
                 if(property != null) {
                     String s1 = compoundnbt1.get(s).getString();
                     blockstate = func_219988_a(blockstate, property, s1);
@@ -139,7 +139,7 @@ public class ItemBlockArmor extends ArmorItem {
         return blockstate;
     }
 
-    private static <T extends Comparable<T>> BlockState func_219988_a(BlockState p_219988_0_, Property<T> p_219988_1_, String p_219988_2_) {
+    private static <T extends Comparable<T>> BlockState func_219988_a(BlockState p_219988_0_, IProperty<T> p_219988_1_, String p_219988_2_) {
         return p_219988_1_.parseValue(p_219988_2_).map((p_219986_2_) -> {
             return p_219988_0_.with(p_219988_1_, p_219986_2_);
         }).orElse(p_219988_0_);
@@ -148,7 +148,7 @@ public class ItemBlockArmor extends ArmorItem {
     protected boolean canPlace(BlockItemUseContext p_195944_1_, BlockState p_195944_2_) {
         PlayerEntity playerentity = p_195944_1_.getPlayer();
         ISelectionContext iselectioncontext = playerentity == null ? ISelectionContext.dummy() : ISelectionContext.forEntity(playerentity);
-        return (!this.checkPosition() || p_195944_2_.isValidPosition(p_195944_1_.getWorld(), p_195944_1_.getPos())) && p_195944_1_.getWorld().placedBlockCollides(p_195944_2_, p_195944_1_.getPos(), iselectioncontext);
+        return (!this.checkPosition() || p_195944_2_.isValidPosition(p_195944_1_.getWorld(), p_195944_1_.getPos())) && p_195944_1_.getWorld().placedBlockWouldCollide(p_195944_2_, p_195944_1_.getPos(), iselectioncontext);
     }
 
     protected boolean checkPosition() {

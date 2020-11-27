@@ -5,7 +5,6 @@ import net.minecraft.entity.EntityType;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.util.ActionResultType;
 import net.minecraft.util.Hand;
 import net.minecraft.world.World;
 
@@ -56,11 +55,11 @@ public abstract class EntityAnimalWithTypesAndSizeContainable extends EntityAnim
     }
 
     @Override
-    public ActionResultType func_230254_b_(PlayerEntity player, Hand hand) {
+    public boolean processInteract(PlayerEntity player, Hand hand) {
         if(this.processContainerInteract(player, hand)) {
-            return ActionResultType.SUCCESS;
+            return true;
         }
-        return super.func_230254_b_(player, hand);
+        return super.processInteract(player, hand);
     }
 
     @Override

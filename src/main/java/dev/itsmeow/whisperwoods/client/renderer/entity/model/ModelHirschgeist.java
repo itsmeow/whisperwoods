@@ -1,27 +1,21 @@
 package dev.itsmeow.whisperwoods.client.renderer.entity.model;
 
-import java.util.function.Function;
-
 import com.mojang.blaze3d.matrix.MatrixStack;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.IVertexBuilder;
-
 import dev.itsmeow.whisperwoods.WhisperwoodsMod;
 import dev.itsmeow.whisperwoods.client.init.ClientLifecycleHandler;
 import dev.itsmeow.whisperwoods.entity.EntityHirschgeist;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.BufferBuilder;
-import net.minecraft.client.renderer.IRenderTypeBuffer;
-import net.minecraft.client.renderer.RenderType;
-import net.minecraft.client.renderer.Tessellator;
-import net.minecraft.client.renderer.WorldVertexBufferUploader;
+import net.minecraft.client.renderer.*;
 import net.minecraft.client.renderer.entity.model.EntityModel;
 import net.minecraft.client.renderer.model.Model;
 import net.minecraft.client.renderer.model.ModelRenderer;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.math.vector.Matrix4f;
+
+import java.util.function.Function;
 
 /**
  * hirschgeist_2 - CyberCat5555 Created using Tabula 8.0.0
@@ -974,7 +968,7 @@ public class ModelHirschgeist extends EntityModel<EntityHirschgeist> {
 
         private static final ResourceLocation TEXTURE = new ResourceLocation(WhisperwoodsMod.MODID, "textures/particle/flame.png");
 
-        @SuppressWarnings({ "resource", "deprecation" })
+        @SuppressWarnings({ "resource" })
         public static void render(MatrixStack stack, float scale) {
             RenderSystem.enableAlphaTest();
             RenderSystem.disableCull();

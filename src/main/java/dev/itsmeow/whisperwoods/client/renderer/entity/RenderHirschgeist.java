@@ -98,12 +98,10 @@ public class RenderHirschgeist extends LivingRenderer<EntityHirschgeist, ModelHi
 
         this.entityModel.setLivingAnimations(entityIn, f5, f8, partialTicks);
         this.entityModel.setRotationAngles(entityIn, f5, f8, f7, f2, f6);
-        Minecraft minecraft = Minecraft.getInstance();
         boolean flag = this.isVisible(entityIn);
-        boolean flag1 = !flag && !entityIn.isInvisibleToPlayer(minecraft.player);
-        boolean flag2 = minecraft.isEntityGlowing(entityIn);
-        RenderType rendertype = this.func_230496_a_(entityIn, flag, flag1, flag2);
-        if(rendertype != null) {
+        boolean flag1 = !flag && !entityIn.isInvisibleToPlayer(Minecraft.getInstance().player);
+        RenderType rendertype = this.func_230042_a_(entityIn, flag, flag1);
+        if (rendertype != null) {
             IVertexBuilder ivertexbuilder = bufferIn.getBuffer(rendertype);
             int i = getPackedOverlay(entityIn, this.getOverlayProgress(entityIn, partialTicks));
             this.entityModel.renderSpecial(this.getEntityTexture(entityIn), matrixStackIn, bufferIn, ivertexbuilder, packedLightIn, i, 1.0F, 1.0F, 1.0F, flag1 ? 0.15F : 1.0F);

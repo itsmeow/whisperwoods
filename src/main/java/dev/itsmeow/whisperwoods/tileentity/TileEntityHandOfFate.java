@@ -15,6 +15,7 @@ import dev.itsmeow.whisperwoods.util.WispColors;
 import dev.itsmeow.whisperwoods.util.WispColors.WispColor;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
+import net.minecraft.client.renderer.Vector3f;
 import net.minecraft.entity.SpawnReason;
 import net.minecraft.entity.item.ItemEntity;
 import net.minecraft.entity.player.PlayerEntity;
@@ -36,7 +37,6 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.BlockRayTraceResult;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.shapes.VoxelShapes;
-import net.minecraft.util.math.vector.Vector3f;
 import net.minecraft.util.text.TextFormatting;
 import net.minecraft.world.World;
 import net.minecraft.world.server.ServerWorld;
@@ -46,10 +46,7 @@ import net.minecraftforge.fml.network.PacketDistributor;
 import net.minecraftforge.registries.ForgeRegistries;
 
 import javax.annotation.Nullable;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 public class TileEntityHandOfFate extends TileEntity implements ITickableTileEntity {
 
@@ -198,14 +195,14 @@ public class TileEntityHandOfFate extends TileEntity implements ITickableTileEnt
                     wColor = WispColors.values()[wisp.getRNG().nextInt(WispColors.values().length)];
                 }
                 wisp.setPosition((double)pos.getX() + 0.5D, (double)(pos.getY() + 1), (double)pos.getZ() + 0.5D);
-                double d0 = 1.0D + VoxelShapes.getAllowedOffset(Direction.Axis.Y, wisp.getBoundingBox(), world.func_234867_d_(null, new AxisAlignedBB(pos), e -> true), -1.0D);
+                double d0 = 1.0D + VoxelShapes.getAllowedOffset(Direction.Axis.Y, wisp.getBoundingBox(), world.getCollisionShapes(null, new AxisAlignedBB(pos), Collections.emptySet()), -1.0D);
                 wisp.setLocationAndAngles((double) pos.getX() + 0.5D, (double) pos.getY() + d0, (double) pos.getZ() + 0.5D, MathHelper.wrapDegrees(world.rand.nextFloat() * 360.0F), 0.0F);
                 wisp.rotationYawHead = wisp.rotationYaw;
                 wisp.renderYawOffset = wisp.rotationYaw;
                 wisp.isHostile = wisp.getRNG().nextInt(EntityWisp.HOSTILE_CHANCE) == 0;
                 wisp.getDataManager().set(EntityWisp.COLOR_VARIANT, wColor.ordinal() + 1);
                 if (wisp != null && !ForgeEventFactory.doSpecialSpawn(wisp, world, pos.getX(), pos.getY(), pos.getZ(), null, SpawnReason.SPAWN_EGG)) {
-                    world.func_242417_l(wisp);
+                    world.addEntity(wisp);
                 }
 
                 int color = wisp.getWispColor().getColor();
@@ -227,9 +224,9 @@ public class TileEntityHandOfFate extends TileEntity implements ITickableTileEnt
     }
 
     @Override
-    public void read(BlockState state, CompoundNBT nbt) {
-        super.read(state, nbt);
-        this.getRecipeContainer().read(state, nbt);
+    public void read(CompoundNBT compound) {
+        super.read(compound);
+        this.getRecipeContainer().read(compound);
         this.displayDirty = true;
     }
 
@@ -249,7 +246,7 @@ public class TileEntityHandOfFate extends TileEntity implements ITickableTileEnt
 
     @Override
     public void onDataPacket(NetworkManager net, SUpdateTileEntityPacket packet) {
-        this.read(null, packet.getNbtCompound());
+        this.read(packet.getNbtCompound());
         this.world.getPendingBlockTicks().scheduleTick(this.pos, this.getBlockState().getBlock(), 100);
     }
 
@@ -261,8 +258,8 @@ public class TileEntityHandOfFate extends TileEntity implements ITickableTileEnt
     }
 
     @Override
-    public void handleUpdateTag(BlockState state, CompoundNBT tag) {
-        this.read(state, tag);
+    public void handleUpdateTag(CompoundNBT tag) {
+        this.read(tag);
     }
 
     public void dropItems(World worldIn, BlockPos pos) {
@@ -342,11 +339,11 @@ public class TileEntityHandOfFate extends TileEntity implements ITickableTileEnt
             return null;
         }
 
-        public void read(BlockState state, CompoundNBT nbt) {
+        public void read(CompoundNBT nbt) {
             if(nbt.contains("recipe", Constants.NBT.TAG_STRING)) {
                 this.setRecipe(RECIPES.getOrDefault(nbt.getString("recipe"), null));
                 if(this.data != null) {
-                    this.data.read(state, nbt);
+                    this.data.read(nbt);
                 }
             } else {
                 this.setRecipe(null);
@@ -404,7 +401,7 @@ public class TileEntityHandOfFate extends TileEntity implements ITickableTileEnt
             return data.getOrDefault(item.getRegistryName().toString(), false);
         }
 
-        public void read(BlockState state, CompoundNBT nbt) {
+        public void read(CompoundNBT nbt) {
             if(nbt.contains("items", Constants.NBT.TAG_LIST)) {
                 nbt.getList("items", Constants.NBT.TAG_STRING).forEach(i -> data.put(i.getString(), true));
             } else {

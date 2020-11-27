@@ -45,7 +45,7 @@ public class ClientLifecycleHandler {
 
     public static class RenderTypes extends RenderType {
         protected static final RenderState.WriteMaskState NO_WRITE = new RenderState.WriteMaskState(false, false);
-        private static final RenderType TRANSLUCENT_DEPTH_MASK_OFF = makeType("translucent_depth_mask_off", DefaultVertexFormats.BLOCK, 7, 262144, true, true, RenderType.State.getBuilder().shadeModel(SHADE_ENABLED).lightmap(LIGHTMAP_ENABLED).texture(BLOCK_SHEET_MIPPED).transparency(TRANSLUCENT_TRANSPARENCY).target(field_239236_S_).writeMask(COLOR_WRITE).build(true));
+        private static final RenderType TRANSLUCENT_DEPTH_MASK_OFF = makeType("translucent_depth_mask_off", DefaultVertexFormats.BLOCK, 7, 262144, true, true, RenderType.State.getBuilder().shadeModel(SHADE_ENABLED).lightmap(LIGHTMAP_ENABLED).texture(BLOCK_SHEET_MIPPED).transparency(TRANSLUCENT_TRANSPARENCY).target(OUTLINE_TARGET).writeMask(COLOR_WRITE).build(true));
 
         public RenderTypes() {
             super(null, null, 0, 0, false, false, null, null);
@@ -76,7 +76,7 @@ public class ClientLifecycleHandler {
         R.addRender(ModEntities.HIDEBEHIND.entityType, 0.75F, r -> r
         .tVariant()
         .mSingle(new ModelHidebehind())
-        .renderLayer((e, a, b, c, t) -> RenderType.getEntityTranslucent(t, true))
+        .renderLayer((e, a, b, t) -> RenderType.getEntityTranslucent(t))
         .layer(mgr -> new LayerRenderer<EntityHidebehind, EntityModel<EntityHidebehind>>(mgr) {
             @Override
             public void render(MatrixStack matrixStackIn, IRenderTypeBuffer bufferIn, int packedLightIn, EntityHidebehind entity, float limbSwing, float limbSwingAmount, float partialTicks, float ageInTicks, float netHeadYaw, float headPitch) {

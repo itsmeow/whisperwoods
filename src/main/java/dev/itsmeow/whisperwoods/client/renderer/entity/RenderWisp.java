@@ -17,7 +17,6 @@ import net.minecraft.client.renderer.entity.model.GenericHeadModel;
 import net.minecraft.client.renderer.entity.model.HumanoidHeadModel;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.text.StringTextComponent;
 
 public class RenderWisp extends LivingRenderer<EntityWisp, EntityModel<EntityWisp>> {
 
@@ -46,7 +45,7 @@ public class RenderWisp extends LivingRenderer<EntityWisp, EntityModel<EntityWis
                     head.func_225603_a_(0F, -entity.rotationYawHead, 180F + entity.rotationPitch);
                     head.render(stack, vertex, packedLightIn, OverlayTexture.NO_OVERLAY, r / 255F, g / 255F, b / 255F, 0.6F);
                     stack.translate(0F, 0.4F, 0F);
-                    this.renderName(entity, new StringTextComponent(name + "'s soul"), stack, bufferIn, packedLightIn);
+                    this.renderName(entity, name + "'s soul", stack, bufferIn, packedLightIn);
                 }
                 stack.pop();
             }

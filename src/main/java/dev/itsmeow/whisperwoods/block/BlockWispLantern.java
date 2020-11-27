@@ -1,7 +1,5 @@
 package dev.itsmeow.whisperwoods.block;
 
-import javax.annotation.Nullable;
-
 import dev.itsmeow.whisperwoods.tileentity.TileEntityGhostLight;
 import dev.itsmeow.whisperwoods.util.IHaveColor;
 import net.minecraft.block.Block;
@@ -9,8 +7,8 @@ import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
 import net.minecraft.block.IWaterLoggable;
 import net.minecraft.block.material.PushReaction;
-import net.minecraft.fluid.FluidState;
 import net.minecraft.fluid.Fluids;
+import net.minecraft.fluid.IFluidState;
 import net.minecraft.item.BlockItemUseContext;
 import net.minecraft.pathfinding.PathType;
 import net.minecraft.state.BooleanProperty;
@@ -27,6 +25,8 @@ import net.minecraft.util.math.shapes.VoxelShapes;
 import net.minecraft.world.IBlockReader;
 import net.minecraft.world.IWorld;
 import net.minecraft.world.IWorldReader;
+
+import javax.annotation.Nullable;
 
 public class BlockWispLantern extends Block implements IWaterLoggable, IHaveColor {
 
@@ -78,7 +78,7 @@ public class BlockWispLantern extends Block implements IWaterLoggable, IHaveColo
     @Nullable
     @Override
     public BlockState getStateForPlacement(BlockItemUseContext context) {
-        FluidState fluidstate = context.getWorld().getFluidState(context.getPos());
+        IFluidState fluidstate = context.getWorld().getFluidState(context.getPos());
 
         for(Direction direction : context.getNearestLookingDirections()) {
             BlockState blockstate = this.getDefaultState().with(FACING, direction);
@@ -121,7 +121,7 @@ public class BlockWispLantern extends Block implements IWaterLoggable, IHaveColo
 
     @SuppressWarnings("deprecation")
     @Override
-    public FluidState getFluidState(BlockState state) {
+    public IFluidState getFluidState(BlockState state) {
         return state.get(WATERLOGGED) ? Fluids.WATER.getStillFluidState(false) : super.getFluidState(state);
     }
 

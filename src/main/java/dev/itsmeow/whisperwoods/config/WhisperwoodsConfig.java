@@ -1,19 +1,17 @@
 package dev.itsmeow.whisperwoods.config;
 
-import org.apache.commons.lang3.tuple.Pair;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
 import dev.itsmeow.imdlib.entity.EntityRegistrarHandler.ClientEntityConfiguration;
 import dev.itsmeow.imdlib.entity.EntityRegistrarHandler.ServerEntityConfiguration;
 import dev.itsmeow.whisperwoods.WhisperwoodsMod;
 import dev.itsmeow.whisperwoods.init.ModEntities;
 import net.minecraftforge.common.ForgeConfigSpec;
-import net.minecraftforge.event.world.BiomeLoadingEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.Mod.EventBusSubscriber;
 import net.minecraftforge.fml.config.ModConfig;
+import org.apache.commons.lang3.tuple.Pair;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 @Mod.EventBusSubscriber(modid = WhisperwoodsMod.MODID, bus = EventBusSubscriber.Bus.MOD)
 public class WhisperwoodsConfig {
@@ -44,7 +42,7 @@ public class WhisperwoodsConfig {
     public static void onLoad(final ModConfig.Loading configEvent) {
         LOGGER.debug("Loading {} {}", WhisperwoodsMod.MODID, configEvent.getConfig().getFileName());
         if(configEvent.getConfig().getSpec() == SERVER_CONFIG_SPEC) {
-            SERVER_CONFIG.onLoad();
+            SERVER_CONFIG.onWorldLoad();
         } else if(configEvent.getConfig().getSpec() == CLIENT_CONFIG_SPEC) {
             CLIENT_CONFIG.onLoad();
         }
@@ -60,7 +58,4 @@ public class WhisperwoodsConfig {
         }
     }
 
-    public static void onBiomeLoad(BiomeLoadingEvent event) {
-        SERVER_CONFIG.biomeLoad(event);
-    }
 }

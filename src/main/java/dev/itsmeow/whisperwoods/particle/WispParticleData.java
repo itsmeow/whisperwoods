@@ -1,12 +1,7 @@
 package dev.itsmeow.whisperwoods.particle;
 
-import java.util.Locale;
-
 import com.mojang.brigadier.StringReader;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
-import com.mojang.serialization.Codec;
-import com.mojang.serialization.codecs.RecordCodecBuilder;
-
 import dev.itsmeow.whisperwoods.init.ModParticles;
 import net.minecraft.network.PacketBuffer;
 import net.minecraft.particles.IParticleData;
@@ -15,19 +10,9 @@ import net.minecraft.util.registry.Registry;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
+import java.util.Locale;
+
 public class WispParticleData implements IParticleData {
-    public static final Codec<WispParticleData> CODEC = RecordCodecBuilder.create((group) -> {
-        return group.group(Codec.FLOAT.fieldOf("r").forGetter((in) -> {
-            return in.getRed();
-        }), Codec.FLOAT.fieldOf("g").forGetter((in) -> {
-            return in.getGreen();
-        }), Codec.FLOAT.fieldOf("b").forGetter((in) -> {
-            return in.getBlue();
-        }), Codec.FLOAT.fieldOf("scale").forGetter((in) -> {
-            return in.getScale();
-        })).apply(group, WispParticleData::new);
-    });
-    @SuppressWarnings("deprecation")
     public static final IParticleData.IDeserializer<WispParticleData> DESERIALIZER = new IParticleData.IDeserializer<WispParticleData>() {
         public WispParticleData deserialize(ParticleType<WispParticleData> particleTypeIn, StringReader reader) throws CommandSyntaxException {
             reader.expect(' ');

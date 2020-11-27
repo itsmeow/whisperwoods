@@ -26,7 +26,7 @@ public class BlockGhostLight extends Block implements IHaveColor {
     private int color = 0;
 
     public BlockGhostLight(int color) {
-        super(Properties.create(Material.MISCELLANEOUS).sound(SoundType.LANTERN).setLightLevel(state -> 12));
+        super(Properties.create(Material.MISCELLANEOUS).sound(SoundType.LANTERN).lightValue(12));
         this.color = color;
     }
 

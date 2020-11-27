@@ -1,9 +1,5 @@
 package dev.itsmeow.whisperwoods.entity;
 
-import java.util.List;
-
-import javax.annotation.Nullable;
-
 import dev.itsmeow.imdlib.entity.util.EntityTypeContainer;
 import dev.itsmeow.imdlib.entity.util.EntityTypeContainerContainable;
 import dev.itsmeow.whisperwoods.init.ModEntities;
@@ -11,12 +7,7 @@ import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
 import net.minecraft.block.TorchBlock;
-import net.minecraft.entity.CreatureAttribute;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityPredicate;
-import net.minecraft.entity.EntityType;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.MobEntity;
+import net.minecraft.entity.*;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
@@ -30,7 +21,7 @@ import net.minecraft.util.Direction;
 import net.minecraft.util.Hand;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.math.vector.Vector3d;
+import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.StringTextComponent;
 import net.minecraft.util.text.Style;
@@ -38,6 +29,9 @@ import net.minecraft.util.text.TextFormatting;
 import net.minecraft.world.LightType;
 import net.minecraft.world.World;
 import net.minecraftforge.common.util.Constants;
+
+import javax.annotation.Nullable;
+import java.util.List;
 
 public class EntityMoth extends EntityAnimalWithTypesAndSizeContainable {
 
@@ -52,6 +46,12 @@ public class EntityMoth extends EntityAnimalWithTypesAndSizeContainable {
 
     protected EntityMoth(EntityType<? extends EntityAnimalWithTypesAndSizeContainable> type, World worldIn) {
         super(type, worldIn);
+    }
+
+    @Override
+    protected void registerAttributes() {
+        super.registerAttributes();
+        this.getAttribute(SharedMonsterAttributes.MAX_HEALTH).setBaseValue(2.0D);
     }
 
     @Override
@@ -101,7 +101,7 @@ public class EntityMoth extends EntityAnimalWithTypesAndSizeContainable {
     public void tick() {
         super.tick();
         if(this.isLanded()) {
-            this.setMotion(Vector3d.ZERO);
+            this.setMotion(Vec3d.ZERO);
             if(Direction.byIndex(this.getLandedInteger()) != Direction.DOWN) {
                 double x = Math.floor(this.getPosX()) + 0.5D;
                 double z = Math.floor(this.getPosZ()) + 0.5D;
@@ -192,8 +192,8 @@ public class EntityMoth extends EntityAnimalWithTypesAndSizeContainable {
             double d0 = (double) this.targetPosition.getX() + 0.5D - this.getPosX();
             double d1 = (double) this.targetPosition.getY() + 0.1D - this.getPosY();
             double d2 = (double) this.targetPosition.getZ() + 0.5D - this.getPosZ();
-            Vector3d vec3d = this.getMotion();
-            Vector3d vec3d1 = vec3d.add((Math.signum(d0) * 0.5D - vec3d.x) * (double) 0.1F, (Math.signum(d1) * (double) 0.7F - vec3d.y) * (double) 0.1F, (Math.signum(d2) * 0.5D - vec3d.z) * (double) 0.1F);
+            Vec3d vec3d = this.getMotion();
+            Vec3d vec3d1 = vec3d.add((Math.signum(d0) * 0.5D - vec3d.x) * (double) 0.1F, (Math.signum(d1) * (double) 0.7F - vec3d.y) * (double) 0.1F, (Math.signum(d2) * 0.5D - vec3d.z) * (double) 0.1F);
             this.setMotion(vec3d1);
             float f = (float) (MathHelper.atan2(vec3d1.z, vec3d1.x) * (double) (180F / (float) Math.PI)) - 90.0F;
             float f1 = MathHelper.wrapDegrees(f - this.rotationYaw);
@@ -288,7 +288,7 @@ public class EntityMoth extends EntityAnimalWithTypesAndSizeContainable {
         CompoundNBT tag = stack.getTag();
         if(tag != null) {
             if(tag.contains("SizeTag", Constants.NBT.TAG_FLOAT)) {
-                tooltip.add(new StringTextComponent("Size: " + tag.getFloat("SizeTag")).setStyle(Style.EMPTY.createStyleFromFormattings(new TextFormatting[] { TextFormatting.ITALIC, TextFormatting.GRAY })));
+                tooltip.add(new StringTextComponent("Size: " + tag.getFloat("SizeTag")).setStyle(new Style().setColor(TextFormatting.GRAY).setItalic(true)));
             }
         }
     }

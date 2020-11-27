@@ -2,17 +2,14 @@ package dev.itsmeow.whisperwoods.entity;
 
 import dev.itsmeow.imdlib.entity.util.EntityTypeContainer;
 import dev.itsmeow.imdlib.entity.util.EntityVariant;
-import dev.itsmeow.imdlib.util.BiomeDictionary.Type;
 import dev.itsmeow.whisperwoods.WhisperwoodsMod;
 import dev.itsmeow.whisperwoods.init.ModEntities;
 import dev.itsmeow.whisperwoods.init.ModSounds;
 import dev.itsmeow.whisperwoods.util.IOverrideCollisions;
-import dev.itsmeow.whisperwoods.util.StopSpinningGroundPathNavigator;
 import net.minecraft.block.TorchBlock;
 import net.minecraft.enchantment.EnchantmentHelper;
 import net.minecraft.entity.*;
 import net.minecraft.entity.ai.RandomPositionGenerator;
-import net.minecraft.entity.ai.attributes.Attributes;
 import net.minecraft.entity.ai.goal.Goal;
 import net.minecraft.entity.ai.goal.SwimGoal;
 import net.minecraft.entity.player.PlayerEntity;
@@ -22,22 +19,20 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.network.datasync.DataParameter;
 import net.minecraft.network.datasync.DataSerializers;
 import net.minecraft.network.datasync.EntityDataManager;
-import net.minecraft.pathfinding.PathFinder;
-import net.minecraft.pathfinding.PathNavigator;
-import net.minecraft.pathfinding.PathNodeType;
-import net.minecraft.pathfinding.WalkNodeProcessor;
+import net.minecraft.pathfinding.*;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.util.*;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
+import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.math.shapes.ISelectionContext;
 import net.minecraft.util.math.shapes.VoxelShape;
-import net.minecraft.util.math.vector.Vector3d;
 import net.minecraft.world.IBlockReader;
 import net.minecraft.world.World;
 import net.minecraft.world.biome.Biome;
 import net.minecraft.world.biome.Biomes;
+import net.minecraftforge.common.BiomeDictionary;
 
 import javax.annotation.Nullable;
 import java.util.EnumSet;
@@ -66,6 +61,14 @@ public class EntityHidebehind extends EntityCreatureWithSelectiveTypes implement
         this.goalSelector.addGoal(0, new SwimGoal(this));
         this.goalSelector.addGoal(1, new HideFromTargetGoal(this));
         this.goalSelector.addGoal(3, new StalkTargetGoal(this, 0.5D, 35F));
+    }
+
+    @Override
+    protected void registerAttributes() {
+        super.registerAttributes();
+        this.getAttribute(SharedMonsterAttributes.MAX_HEALTH).setBaseValue(20.0D);
+        this.getAttributes().registerAttribute(SharedMonsterAttributes.ATTACK_DAMAGE);
+        this.getAttribute(SharedMonsterAttributes.ATTACK_DAMAGE).setBaseValue(15D);
     }
 
     public int attackSequenceTicks() {
@@ -254,8 +257,8 @@ public class EntityHidebehind extends EntityCreatureWithSelectiveTypes implement
 
     @Override
     public boolean attackEntityAsMob(Entity entity) {
-        float f = (float) this.getAttribute(Attributes.ATTACK_DAMAGE).getValue();
-        float f1 = (float) this.getAttribute(Attributes.ATTACK_KNOCKBACK).getValue();
+        float f = (float) this.getAttribute(SharedMonsterAttributes.ATTACK_DAMAGE).getValue();
+        float f1 = (float) this.getAttribute(SharedMonsterAttributes.ATTACK_KNOCKBACK).getValue();
         if(entity instanceof LivingEntity) {
             f += EnchantmentHelper.getModifierForCreature(this.getHeldItemMainhand(), ((LivingEntity) entity).getCreatureAttribute());
             f1 += (float) EnchantmentHelper.getKnockbackModifier(this);
@@ -269,7 +272,7 @@ public class EntityHidebehind extends EntityCreatureWithSelectiveTypes implement
         boolean flag = entity.attackEntityFrom(HIDEBEHIND, f);
         if(flag) {
             if(f1 > 0.0F && entity instanceof LivingEntity) {
-                ((LivingEntity) entity).applyKnockback(f1 * 0.5F, (double) MathHelper.sin(this.rotationYaw * ((float) Math.PI / 180F)), (double) (-MathHelper.cos(this.rotationYaw * ((float) Math.PI / 180F))));
+                ((LivingEntity) entity).knockBack(this, f1 * 0.5F, (double) MathHelper.sin(this.rotationYaw * ((float) Math.PI / 180F)), (double) (-MathHelper.cos(this.rotationYaw * ((float) Math.PI / 180F))));
                 this.setMotion(this.getMotion().mul(0.6D, 1.0D, 0.6D));
             }
 
@@ -293,12 +296,12 @@ public class EntityHidebehind extends EntityCreatureWithSelectiveTypes implement
     }
 
     @Override
-    public Vector3d getAllowedMovement(Vector3d vec) {
+    public Vec3d getAllowedMovement(Vec3d vec) {
         return allowedMove(vec);
     }
 
     @Override
-    public Vector3d transformMove(@Nullable Entity entity, Vector3d vec, AxisAlignedBB bb, World world, ISelectionContext context, ReuseableStream<VoxelShape> stream) {
+    public Vec3d transformMove(@Nullable Entity entity, Vec3d vec, AxisAlignedBB bb, World world, ISelectionContext context, ReuseableStream<VoxelShape> stream) {
         boolean flag = vec.x == 0.0D;
         boolean flag1 = vec.y == 0.0D;
         boolean flag2 = vec.z == 0.0D;
@@ -403,7 +406,7 @@ public class EntityHidebehind extends EntityCreatureWithSelectiveTypes implement
         return new HidebehindGroundNavigator(this, world);
     }
 
-    public static class HidebehindGroundNavigator extends StopSpinningGroundPathNavigator {
+    public static class HidebehindGroundNavigator extends GroundPathNavigator {
 
         public HidebehindGroundNavigator(MobEntity entityliving, World world) {
             super(entityliving, world);
@@ -418,8 +421,8 @@ public class EntityHidebehind extends EntityCreatureWithSelectiveTypes implement
 
         public static class HidebehindNodeProcessor extends WalkNodeProcessor {
             @Override
-            protected PathNodeType func_215744_a(IBlockReader reader, boolean b1, boolean b2, BlockPos pos, PathNodeType typeIn) {
-                return typeIn == PathNodeType.LEAVES ? PathNodeType.OPEN : super.func_215744_a(reader, b1, b2, pos, typeIn);
+            protected PathNodeType getSpecificPathNodeType(IBlockReader reader, boolean b1, boolean b2, BlockPos pos, PathNodeType typeIn) {
+                return typeIn == PathNodeType.LEAVES ? PathNodeType.OPEN : super.getSpecificPathNodeType(reader, b1, b2, pos, typeIn);
             }
         }
 
@@ -444,7 +447,7 @@ public class EntityHidebehind extends EntityCreatureWithSelectiveTypes implement
             if(this.target == null || this.target.getDistanceSq(this.hidebehind) > (double) (this.maxTargetDistance * this.maxTargetDistance)) {
                 return false;
             } else {
-                Vector3d vec3d = RandomPositionGenerator.findRandomTargetBlockTowards(this.hidebehind, 16, 7, new Vector3d(this.target.getPosX(), this.target.getPosY(), this.target.getPosZ()));
+                Vec3d vec3d = RandomPositionGenerator.findRandomTargetBlockTowards(this.hidebehind, 16, 7, new Vec3d(this.target.getPosX(), this.target.getPosY(), this.target.getPosZ()));
                 return vec3d != null && hidebehind.isEntityAttackable(target) && hidebehind.attackSequenceTicks() <= 0 && !hidebehind.getHiding();
             }
         }
@@ -473,14 +476,14 @@ public class EntityHidebehind extends EntityCreatureWithSelectiveTypes implement
     }
 
     @Override
-    public String[] getTypesFor(RegistryKey<Biome> biomeKey, Biome biome, Set<Type> types, SpawnReason reason) {
-        if(biomeKey == Biomes.GIANT_SPRUCE_TAIGA || biomeKey == Biomes.GIANT_SPRUCE_TAIGA_HILLS || biomeKey == Biomes.GIANT_TREE_TAIGA || biomeKey == Biomes.GIANT_TREE_TAIGA_HILLS) {
+    public String[] getTypesFor(Biome biome, Set<BiomeDictionary.Type> types) {
+        if(biome == Biomes.GIANT_SPRUCE_TAIGA || biome == Biomes.GIANT_SPRUCE_TAIGA_HILLS || biome == Biomes.GIANT_TREE_TAIGA || biome == Biomes.GIANT_TREE_TAIGA_HILLS) {
             return new String[] { "mega_taiga", "mega_taiga", "mega_taiga", "darkforest" };
         }
-        if(types.contains(Type.CONIFEROUS)) {
+        if(types.contains(BiomeDictionary.Type.CONIFEROUS)) {
             return new String[] { "coniferous", "coniferous", "coniferous", "coniferous", "black", "darkforest" };
         }
-        if(types.contains(Type.FOREST)) {
+        if(types.contains(BiomeDictionary.Type.FOREST)) {
             return new String[] { "forest", "black", "darkforest" };
         }
         return new String[] { "black", "coniferous", "darkforest", "forest", "mega_taiga" };

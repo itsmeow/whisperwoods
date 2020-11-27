@@ -34,7 +34,6 @@ public class WhisperwoodsRegistrar {
     public static void registerEntities(RegistryEvent.Register<EntityType<?>> event) {
         for(EntityTypeContainer<?> container : ModEntities.getEntities().values()) {
             event.getRegistry().register(container.entityType);
-            container.registerAttributes();
         }
     }
 

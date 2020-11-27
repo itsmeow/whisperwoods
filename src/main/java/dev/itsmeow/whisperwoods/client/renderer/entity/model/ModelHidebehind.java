@@ -2,12 +2,11 @@ package dev.itsmeow.whisperwoods.client.renderer.entity.model;
 
 import com.mojang.blaze3d.matrix.MatrixStack;
 import com.mojang.blaze3d.vertex.IVertexBuilder;
-
 import dev.itsmeow.whisperwoods.entity.EntityHidebehind;
 import net.minecraft.client.renderer.entity.model.EntityModel;
 import net.minecraft.client.renderer.model.ModelRenderer;
 import net.minecraft.entity.LivingEntity;
-import net.minecraft.util.math.vector.Vector3d;
+import net.minecraft.util.math.Vec3d;
 
 /**
  * hidebehind - cybercat5555 Created using Tabula 7.0.1
@@ -333,8 +332,8 @@ public class ModelHidebehind extends EntityModel<EntityHidebehind> {
         this.alpha = entity.getHiding() ? 0.5F : 1F;
         if(entity.attackSequenceTicks() > 0 && entity.getAttackTarget() != null) {
             LivingEntity target = entity.getAttackTarget();
-            Vector3d targetEyes = target.getEyePosition(1F);
-            Vector3d entityEyes = entity.getEyePosition(1F);
+            Vec3d targetEyes = target.getEyePosition(1F);
+            Vec3d entityEyes = entity.getEyePosition(1F);
             this.head.rotateAngleY = 0;
             this.head.rotateAngleX = 0;
             this.yTranslate = entityEyes.subtract(targetEyes).getY();

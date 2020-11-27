@@ -3,7 +3,6 @@ package dev.itsmeow.whisperwoods.entity;
 import dev.itsmeow.imdlib.entity.util.EntityTypeContainer;
 import dev.itsmeow.whisperwoods.init.ModEntities;
 import dev.itsmeow.whisperwoods.util.IOverrideCollisions;
-import dev.itsmeow.whisperwoods.util.StopSpinningGroundPathNavigator;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.entity.*;
@@ -21,12 +20,16 @@ import net.minecraft.pathfinding.*;
 import net.minecraft.potion.EffectInstance;
 import net.minecraft.potion.Effects;
 import net.minecraft.tags.BlockTags;
-import net.minecraft.util.*;
+import net.minecraft.util.DamageSource;
+import net.minecraft.util.ReuseableStream;
+import net.minecraft.util.SoundEvent;
+import net.minecraft.util.SoundEvents;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.MathHelper;
+import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.math.shapes.ISelectionContext;
 import net.minecraft.util.math.shapes.VoxelShape;
-import net.minecraft.util.math.vector.Vector3d;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.TranslationTextComponent;
 import net.minecraft.world.*;
@@ -74,10 +77,19 @@ public class EntityHirschgeist extends MonsterEntity implements IMob, IOverrideC
         this.targetSelector.addGoal(2, new HurtByTargetGoal(this));
     }
 
+    @Override
+    protected void registerAttributes() {
+        super.registerAttributes();
+        this.getAttribute(SharedMonsterAttributes.MAX_HEALTH).setBaseValue(150.0D);
+        this.getAttribute(SharedMonsterAttributes.FOLLOW_RANGE).setBaseValue(50.0D);
+        this.getAttribute(SharedMonsterAttributes.MOVEMENT_SPEED).setBaseValue(0.65D);
+        this.getAttribute(SharedMonsterAttributes.ATTACK_DAMAGE).setBaseValue(6.0D);
+    }
+
     @Nullable
     @Override
-    public ILivingEntityData onInitialSpawn(IServerWorld worldIn, DifficultyInstance difficultyIn, SpawnReason reason, @Nullable ILivingEntityData spawnDataIn, @Nullable CompoundNBT dataTag) {
-        if(reason == SpawnReason.EVENT || reason == SpawnReason.MOB_SUMMONED) {
+    public ILivingEntityData onInitialSpawn(IWorld worldIn, DifficultyInstance difficultyIn, SpawnReason reason, @Nullable ILivingEntityData spawnDataIn, @Nullable CompoundNBT dataTag) {
+        if (reason == SpawnReason.EVENT || reason == SpawnReason.MOB_SUMMONED) {
             this.setWasSummoned();
         }
         return super.onInitialSpawn(worldIn, difficultyIn, reason, spawnDataIn, dataTag);
@@ -85,13 +97,13 @@ public class EntityHirschgeist extends MonsterEntity implements IMob, IOverrideC
 
     @Override
     protected PathNavigator createNavigator(World worldIn) {
-        return new StopSpinningGroundPathNavigator(this, worldIn) {
+        return new GroundPathNavigator(this, worldIn) {
             @Override
             protected PathFinder getPathFinder(int i1) {
                 this.nodeProcessor = new WalkNodeProcessor() {
                     @Override
-                    protected PathNodeType func_215744_a(IBlockReader reader, boolean b1, boolean b2, BlockPos pos, PathNodeType typeIn) {
-                        return typeIn == PathNodeType.LEAVES || reader.getBlockState(pos).getBlock().isIn(BlockTags.LOGS) || reader.getBlockState(pos).getBlock().isIn(BlockTags.LEAVES) ? PathNodeType.OPEN : super.func_215744_a(reader, b1, b2, pos, typeIn);
+                    protected PathNodeType getSpecificPathNodeType(IBlockReader reader, boolean b1, boolean b2, BlockPos pos, PathNodeType typeIn) {
+                        return typeIn == PathNodeType.LEAVES || reader.getBlockState(pos).getBlock().isIn(BlockTags.LOGS) || reader.getBlockState(pos).getBlock().isIn(BlockTags.LEAVES) ? PathNodeType.OPEN : super.getSpecificPathNodeType(reader, b1, b2, pos, typeIn);
                     }
                 };
                 this.nodeProcessor.setCanEnterDoors(true);
@@ -99,7 +111,7 @@ public class EntityHirschgeist extends MonsterEntity implements IMob, IOverrideC
             }
 
             @Override
-            public boolean isPositionClear(int x, int y, int z, int sizeX, int sizeY, int sizeZ, Vector3d vec, double p_179692_8_, double p_179692_10_) {
+            public boolean isPositionClear(int x, int y, int z, int sizeX, int sizeY, int sizeZ, Vec3d vec, double p_179692_8_, double p_179692_10_) {
                 for (BlockPos blockpos : BlockPos.getAllInBoxMutable(new BlockPos(x, y, z), new BlockPos(x + sizeX - 1, y + sizeY - 1, z + sizeZ - 1))) {
                     double d0 = (double) blockpos.getX() + 0.5D - vec.x;
                     double d1 = (double) blockpos.getZ() + 0.5D - vec.z;
@@ -169,7 +181,7 @@ public class EntityHirschgeist extends MonsterEntity implements IMob, IOverrideC
     public boolean attackEntityAsMob(Entity entityIn) {
         if (super.attackEntityAsMob(entityIn)) {
             if (entityIn instanceof LivingEntity) {
-                ((LivingEntity) entityIn).applyKnockback(2F, this.getPosX() - entityIn.getPosX(), this.getPosZ() - entityIn.getPosZ());
+                ((LivingEntity) entityIn).knockBack(this, 2F, this.getPosX() - entityIn.getPosX(), this.getPosZ() - entityIn.getPosZ());
                 entityIn.setFire(2 + this.getRNG().nextInt(2));
             }
             return true;
@@ -227,7 +239,7 @@ public class EntityHirschgeist extends MonsterEntity implements IMob, IOverrideC
         if (this.isDaytime() && !this.world.isRemote && !source.isCreativePlayer()) {
             if (source.getTrueSource() instanceof PlayerEntity) {
                 PlayerEntity player = (PlayerEntity) source.getTrueSource();
-                player.sendMessage(new TranslationTextComponent("entity.whisperwoods.hirschgeist.message.invulnerable"), Util.DUMMY_UUID);
+                player.sendMessage(new TranslationTextComponent("entity.whisperwoods.hirschgeist.message.invulnerable"));
             }
         }
         return super.attackEntityFrom(source, amount);
@@ -258,19 +270,32 @@ public class EntityHirschgeist extends MonsterEntity implements IMob, IOverrideC
         if (this.noClip) {
             return false;
         } else {
-            float f1 = this.getWidth() * 0.8F;
-            AxisAlignedBB axisalignedbb = AxisAlignedBB.withSizeAtOrigin(f1, 0.1F, f1).offset(this.getPosX(), this.getPosYEye(), this.getPosZ());
-            return this.world.func_241457_a_(this, axisalignedbb, (state, pos) -> !state.isIn(BlockTags.LOGS) && state.isSuffocating(this.world, pos)).findAny().isPresent();
+            try (BlockPos.PooledMutable blockpos$pooledmutable = BlockPos.PooledMutable.retain()) {
+                for(int i = 0; i < 8; ++i) {
+                    int j = MathHelper.floor(this.getPosY() + (double)(((float)((i >> 0) % 2) - 0.5F) * 0.1F) + (double)this.getEyeHeight());
+                    int k = MathHelper.floor(this.getPosX() + (double)(((float)((i >> 1) % 2) - 0.5F) * this.getWidth() * 0.8F));
+                    int l = MathHelper.floor(this.getPosZ() + (double)(((float)((i >> 2) % 2) - 0.5F) * this.getWidth() * 0.8F));
+                    if (blockpos$pooledmutable.getX() != k || blockpos$pooledmutable.getY() != j || blockpos$pooledmutable.getZ() != l) {
+                        blockpos$pooledmutable.setPos(k, j, l);
+                        BlockState state = this.world.getBlockState(blockpos$pooledmutable);
+                        if (state.isSuffocating(this.world, blockpos$pooledmutable) && !state.getBlock().isIn(BlockTags.LOGS)) {
+                            return true;
+                        }
+                    }
+                }
+
+                return false;
+            }
         }
     }
 
     @Override
-    public Vector3d getAllowedMovement(Vector3d vec) {
+    public Vec3d getAllowedMovement(Vec3d vec) {
         return this.allowedMove(vec);
     }
 
     @Override
-    public Vector3d transformMove(@Nullable Entity entity, Vector3d vec, AxisAlignedBB bb, World world, ISelectionContext context, ReuseableStream<VoxelShape> stream) {
+    public Vec3d transformMove(@Nullable Entity entity, Vec3d vec, AxisAlignedBB bb, World world, ISelectionContext context, ReuseableStream<VoxelShape> stream) {
         boolean flag = vec.x == 0.0D;
         boolean flag1 = vec.y == 0.0D;
         boolean flag2 = vec.z == 0.0D;
@@ -351,7 +376,7 @@ public class EntityHirschgeist extends MonsterEntity implements IMob, IOverrideC
         public void doClientRenderEffects() {
             if (this.flameTicks % 2 == 0 && this.flameTicks < 10 && this.attacker.getAttackTarget() != null) {
                 LivingEntity target = this.attacker.getAttackTarget();
-                Vector3d vec3d = this.attacker.getLook(1.0F).normalize();
+                Vec3d vec3d = this.attacker.getLook(1.0F).normalize();
                 vec3d.rotateYaw(-((float) Math.PI / 4F));
                 double d0 = target.getPosX();
                 double d1 = target.getPosY();

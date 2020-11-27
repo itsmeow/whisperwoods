@@ -7,6 +7,7 @@ import dev.itsmeow.whisperwoods.client.renderer.entity.model.ModelHirschgeist;
 import net.minecraft.client.renderer.entity.model.BipedModel;
 import net.minecraft.client.renderer.model.ModelRenderer;
 import net.minecraft.entity.LivingEntity;
+import net.minecraft.util.math.MathHelper;
 
 /**
  * hirschgeist_skull - CyberCat5555 Created using Tabula 8.0.0
@@ -276,7 +277,8 @@ public class ModelHGSkullMask<T extends LivingEntity> extends BipedModel<T> {
 
     @Override
     public void setRotationAngles(T entityIn, float limbSwing, float limbSwingAmount, float ageInTicks, float netHeadYaw, float headPitch) {
-
+        this.bipedHead.rotateAngleX = (float) Math.toRadians(headPitch);
+        this.bipedHead.rotateAngleY = (float) Math.toRadians(netHeadYaw);
     }
 
     public void setRotateAngle(ModelRenderer modelRenderer, float x, float y, float z) {

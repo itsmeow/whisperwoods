@@ -1,16 +1,16 @@
 package dev.itsmeow.whisperwoods.network;
 
-import java.util.function.Supplier;
-
 import dev.itsmeow.whisperwoods.particle.WispParticleData;
 import dev.itsmeow.whisperwoods.util.WWClientTaskQueue;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.Vector3f;
 import net.minecraft.network.PacketBuffer;
 import net.minecraft.util.SoundCategory;
 import net.minecraft.util.SoundEvents;
-import net.minecraft.util.math.vector.Vector3f;
 import net.minecraftforge.fml.network.NetworkDirection;
 import net.minecraftforge.fml.network.NetworkEvent;
+
+import java.util.function.Supplier;
 
 public class HOFEffectPacket {
 

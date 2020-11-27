@@ -1,5 +1,5 @@
 modLoader="javafml"
-loaderVersion="[34,)"
+loaderVersion="[31,)"
 issueTrackerURL="http://github.com/itsmeow/whisperwoods/issues"
 displayURL="https://www.curseforge.com/minecraft/mc-mods/whisperwoods"
 logoFile="whisperwoods_banner.gif"
@@ -15,6 +15,6 @@ Spooky forest stuff for spooky jam'''
   [[dependencies.whisperwoods]]
     modId="forge"
     mandatory=true
-    versionRange="[34.1.0,)"
+    versionRange="[31.2.0,)"
     ordering="NONE"
     side="BOTH"

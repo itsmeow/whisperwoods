@@ -1,18 +1,14 @@
 package dev.itsmeow.whisperwoods.client.particle;
 
-import net.minecraft.client.particle.IAnimatedSprite;
-import net.minecraft.client.particle.IParticleFactory;
-import net.minecraft.client.particle.IParticleRenderType;
-import net.minecraft.client.particle.Particle;
-import net.minecraft.client.particle.SpriteTexturedParticle;
-import net.minecraft.client.world.ClientWorld;
+import net.minecraft.client.particle.*;
 import net.minecraft.particles.BasicParticleType;
+import net.minecraft.world.World;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
 public class FlameParticle extends SpriteTexturedParticle {
 
-    private FlameParticle(ClientWorld world, double x, double y, double z, double moveX, double moveY, double moveZ, IAnimatedSprite spriteSet) {
+    private FlameParticle(World world, double x, double y, double z, double moveX, double moveY, double moveZ, IAnimatedSprite spriteSet) {
         super(world, x, y, z);
         this.setSize(0.05F, 0.05F);
         this.maxAge = this.rand.nextInt(5) + 15;
@@ -58,7 +54,7 @@ public class FlameParticle extends SpriteTexturedParticle {
             this.spriteSet = sprites;
         }
 
-        public Particle makeParticle(BasicParticleType type, ClientWorld world, double x, double y, double z, double xSpeed, double ySpeed, double zSpeed) {
+        public Particle makeParticle(BasicParticleType type, World world, double x, double y, double z, double xSpeed, double ySpeed, double zSpeed) {
             return new FlameParticle(world, x, y, z, xSpeed, ySpeed, zSpeed, spriteSet);
         }
     }

@@ -156,10 +156,5 @@ public class ItemBlockHirschgeistSkull extends ItemBlockModeledArmor {
             return 0F;
         }
 
-        @Override
-        public float getKnockbackResistance() {
-            return 0F;
-        }
-
     }
 }

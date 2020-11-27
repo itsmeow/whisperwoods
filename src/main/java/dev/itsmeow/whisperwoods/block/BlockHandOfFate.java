@@ -13,8 +13,8 @@ import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.client.util.ITooltipFlag;
 import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.fluid.FluidState;
 import net.minecraft.fluid.Fluids;
+import net.minecraft.fluid.IFluidState;
 import net.minecraft.item.BlockItem;
 import net.minecraft.item.BlockItemUseContext;
 import net.minecraft.item.ItemStack;
@@ -34,7 +34,6 @@ import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.shapes.ISelectionContext;
 import net.minecraft.util.math.shapes.VoxelShape;
 import net.minecraft.util.math.shapes.VoxelShapes;
-import net.minecraft.util.text.IFormattableTextComponent;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.Style;
 import net.minecraft.util.text.TextFormatting;
@@ -71,10 +70,10 @@ public class BlockHandOfFate extends Block {
     @SuppressWarnings("deprecation")
     @Override
     public void onReplaced(BlockState state, World worldIn, BlockPos pos, BlockState newState, boolean isMoving) {
-        if(!state.isIn(newState.getBlock())) {
+        if (state.getBlock() != newState.getBlock()) {
             TileEntity te = worldIn.getTileEntity(pos);
-            if(te instanceof TileEntityHandOfFate) {
-                ((TileEntityHandOfFate)te).dropItems(worldIn, pos);
+            if (te instanceof TileEntityHandOfFate) {
+                ((TileEntityHandOfFate) te).dropItems(worldIn, pos);
             }
             super.onReplaced(state, worldIn, pos, newState, isMoving);
         }
@@ -113,7 +112,7 @@ public class BlockHandOfFate extends Block {
 
     @SuppressWarnings("deprecation")
     @Override
-    public FluidState getFluidState(BlockState state) {
+    public IFluidState getFluidState(BlockState state) {
         return state.get(BlockStateProperties.WATERLOGGED) ? Fluids.WATER.getStillFluidState(false) : super.getFluidState(state);
     }
 
@@ -147,19 +146,19 @@ public class BlockHandOfFate extends Block {
     @Override
     public void addInformation(ItemStack stack, IBlockReader worldIn, List<ITextComponent> tooltip, ITooltipFlag flagIn) {
         super.addInformation(stack, worldIn, tooltip, flagIn);
-        Style gIS = Style.EMPTY.applyFormatting(TextFormatting.GRAY).setItalic(true);
+        Style gIS = new Style().setColor(TextFormatting.GRAY).setItalic(true);
         String tooltipPrefix = "block.whisperwoods.hand_of_fate.tooltip.";
         String recipePrefix = tooltipPrefix + "recipe.";
         if(Screen.hasShiftDown()) {
             tooltip.add(new TranslationTextComponent(tooltipPrefix + "recipehint").setStyle(gIS));
             for(String recipeKey : TileEntityHandOfFate.RECIPES.keySet()) {
                 HOFRecipe recipe = TileEntityHandOfFate.RECIPES.get(recipeKey);
-                IFormattableTextComponent t = new TranslationTextComponent(recipePrefix + recipeKey)
-                .setStyle(Style.EMPTY.applyFormatting(recipe.getColor()).setBold(recipe.isBold()))
-                .appendString(": ")
-                .append(new TranslationTextComponent(recipe.getFirst().getTranslationKey()).setStyle(Style.EMPTY.applyFormatting(TextFormatting.WHITE).setBold(false)));
+                ITextComponent t = new TranslationTextComponent(recipePrefix + recipeKey)
+                .setStyle(new Style().setColor(recipe.getColor()).setBold(recipe.isBold()))
+                .appendText(": ")
+                .appendSibling(new TranslationTextComponent(recipe.getFirst().getTranslationKey()).setStyle(new Style().setColor(TextFormatting.WHITE).setBold(false)));
                 if(I18n.hasKey(recipePrefix + recipeKey + ".hint")) {
-                    t.appendString(" ").append(new TranslationTextComponent(recipePrefix + recipeKey + ".hint").setStyle(Style.EMPTY.applyFormatting(TextFormatting.GRAY).setBold(false)));
+                    t.appendText(" ").appendSibling(new TranslationTextComponent(recipePrefix + recipeKey + ".hint").setStyle(new Style().setColor(TextFormatting.GRAY).setBold(false)));
                 }
                 tooltip.add(t);
             }
@@ -197,7 +196,7 @@ public class BlockHandOfFate extends Block {
         }
 
         @Override
-        public String getString() {
+        public String getName() {
             return this.name().toLowerCase();
         }
 

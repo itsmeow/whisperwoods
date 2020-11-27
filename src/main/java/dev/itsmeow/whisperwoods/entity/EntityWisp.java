@@ -32,12 +32,11 @@ import net.minecraft.util.EntityPredicates;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.math.vector.Vector3d;
+import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.Difficulty;
 import net.minecraft.world.DifficultyInstance;
-import net.minecraft.world.IServerWorld;
+import net.minecraft.world.IWorld;
 import net.minecraft.world.World;
-import net.minecraft.world.server.ServerWorld;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.fml.network.PacketDistributor;
@@ -59,7 +58,7 @@ public class EntityWisp extends AnimalEntity implements IContainerEntity<EntityW
     public static final DataParameter<Float> PASSIVE_SCALE = EntityDataManager.createKey(EntityWisp.class, DataSerializers.FLOAT);
     public static final DataParameter<Integer> COLOR_VARIANT = EntityDataManager.createKey(EntityWisp.class, DataSerializers.VARINT);
     private static final EntityPredicate PASSIVE_SCALE_PREDICATE = new EntityPredicate().allowInvulnerable().allowFriendlyFire().setSkipAttackChecks();
-    private static final EntityPredicate HOSTILE_TARGET_PREDICATE = EntityPredicate.DEFAULT.setCustomPredicate(e -> EntityPredicates.CAN_HOSTILE_AI_TARGET.test(e) && e.getItemStackFromSlot(EquipmentSlotType.HEAD).getItem() != ModItems.HIRSCHGEIST_SKULL.get());
+    private static final EntityPredicate HOSTILE_TARGET_PREDICATE = EntityPredicate.DEFAULT.setCustomPredicate(e -> EntityPredicates.CAN_AI_TARGET.test(e) && e.getItemStackFromSlot(EquipmentSlotType.HEAD).getItem() != ModItems.HIRSCHGEIST_SKULL.get());
     protected ResourceLocation targetTexture;
     private boolean shouldBeHostile = false;
     private int attackCooldown = 0;
@@ -79,6 +78,12 @@ public class EntityWisp extends AnimalEntity implements IContainerEntity<EntityW
             return WispColors.values()[c - 1];
         }
         return WispColors.BLUE;
+    }
+
+    @Override
+    protected void registerAttributes() {
+        super.registerAttributes();
+        this.getAttribute(SharedMonsterAttributes.MAX_HEALTH).setBaseValue(4.5D);
     }
 
     @Override
@@ -199,8 +204,8 @@ public class EntityWisp extends AnimalEntity implements IContainerEntity<EntityW
             double d0 = (double) this.targetPosition.getX() + 0.5D - this.getPosX();
             double d1 = (double) this.targetPosition.getY() + 0.1D - this.getPosY();
             double d2 = (double) this.targetPosition.getZ() + 0.5D - this.getPosZ();
-            Vector3d vec3d = this.getMotion();
-            Vector3d vec3d1 = vec3d.add((Math.signum(d0) * 0.5D - vec3d.x) * (double) 0.1F, (Math.signum(d1) * (double) 0.7F - vec3d.y) * (double) 0.1F, (Math.signum(d2) * 0.5D - vec3d.z) * (double) 0.1F);
+            Vec3d vec3d = this.getMotion();
+            Vec3d vec3d1 = vec3d.add((Math.signum(d0) * 0.5D - vec3d.x) * (double) 0.1F, (Math.signum(d1) * (double) 0.7F - vec3d.y) * (double) 0.1F, (Math.signum(d2) * 0.5D - vec3d.z) * (double) 0.1F);
             this.setMotion(vec3d1);
             float f = (float) (MathHelper.atan2(vec3d1.z, vec3d1.x) * (double) (180F / (float) Math.PI)) - 90.0F;
             float f1 = MathHelper.wrapDegrees(f - this.rotationYaw);
@@ -328,7 +333,7 @@ public class EntityWisp extends AnimalEntity implements IContainerEntity<EntityW
 
     @Override
     @Nullable
-    public ILivingEntityData onInitialSpawn(IServerWorld world, DifficultyInstance difficulty, SpawnReason reason, @Nullable ILivingEntityData livingdata, CompoundNBT compound) {
+    public ILivingEntityData onInitialSpawn(IWorld world, DifficultyInstance difficulty, SpawnReason reason, @Nullable ILivingEntityData livingdata, CompoundNBT compound) {
         boolean hostile = this.getRNG().nextInt(HOSTILE_CHANCE) == 0;
         int colorVariant = this.getRNG().nextInt(WispColors.values().length) + 1;
 
@@ -349,14 +354,14 @@ public class EntityWisp extends AnimalEntity implements IContainerEntity<EntityW
         public int colorVariant;
 
         public WispData(boolean isHostile, int colorVariant) {
-            super(false);
+            super();
             this.isHostile = isHostile;
             this.colorVariant = colorVariant;
         }
     }
 
     @Override
-    public AgeableEntity func_241840_a(ServerWorld world, AgeableEntity ageable) {
+    public AgeableEntity createChild(AgeableEntity ageable) {
         return null;
     }
 

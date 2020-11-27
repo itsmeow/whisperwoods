@@ -2,19 +2,14 @@ package dev.itsmeow.whisperwoods.client.particle;
 
 import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
-
 import dev.itsmeow.whisperwoods.particle.WispParticleData;
-import net.minecraft.client.particle.IAnimatedSprite;
-import net.minecraft.client.particle.IParticleFactory;
-import net.minecraft.client.particle.IParticleRenderType;
-import net.minecraft.client.particle.Particle;
-import net.minecraft.client.particle.SpriteTexturedParticle;
+import net.minecraft.client.particle.*;
 import net.minecraft.client.renderer.BufferBuilder;
 import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.client.renderer.texture.AtlasTexture;
 import net.minecraft.client.renderer.texture.TextureManager;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
-import net.minecraft.client.world.ClientWorld;
+import net.minecraft.world.World;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
@@ -40,7 +35,7 @@ public class WispParticle extends SpriteTexturedParticle {
         }
     };
 
-    private WispParticle(ClientWorld world, double x, double y, double z, double moveX, double moveY, double moveZ, WispParticleData type, IAnimatedSprite sprites) {
+    private WispParticle(World world, double x, double y, double z, double moveX, double moveY, double moveZ, WispParticleData type, IAnimatedSprite sprites) {
         super(world, x, y, z);
         this.multiplyParticleScaleBy(1.5F * type.getScale());
         this.setSize(0.05F, 0.05F);
@@ -92,7 +87,7 @@ public class WispParticle extends SpriteTexturedParticle {
             this.spriteSet = sprites;
         }
 
-        public Particle makeParticle(WispParticleData type, ClientWorld world, double x, double y, double z, double xSpeed, double ySpeed, double zSpeed) {
+        public Particle makeParticle(WispParticleData type, World world, double x, double y, double z, double xSpeed, double ySpeed, double zSpeed) {
             return new WispParticle(world, x, y, z, xSpeed, ySpeed, zSpeed, type, spriteSet);
         }
     }
