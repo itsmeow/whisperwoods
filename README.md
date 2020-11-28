@@ -1,5 +1,7 @@
-# Whisperwoods
+![Whisperwoods](https://i.imgur.com/ZaWQjeK.gif)
 
-Minecraft mod for Spooky Jam adding a few fearsome forest critters
+*Created for MMD SpookyJam 2019*
 
-Curse: https://www.curseforge.com/minecraft/mc-mods/whisperwoods
+Whisperwoods is a spooky forest themed mod adding multiple creatures designed to make your gameplay experience not only spookier but more interesting overall.
+
+Mod Page: https://www.curseforge.com/minecraft/mc-mods/whisperwoods
