@@ -25,9 +25,9 @@ public abstract class EntityMonsterWithTypes extends MonsterEntity implements IV
     }
 
     @Override
-    public boolean writeUnlessRemoved(CompoundNBT compound) {
+    public void writeAdditional(CompoundNBT compound) {
+        super.writeAdditional(compound);
         this.writeType(compound);
-        return super.writeUnlessRemoved(compound);
     }
 
     @Override
