@@ -6,6 +6,7 @@ import dev.itsmeow.whisperwoods.WhisperwoodsMod;
 import dev.itsmeow.whisperwoods.init.ModEntities;
 import dev.itsmeow.whisperwoods.init.ModSounds;
 import dev.itsmeow.whisperwoods.util.IOverrideCollisions;
+import net.minecraft.block.BlockState;
 import net.minecraft.block.TorchBlock;
 import net.minecraft.enchantment.EnchantmentHelper;
 import net.minecraft.entity.*;
@@ -293,6 +294,29 @@ public class EntityHidebehind extends EntityCreatureWithSelectiveTypes implement
         }
 
         return flag;
+    }
+
+    @Override
+    public boolean isEntityInsideOpaqueBlock() {
+        if (this.noClip) {
+            return false;
+        } else {
+            try (BlockPos.PooledMutable blockpos$pooledmutable = BlockPos.PooledMutable.retain()) {
+                for(int i = 0; i < 8; ++i) {
+                    int j = MathHelper.floor(this.getPosY() + (double)(((float)((i >> 0) % 2) - 0.5F) * 0.1F) + (double)this.getEyeHeight());
+                    int k = MathHelper.floor(this.getPosX() + (double)(((float)((i >> 1) % 2) - 0.5F) * this.getWidth() * 0.8F));
+                    int l = MathHelper.floor(this.getPosZ() + (double)(((float)((i >> 2) % 2) - 0.5F) * this.getWidth() * 0.8F));
+                    if (blockpos$pooledmutable.getX() != k || blockpos$pooledmutable.getY() != j || blockpos$pooledmutable.getZ() != l) {
+                        blockpos$pooledmutable.setPos(k, j, l);
+                        BlockState state = this.world.getBlockState(blockpos$pooledmutable);
+                        if (state.isSuffocating(this.world, blockpos$pooledmutable) && !state.getBlock().isIn(BlockTags.LOGS)) {
+                            return true;
+                        }
+                    }
+                }
+                return false;
+            }
+        }
     }
 
     @Override
