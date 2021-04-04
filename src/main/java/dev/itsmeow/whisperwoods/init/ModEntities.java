@@ -61,8 +61,8 @@ public class ModEntities {
     .containers(ItemModEntityContainer.get("bottled_%s", WhisperwoodsMod.TAB), c -> Items.GLASS_BOTTLE, EntityMoth::bottleTooltip));
 
     public static final EntityTypeContainer<EntityHidebehind> HIDEBEHIND = H.add(entity(EntityHidebehind.class, EntityHidebehind::new, "hidebehind")
-    .spawn(EntityClassification.CREATURE, 5, 1, 1)
-    .defaultPlacement((t, w, e, p, r) -> w.getDifficulty() != Difficulty.PEACEFUL && MonsterEntity.isValidLightLevel(w, p, r) && MobEntity.canSpawnOn(t, w, e, p, r))
+    .spawn(EntityClassification.MONSTER, 8, 1, 1)
+    .defaultPlacement((t, w, e, p, r) -> w.getDifficulty() != Difficulty.PEACEFUL && MobEntity.canSpawnOn(t, w, e, p, r))
     .egg(0x473123, 0xfff494)
     .size(1F, 5.2F)
     .variants(
