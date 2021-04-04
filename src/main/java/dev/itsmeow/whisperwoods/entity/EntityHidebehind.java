@@ -289,6 +289,17 @@ public class EntityHidebehind extends EntityCreatureWithSelectiveTypes implement
     }
 
     @Override
+    public boolean isEntityInsideOpaqueBlock() {
+        if (this.noClip) {
+            return false;
+        } else {
+            float f1 = this.getWidth() * 0.8F;
+            AxisAlignedBB axisalignedbb = AxisAlignedBB.withSizeAtOrigin(f1, 0.1F, f1).offset(this.getPosX(), this.getPosYEye(), this.getPosZ());
+            return this.world.func_241457_a_(this, axisalignedbb, (state, pos) -> !state.isIn(BlockTags.LOGS) && state.isSuffocating(this.world, pos)).findAny().isPresent();
+        }
+    }
+
+    @Override
     public Vector3d getAllowedMovement(Vector3d vec) {
         return allowedMove(vec);
     }
