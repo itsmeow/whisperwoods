@@ -356,7 +356,7 @@ public class EntityWisp extends AnimalEntity implements IContainerEntity<EntityW
     }
 
     @Override
-    public AgeableEntity func_241840_a(ServerWorld world, AgeableEntity ageable) {
+    public AgeableEntity createChild(ServerWorld world, AgeableEntity ageable) {
         return null;
     }
 

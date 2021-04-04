@@ -3,7 +3,6 @@ package dev.itsmeow.whisperwoods.entity;
 import dev.itsmeow.imdlib.entity.util.EntityTypeContainer;
 import dev.itsmeow.whisperwoods.init.ModEntities;
 import dev.itsmeow.whisperwoods.util.IOverrideCollisions;
-import dev.itsmeow.whisperwoods.util.StopSpinningGroundPathNavigator;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.entity.*;
@@ -86,13 +85,13 @@ public class EntityHirschgeist extends MonsterEntity implements IMob, IOverrideC
 
     @Override
     protected PathNavigator createNavigator(World worldIn) {
-        return new StopSpinningGroundPathNavigator(this, worldIn) {
+        return new GroundPathNavigator(this, worldIn) {
             @Override
             protected PathFinder getPathFinder(int i1) {
                 this.nodeProcessor = new WalkNodeProcessor() {
                     @Override
-                    protected PathNodeType func_215744_a(IBlockReader reader, boolean b1, boolean b2, BlockPos pos, PathNodeType typeIn) {
-                        return typeIn == PathNodeType.LEAVES || reader.getBlockState(pos).getBlock().isIn(BlockTags.LOGS) || reader.getBlockState(pos).getBlock().isIn(BlockTags.LEAVES) ? PathNodeType.OPEN : super.func_215744_a(reader, b1, b2, pos, typeIn);
+                    protected PathNodeType refineNodeType(IBlockReader reader, boolean b1, boolean b2, BlockPos pos, PathNodeType typeIn) {
+                        return typeIn == PathNodeType.LEAVES || reader.getBlockState(pos).getBlock().isIn(BlockTags.LOGS) || reader.getBlockState(pos).getBlock().isIn(BlockTags.LEAVES) ? PathNodeType.OPEN : super.refineNodeType(reader, b1, b2, pos, typeIn);
                     }
                 };
                 this.nodeProcessor.setCanEnterDoors(true);
@@ -276,7 +275,7 @@ public class EntityHirschgeist extends MonsterEntity implements IMob, IOverrideC
         boolean flag1 = vec.y == 0.0D;
         boolean flag2 = vec.z == 0.0D;
         if ((!flag || !flag1) && (!flag || !flag2) && (!flag1 || !flag2)) { // if moving somehow
-            ReuseableStream<VoxelShape> reusableStream = new ReuseableStream<>(Stream.concat(stream.createStream(), world.getCollisionShapes(entity, bb.expand(vec))).filter(shape -> {
+            ReuseableStream<VoxelShape> reusableStream = new ReuseableStream<>(Stream.concat(stream.createStream(), world.getBlockCollisionShapes(entity, bb.expand(vec))).filter(shape -> {
                 Block block = world.getBlockState(new BlockPos(shape.getBoundingBox().minX, shape.getBoundingBox().minY, shape.getBoundingBox().minZ)).getBlock();
                 return !block.isIn(BlockTags.LEAVES) && !block.isIn(BlockTags.LOGS);
             }));

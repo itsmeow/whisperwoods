@@ -2,12 +2,10 @@ package dev.itsmeow.whisperwoods.entity;
 
 import dev.itsmeow.imdlib.entity.util.EntityTypeContainer;
 import dev.itsmeow.imdlib.entity.util.EntityVariant;
-import dev.itsmeow.imdlib.util.BiomeDictionary.Type;
 import dev.itsmeow.whisperwoods.WhisperwoodsMod;
 import dev.itsmeow.whisperwoods.init.ModEntities;
 import dev.itsmeow.whisperwoods.init.ModSounds;
 import dev.itsmeow.whisperwoods.util.IOverrideCollisions;
-import dev.itsmeow.whisperwoods.util.StopSpinningGroundPathNavigator;
 import net.minecraft.block.TorchBlock;
 import net.minecraft.enchantment.EnchantmentHelper;
 import net.minecraft.entity.*;
@@ -22,10 +20,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.network.datasync.DataParameter;
 import net.minecraft.network.datasync.DataSerializers;
 import net.minecraft.network.datasync.EntityDataManager;
-import net.minecraft.pathfinding.PathFinder;
-import net.minecraft.pathfinding.PathNavigator;
-import net.minecraft.pathfinding.PathNodeType;
-import net.minecraft.pathfinding.WalkNodeProcessor;
+import net.minecraft.pathfinding.*;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.util.*;
 import net.minecraft.util.math.AxisAlignedBB;
@@ -38,6 +33,7 @@ import net.minecraft.world.IBlockReader;
 import net.minecraft.world.World;
 import net.minecraft.world.biome.Biome;
 import net.minecraft.world.biome.Biomes;
+import net.minecraftforge.common.BiomeDictionary;
 
 import javax.annotation.Nullable;
 import java.util.EnumSet;
@@ -303,9 +299,7 @@ public class EntityHidebehind extends EntityCreatureWithSelectiveTypes implement
         boolean flag1 = vec.y == 0.0D;
         boolean flag2 = vec.z == 0.0D;
         if((!flag || !flag1) && (!flag || !flag2) && (!flag1 || !flag2)) { // if moving somehow
-            ReuseableStream<VoxelShape> reusableStream = new ReuseableStream<>(Stream.concat(stream.createStream(), world.getCollisionShapes(entity, bb.expand(vec))).filter(shape -> {
-                return !world.getBlockState(new BlockPos(shape.getBoundingBox().minX, shape.getBoundingBox().minY, shape.getBoundingBox().minZ)).getBlock().isIn(BlockTags.LEAVES);
-            }));
+            ReuseableStream<VoxelShape> reusableStream = new ReuseableStream<>(Stream.concat(stream.createStream(), world.getBlockCollisionShapes(entity, bb.expand(vec))).filter(shape -> !world.getBlockState(new BlockPos(shape.getBoundingBox().minX, shape.getBoundingBox().minY, shape.getBoundingBox().minZ)).getBlock().isIn(BlockTags.LEAVES)));
             return collideBoundingBox(vec, bb, reusableStream);
         } else {
             return getAllowedMovement(vec, bb, world, context, stream);
@@ -403,7 +397,7 @@ public class EntityHidebehind extends EntityCreatureWithSelectiveTypes implement
         return new HidebehindGroundNavigator(this, world);
     }
 
-    public static class HidebehindGroundNavigator extends StopSpinningGroundPathNavigator {
+    public static class HidebehindGroundNavigator extends GroundPathNavigator {
 
         public HidebehindGroundNavigator(MobEntity entityliving, World world) {
             super(entityliving, world);
@@ -418,8 +412,8 @@ public class EntityHidebehind extends EntityCreatureWithSelectiveTypes implement
 
         public static class HidebehindNodeProcessor extends WalkNodeProcessor {
             @Override
-            protected PathNodeType func_215744_a(IBlockReader reader, boolean b1, boolean b2, BlockPos pos, PathNodeType typeIn) {
-                return typeIn == PathNodeType.LEAVES ? PathNodeType.OPEN : super.func_215744_a(reader, b1, b2, pos, typeIn);
+            protected PathNodeType refineNodeType(IBlockReader reader, boolean b1, boolean b2, BlockPos pos, PathNodeType typeIn) {
+                return typeIn == PathNodeType.LEAVES ? PathNodeType.OPEN : super.refineNodeType(reader, b1, b2, pos, typeIn);
             }
         }
 
@@ -473,14 +467,14 @@ public class EntityHidebehind extends EntityCreatureWithSelectiveTypes implement
     }
 
     @Override
-    public String[] getTypesFor(RegistryKey<Biome> biomeKey, Biome biome, Set<Type> types, SpawnReason reason) {
+    public String[] getTypesFor(RegistryKey<Biome> biomeKey, Biome biome, Set<BiomeDictionary.Type> types, SpawnReason reason) {
         if(biomeKey == Biomes.GIANT_SPRUCE_TAIGA || biomeKey == Biomes.GIANT_SPRUCE_TAIGA_HILLS || biomeKey == Biomes.GIANT_TREE_TAIGA || biomeKey == Biomes.GIANT_TREE_TAIGA_HILLS) {
             return new String[] { "mega_taiga", "mega_taiga", "mega_taiga", "darkforest" };
         }
-        if(types.contains(Type.CONIFEROUS)) {
+        if(types.contains(BiomeDictionary.Type.CONIFEROUS)) {
             return new String[] { "coniferous", "coniferous", "coniferous", "coniferous", "black", "darkforest" };
         }
-        if(types.contains(Type.FOREST)) {
+        if(types.contains(BiomeDictionary.Type.FOREST)) {
             return new String[] { "forest", "black", "darkforest" };
         }
         return new String[] { "black", "coniferous", "darkforest", "forest", "mega_taiga" };

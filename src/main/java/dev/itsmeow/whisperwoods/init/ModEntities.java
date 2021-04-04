@@ -1,9 +1,5 @@
 package dev.itsmeow.whisperwoods.init;
 
-import java.util.LinkedHashMap;
-import java.util.function.Function;
-import java.util.function.Supplier;
-
 import dev.itsmeow.imdlib.IMDLib;
 import dev.itsmeow.imdlib.entity.EntityRegistrarHandler;
 import dev.itsmeow.imdlib.entity.util.EntityTypeContainer;
@@ -13,7 +9,6 @@ import dev.itsmeow.imdlib.entity.util.EntityTypeContainerContainable;
 import dev.itsmeow.imdlib.entity.util.IContainable;
 import dev.itsmeow.imdlib.item.IContainerItem;
 import dev.itsmeow.imdlib.item.ItemModEntityContainer;
-import dev.itsmeow.imdlib.util.BiomeDictionary.Type;
 import dev.itsmeow.whisperwoods.WhisperwoodsMod;
 import dev.itsmeow.whisperwoods.entity.*;
 import dev.itsmeow.whisperwoods.entity.EntityHidebehind.HidebehindVariant;
@@ -26,7 +21,13 @@ import net.minecraft.item.Item;
 import net.minecraft.item.Items;
 import net.minecraft.world.Difficulty;
 import net.minecraft.world.World;
+import net.minecraftforge.common.BiomeDictionary.Type;
 import net.minecraftforge.common.ForgeConfigSpec;
+import net.minecraftforge.eventbus.api.IEventBus;
+
+import java.util.LinkedHashMap;
+import java.util.function.Function;
+import java.util.function.Supplier;
 
 public class ModEntities {
 
@@ -125,5 +126,9 @@ public class ModEntities {
 
     private static <T extends MobEntity & IContainable, I extends Item & IContainerItem<T>> EntityTypeContainerContainable.Builder<T, I> entityContainable(Class<T> EntityClass, Function<World, T> func, String entityNameIn, Supplier<AttributeModifierMap.MutableAttribute> attributes) {
         return EntityTypeContainerContainable.Builder.create(EntityClass, func, entityNameIn, attributes, WhisperwoodsMod.MODID);
+    }
+
+    public static void subscribe(IEventBus modBus) {
+        H.subscribe(modBus);
     }
 }

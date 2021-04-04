@@ -2,7 +2,6 @@ package dev.itsmeow.whisperwoods.entity;
 
 import dev.itsmeow.imdlib.entity.util.EntityTypeContainer;
 import dev.itsmeow.whisperwoods.init.ModEntities;
-import dev.itsmeow.whisperwoods.util.StopSpinningClimberPathNavigator;
 import net.minecraft.enchantment.EnchantmentHelper;
 import net.minecraft.entity.*;
 import net.minecraft.entity.ai.attributes.Attributes;
@@ -18,6 +17,7 @@ import net.minecraft.network.datasync.DataParameter;
 import net.minecraft.network.datasync.DataSerializers;
 import net.minecraft.network.datasync.EntityDataManager;
 import net.minecraft.network.play.server.SSetPassengersPacket;
+import net.minecraft.pathfinding.ClimberPathNavigator;
 import net.minecraft.pathfinding.PathNavigator;
 import net.minecraft.pathfinding.WalkAndSwimNodeProcessor;
 import net.minecraft.potion.EffectInstance;
@@ -60,7 +60,7 @@ public class EntityZotzpyre extends EntityMonsterWithTypes {
     }
 
     protected PathNavigator createNavigator(World worldIn) {
-        return new StopSpinningClimberPathNavigator(this, worldIn);
+        return new ClimberPathNavigator(this, worldIn);
     }
 
     @Override

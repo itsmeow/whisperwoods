@@ -71,7 +71,7 @@ public class BlockHandOfFate extends Block {
     @SuppressWarnings("deprecation")
     @Override
     public void onReplaced(BlockState state, World worldIn, BlockPos pos, BlockState newState, boolean isMoving) {
-        if(!state.isIn(newState.getBlock())) {
+        if(!state.matchesBlock(newState.getBlock())) {
             TileEntity te = worldIn.getTileEntity(pos);
             if(te instanceof TileEntityHandOfFate) {
                 ((TileEntityHandOfFate)te).dropItems(worldIn, pos);
@@ -157,9 +157,9 @@ public class BlockHandOfFate extends Block {
                 IFormattableTextComponent t = new TranslationTextComponent(recipePrefix + recipeKey)
                 .setStyle(Style.EMPTY.applyFormatting(recipe.getColor()).setBold(recipe.isBold()))
                 .appendString(": ")
-                .append(new TranslationTextComponent(recipe.getFirst().getTranslationKey()).setStyle(Style.EMPTY.applyFormatting(TextFormatting.WHITE).setBold(false)));
+                .appendSibling(new TranslationTextComponent(recipe.getFirst().getTranslationKey()).setStyle(Style.EMPTY.applyFormatting(TextFormatting.WHITE).setBold(false)));
                 if(I18n.hasKey(recipePrefix + recipeKey + ".hint")) {
-                    t.appendString(" ").append(new TranslationTextComponent(recipePrefix + recipeKey + ".hint").setStyle(Style.EMPTY.applyFormatting(TextFormatting.GRAY).setBold(false)));
+                    t.appendString(" ").appendSibling(new TranslationTextComponent(recipePrefix + recipeKey + ".hint").setStyle(Style.EMPTY.applyFormatting(TextFormatting.GRAY).setBold(false)));
                 }
                 tooltip.add(t);
             }

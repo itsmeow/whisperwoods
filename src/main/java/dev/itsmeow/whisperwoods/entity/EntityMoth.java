@@ -288,7 +288,7 @@ public class EntityMoth extends EntityAnimalWithTypesAndSizeContainable {
         CompoundNBT tag = stack.getTag();
         if(tag != null) {
             if(tag.contains("SizeTag", Constants.NBT.TAG_FLOAT)) {
-                tooltip.add(new StringTextComponent("Size: " + tag.getFloat("SizeTag")).setStyle(Style.EMPTY.createStyleFromFormattings(new TextFormatting[] { TextFormatting.ITALIC, TextFormatting.GRAY })));
+                tooltip.add(new StringTextComponent("Size: " + tag.getFloat("SizeTag")).setStyle(Style.EMPTY.mergeWithFormatting(TextFormatting.ITALIC, TextFormatting.GRAY)));
             }
         }
     }

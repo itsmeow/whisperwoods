@@ -68,7 +68,6 @@ public class ModDataGen {
         event.getGenerator().addProvider(new WWItemModelProvider(event.getGenerator(), event.getExistingFileHelper()));
         event.getGenerator().addProvider(new WWLootTableProvider(event.getGenerator()));
         event.getGenerator().addProvider(new WWRecipeProvider(event.getGenerator()));
-        ModEntities.H.gatherData(event.getGenerator(), event.getExistingFileHelper());
     }
 
     public static class WWBlockTagsProvider extends BlockTagsProvider {
