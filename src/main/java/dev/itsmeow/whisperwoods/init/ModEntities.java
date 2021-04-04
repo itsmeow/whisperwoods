@@ -21,6 +21,7 @@ import net.minecraft.world.Difficulty;
 import net.minecraft.world.World;
 import net.minecraftforge.common.ForgeConfigSpec;
 import net.minecraftforge.common.BiomeDictionary.Type;
+import net.minecraftforge.eventbus.api.IEventBus;
 
 import java.util.LinkedHashMap;
 import java.util.function.Function;
@@ -115,5 +116,9 @@ public class ModEntities {
 
     private static <T extends MobEntity & IContainable, I extends Item & IContainerItem<T>> EntityTypeContainerContainable.Builder<T, I> entityContainable(Class<T> EntityClass, Function<World, T> func, String entityNameIn) {
         return EntityTypeContainerContainable.Builder.create(EntityClass, func, entityNameIn, WhisperwoodsMod.MODID);
+    }
+
+    public static void subscribe(IEventBus modBus) {
+        H.subscribe(modBus);
     }
 }

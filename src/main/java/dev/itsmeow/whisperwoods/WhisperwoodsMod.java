@@ -27,6 +27,7 @@ public class WhisperwoodsMod {
         IEventBus modBus = FMLJavaModLoadingContext.get().getModEventBus();
         modBus.addListener(this::setup);
         modBus.addListener(this::loadComplete);
+        ModEntities.subscribe(modBus);
         ModBlocks.subscribe(modBus);
         ModItems.subscribe(modBus);
         ModSounds.subscribe(modBus);
