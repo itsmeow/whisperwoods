@@ -1,6 +1,6 @@
 package dev.itsmeow.whisperwoods.entity;
 
-import dev.itsmeow.imdlib.entity.util.IVariantTypes;
+import dev.itsmeow.imdlib.entity.interfaces.IVariantTypes;
 import net.minecraft.entity.AgeableEntity;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.ILivingEntityData;

@@ -1,6 +1,6 @@
 package dev.itsmeow.whisperwoods.entity;
 
-import dev.itsmeow.imdlib.entity.util.EntityTypeContainer;
+import dev.itsmeow.imdlib.entity.EntityTypeContainer;
 import dev.itsmeow.whisperwoods.init.ModEntities;
 import net.minecraft.enchantment.EnchantmentHelper;
 import net.minecraft.entity.*;
@@ -44,8 +44,8 @@ public class EntityZotzpyre extends EntityMonsterWithTypes {
     protected int lastAttack = 0;
     private boolean isFromZotz = false;
 
-    public EntityZotzpyre(World world) {
-        super(ModEntities.ZOTZPYRE.entityType, world);
+    public EntityZotzpyre(EntityType<? extends EntityZotzpyre> entityType, World worldIn) {
+        super(entityType, worldIn);
     }
 
     @Override

@@ -13,8 +13,8 @@ import net.minecraftforge.fml.RegistryObject;
 
 public class WispColors {
 
-    private static final List<WispColor> ARRAY = new ArrayList<WispColor>();
-    private static final Map<Integer, WispColor> BY_COLOR = new HashMap<Integer, WispColor>();
+    private static final List<WispColor> ARRAY = new ArrayList<>();
+    private static final Map<Integer, WispColor> BY_COLOR = new HashMap<>();
     public static final WispColor BLUE = r(new WispColor("BLUE", 0x00efef, ModBlocks.GHOST_LIGHT_ELECTRIC_BLUE, ModBlocks.WISP_LANTERN_BLUE));
     public static final WispColor ORANGE = r(new WispColor("ORANGE", 0xf28900, ModBlocks.GHOST_LIGHT_FIERY_ORANGE, ModBlocks.WISP_LANTERN_ORANGE));
     public static final WispColor YELLOW = r(new WispColor("YELLOW", 0xffc61c, ModBlocks.GHOST_LIGHT_GOLD, ModBlocks.WISP_LANTERN_YELLOW));   
@@ -33,7 +33,7 @@ public class WispColors {
     }
 
     public static WispColor[] values() {
-        return ARRAY.toArray(new WispColor[ARRAY.size()]);
+        return ARRAY.toArray(new WispColor[0]);
     }
 
     public static final class WispColor {

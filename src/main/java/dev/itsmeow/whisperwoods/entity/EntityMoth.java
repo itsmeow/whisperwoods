@@ -1,22 +1,14 @@
 package dev.itsmeow.whisperwoods.entity;
 
-import java.util.List;
-
-import javax.annotation.Nullable;
-
-import dev.itsmeow.imdlib.entity.util.EntityTypeContainer;
+import dev.itsmeow.imdlib.entity.EntityTypeContainer;
 import dev.itsmeow.imdlib.entity.util.EntityTypeContainerContainable;
+import dev.itsmeow.imdlib.item.ItemModEntityContainer;
 import dev.itsmeow.whisperwoods.init.ModEntities;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
 import net.minecraft.block.TorchBlock;
-import net.minecraft.entity.CreatureAttribute;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityPredicate;
-import net.minecraft.entity.EntityType;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.MobEntity;
+import net.minecraft.entity.*;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
@@ -39,18 +31,16 @@ import net.minecraft.world.LightType;
 import net.minecraft.world.World;
 import net.minecraftforge.common.util.Constants;
 
+import javax.annotation.Nullable;
+import java.util.List;
+
 public class EntityMoth extends EntityAnimalWithTypesAndSizeContainable {
 
     private static final DataParameter<Integer> LANDED = EntityDataManager.createKey(EntityMoth.class, DataSerializers.VARINT);
     private static final EntityPredicate playerPredicate = (new EntityPredicate()).setDistance(4.0D).allowFriendlyFire().allowInvulnerable();
     private BlockPos targetPosition;
-    public static int MOTHS_REQUIRED_TO_DESTROY = 5;
 
-    public EntityMoth(World worldIn) {
-        this(ModEntities.MOTH.entityType, worldIn);
-    }
-
-    protected EntityMoth(EntityType<? extends EntityAnimalWithTypesAndSizeContainable> type, World worldIn) {
+    public EntityMoth(EntityType<? extends EntityAnimalWithTypesAndSizeContainable> type, World worldIn) {
         super(type, worldIn);
     }
 
@@ -200,7 +190,8 @@ public class EntityMoth extends EntityAnimalWithTypesAndSizeContainable {
             this.moveForward = 0.5F;
             this.rotationYaw += f1;
         }
-        if(MOTHS_REQUIRED_TO_DESTROY != 0 && world.getBlockState(this.getPosition()).getBlock() instanceof TorchBlock && world.getEntitiesWithinAABB(EntityMoth.class, this.getBoundingBox()).size() >= MOTHS_REQUIRED_TO_DESTROY && net.minecraftforge.event.ForgeEventFactory.getMobGriefingEvent(this.world, this)) {
+        int moths_req = getContainer().getCustomConfiguration().getInt("moths_to_destroy_torch");
+        if(moths_req != 0 && world.getBlockState(this.getPosition()).getBlock() instanceof TorchBlock && world.getEntitiesWithinAABB(EntityMoth.class, this.getBoundingBox()).size() >= moths_req && net.minecraftforge.event.ForgeEventFactory.getMobGriefingEvent(this.world, this)) {
             BlockState state = world.getBlockState(this.getPosition());
             Block.spawnDrops(state, world, this.getPosition());
             world.setBlockState(this.getPosition(), Blocks.AIR.getDefaultState());
@@ -270,7 +261,7 @@ public class EntityMoth extends EntityAnimalWithTypesAndSizeContainable {
     }
 
     @Override
-    public EntityTypeContainer<?> getContainer() {
+    public EntityTypeContainer<EntityMoth> getContainer() {
         return ModEntities.MOTH;
     }
 
@@ -280,7 +271,7 @@ public class EntityMoth extends EntityAnimalWithTypesAndSizeContainable {
     }
 
     @Override
-    public EntityTypeContainerContainable<?, ?> getContainableContainer() {
+    public EntityTypeContainerContainable<EntityMoth, ItemModEntityContainer<EntityMoth>> getContainableContainer() {
         return ModEntities.MOTH;
     }
 

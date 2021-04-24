@@ -1,6 +1,6 @@
 package dev.itsmeow.whisperwoods.entity;
 
-import dev.itsmeow.imdlib.entity.util.IContainable;
+import dev.itsmeow.imdlib.entity.interfaces.IContainable;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;

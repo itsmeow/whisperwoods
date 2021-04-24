@@ -1,9 +1,8 @@
 package dev.itsmeow.whisperwoods.entity;
 
-import dev.itsmeow.imdlib.entity.util.EntityTypeContainer;
+import dev.itsmeow.imdlib.entity.EntityTypeContainer;
 import dev.itsmeow.whisperwoods.init.ModEntities;
 import dev.itsmeow.whisperwoods.util.IOverrideCollisions;
-import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.entity.*;
 import net.minecraft.entity.ai.goal.*;
@@ -20,11 +19,11 @@ import net.minecraft.pathfinding.*;
 import net.minecraft.potion.EffectInstance;
 import net.minecraft.potion.Effects;
 import net.minecraft.tags.BlockTags;
-import net.minecraft.util.*;
-import net.minecraft.util.math.AxisAlignedBB;
+import net.minecraft.util.DamageSource;
+import net.minecraft.util.SoundEvent;
+import net.minecraft.util.SoundEvents;
+import net.minecraft.util.Util;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.shapes.ISelectionContext;
-import net.minecraft.util.math.shapes.VoxelShape;
 import net.minecraft.util.math.vector.Vector3d;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.TranslationTextComponent;
@@ -36,7 +35,6 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 
 import javax.annotation.Nullable;
 import java.util.EnumSet;
-import java.util.stream.Stream;
 
 public class EntityHirschgeist extends MonsterEntity implements IMob, IOverrideCollisions<EntityHirschgeist> {
 
@@ -46,8 +44,8 @@ public class EntityHirschgeist extends MonsterEntity implements IMob, IOverrideC
     private final ServerBossInfo bossInfo = (ServerBossInfo) (new ServerBossInfo(this.getDisplayName(), BossInfo.Color.BLUE, BossInfo.Overlay.PROGRESS)).setDarkenSky(false);
     private boolean wasSummoned = false;
 
-    public EntityHirschgeist(World p_i48553_2_) {
-        super(ModEntities.HIRSCHGEIST.entityType, p_i48553_2_);
+    public EntityHirschgeist(EntityType<? extends EntityHirschgeist> entityType, World worldIn) {
+        super(entityType, worldIn);
         this.experienceValue = 150;
     }
 
@@ -255,13 +253,7 @@ public class EntityHirschgeist extends MonsterEntity implements IMob, IOverrideC
 
     @Override
     public boolean isEntityInsideOpaqueBlock() {
-        if (this.noClip) {
-            return false;
-        } else {
-            float f1 = this.getWidth() * 0.8F;
-            AxisAlignedBB axisalignedbb = AxisAlignedBB.withSizeAtOrigin(f1, 0.1F, f1).offset(this.getPosX(), this.getPosYEye(), this.getPosZ());
-            return this.world.func_241457_a_(this, axisalignedbb, (state, pos) -> !state.isIn(BlockTags.LOGS) && state.isSuffocating(this.world, pos)).findAny().isPresent();
-        }
+        return insideOpaque();
     }
 
     @Override
@@ -270,19 +262,8 @@ public class EntityHirschgeist extends MonsterEntity implements IMob, IOverrideC
     }
 
     @Override
-    public Vector3d transformMove(@Nullable Entity entity, Vector3d vec, AxisAlignedBB bb, World world, ISelectionContext context, ReuseableStream<VoxelShape> stream) {
-        boolean flag = vec.x == 0.0D;
-        boolean flag1 = vec.y == 0.0D;
-        boolean flag2 = vec.z == 0.0D;
-        if ((!flag || !flag1) && (!flag || !flag2) && (!flag1 || !flag2)) { // if moving somehow
-            ReuseableStream<VoxelShape> reusableStream = new ReuseableStream<>(Stream.concat(stream.createStream(), world.getBlockCollisionShapes(entity, bb.expand(vec))).filter(shape -> {
-                Block block = world.getBlockState(new BlockPos(shape.getBoundingBox().minX, shape.getBoundingBox().minY, shape.getBoundingBox().minZ)).getBlock();
-                return !block.isIn(BlockTags.LEAVES) && !block.isIn(BlockTags.LOGS);
-            }));
-            return collideBoundingBox(vec, bb, reusableStream);
-        } else {
-            return getAllowedMovement(vec, bb, world, context, stream);
-        }
+    public boolean canPassThrough(BlockState state) {
+        return state.getBlock().isIn(BlockTags.LEAVES) || state.getBlock().isIn(BlockTags.LOGS);
     }
 
     @Override
@@ -299,7 +280,7 @@ public class EntityHirschgeist extends MonsterEntity implements IMob, IOverrideC
     }
 
     @Override
-    public EntityTypeContainer<?> getContainer() {
+    public EntityTypeContainer<EntityHirschgeist> getContainer() {
         return ModEntities.HIRSCHGEIST;
     }
 
@@ -394,7 +375,7 @@ public class EntityHirschgeist extends MonsterEntity implements IMob, IOverrideC
         public void startExecuting() {
             if(parent.world instanceof ServerWorld) {
                 for(int i = 0; i < 3; i++) {
-                    EntityWisp wisp = ModEntities.WISP.entityType.create((ServerWorld) parent.world, null, null, null, parent.getPosition().add(parent.getRNG().nextInt(8) - 4 + 0.5D, parent.getRNG().nextInt(4) + 1 + 0.5D, parent.getRNG().nextInt(8) - 4 + 0.5D), SpawnReason.REINFORCEMENT, false, false);
+                    EntityWisp wisp = ModEntities.WISP.getEntityType().create((ServerWorld) parent.world, null, null, null, parent.getPosition().add(parent.getRNG().nextInt(8) - 4 + 0.5D, parent.getRNG().nextInt(4) + 1 + 0.5D, parent.getRNG().nextInt(8) - 4 + 0.5D), SpawnReason.REINFORCEMENT, false, false);
                     wisp.setHirschgeistSummon(true);
                     if (parent.getAttackTarget() != null) {
                         wisp.setAttackTarget(parent.getAttackTarget());

@@ -68,12 +68,12 @@ public class ClientLifecycleHandler {
 
     @SubscribeEvent
     public static void clientSetup(FMLClientSetupEvent event) {
-        R.addRender(ModEntities.MOTH.entityType, 0.1F, r -> r
+        R.addRender(ModEntities.MOTH.getEntityType(), 0.1F, r -> r
         .tVariant()
         .mSingle(new ModelMoth())
         .simpleScale(e -> e.getSize(Pose.STANDING).width));
 
-        R.addRender(ModEntities.HIDEBEHIND.entityType, 0.75F, r -> r
+        R.addRender(ModEntities.HIDEBEHIND.getEntityType(), 0.75F, r -> r
         .tVariant()
         .mSingle(new ModelHidebehind())
         .renderLayer((e, a, b, c, t) -> RenderType.getEntityTranslucent(t, true))
@@ -90,10 +90,10 @@ public class ClientLifecycleHandler {
             }
         }));
 
-        RenderFactory.addRender(ModEntities.WISP.entityType, RenderWisp::new);
-        RenderFactory.addRender(ModEntities.HIRSCHGEIST.entityType, RenderHirschgeist::new);
+        RenderFactory.addRender(ModEntities.WISP.getEntityType(), RenderWisp::new);
+        RenderFactory.addRender(ModEntities.HIRSCHGEIST.getEntityType(), RenderHirschgeist::new);
 
-        R.addRender(ModEntities.ZOTZPYRE.entityType, 0.4F, r -> r.tVariant().mSingle(new ModelZotzpyre<>()).layer(t -> new LayerEyes<>(t, ModResources.ZOTZPYRE_EYES)));
+        R.addRender(ModEntities.ZOTZPYRE.getEntityType(), 0.4F, r -> r.tVariant().mSingle(new ModelZotzpyre<>()).layer(t -> new LayerEyes<>(t, ModResources.ZOTZPYRE_EYES)));
 
         ClientRegistry.bindTileEntityRenderer(ModTileEntities.GHOST_LIGHT.get(), RenderTileGhostLight::new);
         ClientRegistry.bindTileEntityRenderer(ModTileEntities.HG_SKULL.get(), RenderHGSkull::new);

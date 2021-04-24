@@ -48,7 +48,7 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 public class BlockHandOfFate extends Block {
 
     public static final EnumProperty<Orientation> ROTATION = EnumProperty.create("rotation", Orientation.class);
-    private static VoxelShape SHAPE;
+    private static final VoxelShape SHAPE;
     static {
         double d = 0.0625D * 3;
         SHAPE = VoxelShapes.create(d, 0.0D, d, 1D - d, 1.55D, 1D - d);
@@ -180,7 +180,7 @@ public class BlockHandOfFate extends Block {
 
         Direction[] directions;
 
-        private Orientation(Direction... directions) {
+        Orientation(Direction... directions) {
             this.directions = directions;
         }
 

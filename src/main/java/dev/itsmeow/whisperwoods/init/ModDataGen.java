@@ -312,12 +312,12 @@ public class ModDataGen {
                 for(EntityType<?> type : getKnownEntities()) {
                     this.registerLootTable(type, LootTable.builder());
                 }
-                this.registerLootTable(ModEntities.HIRSCHGEIST.entityType, LootTable.builder().addLootPool(LootPool.builder().rolls(ConstantRange.of(1)).addEntry(ItemLootEntry.builder(ModItems.HIRSCHGEIST_SKULL.get())).acceptFunction(SetCount.builder(ConstantRange.of(1)))));
+                this.registerLootTable(ModEntities.HIRSCHGEIST.getEntityType(), LootTable.builder().addLootPool(LootPool.builder().rolls(ConstantRange.of(1)).addEntry(ItemLootEntry.builder(ModItems.HIRSCHGEIST_SKULL.get())).acceptFunction(SetCount.builder(ConstantRange.of(1)))));
             }
 
             @Override
             protected Iterable<EntityType<?>> getKnownEntities() {
-                return ModEntities.getEntities().values().stream().map(e -> e.entityType).collect(Collectors.toList());
+                return ModEntities.getEntities().values().stream().map(e -> e.getEntityType()).collect(Collectors.toList());
             }
         }
 

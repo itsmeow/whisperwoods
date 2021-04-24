@@ -1,6 +1,6 @@
 package dev.itsmeow.whisperwoods.entity;
 
-import dev.itsmeow.imdlib.entity.util.IVariantTypes;
+import dev.itsmeow.imdlib.entity.interfaces.IVariantTypes;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.ILivingEntityData;
 import net.minecraft.entity.SpawnReason;
@@ -31,8 +31,8 @@ public abstract class EntityMonsterWithTypes extends MonsterEntity implements IV
     }
 
     @Override
-    public void read(CompoundNBT compound) {
-        super.read(compound);
+    public void readAdditional(CompoundNBT compound) {
+        super.readAdditional(compound);
         this.readType(compound);
     }
 

@@ -3,8 +3,8 @@ package dev.itsmeow.whisperwoods.entity;
 import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.minecraft.MinecraftProfileTexture;
 import com.mojang.authlib.minecraft.MinecraftProfileTexture.Type;
-import dev.itsmeow.imdlib.entity.util.EntityTypeContainer;
-import dev.itsmeow.imdlib.entity.util.IContainerEntity;
+import dev.itsmeow.imdlib.entity.EntityTypeContainer;
+import dev.itsmeow.imdlib.entity.interfaces.IContainerEntity;
 import dev.itsmeow.whisperwoods.init.ModEntities;
 import dev.itsmeow.whisperwoods.init.ModItems;
 import dev.itsmeow.whisperwoods.network.WWNetwork;
@@ -49,7 +49,6 @@ import java.util.UUID;
 public class EntityWisp extends AnimalEntity implements IContainerEntity<EntityWisp> {
 
     public final DamageSource WISP = new EntityDamageSource("wisp", this).setDamageIsAbsolute().setDamageBypassesArmor();
-    public static int HOSTILE_CHANCE = 8;
     public boolean isHostile = false;
     public long lastSpawn = 0;
     private BlockPos targetPosition;
@@ -65,12 +64,8 @@ public class EntityWisp extends AnimalEntity implements IContainerEntity<EntityW
     private int attackCooldown = 0;
     private boolean isHirschgeistSummon = false;
 
-    protected EntityWisp(EntityType<? extends EntityWisp> entityType, World world) {
+    public EntityWisp(EntityType<? extends EntityWisp> entityType, World world) {
         super(entityType, world);
-    }
-
-    public EntityWisp(World world) {
-        this(ModEntities.WISP.entityType, world);
     }
 
     public WispColor getWispColor() {
@@ -286,7 +281,8 @@ public class EntityWisp extends AnimalEntity implements IContainerEntity<EntityW
 
     @Override
     public boolean canDespawn(double range) {
-        return getContainer().despawn && !this.hasSoul();
+        // always has a custom name, so override default behavior instead of super call
+        return this.getContainer().despawns() && !this.hasSoul();
     }
 
     @Override
@@ -329,7 +325,7 @@ public class EntityWisp extends AnimalEntity implements IContainerEntity<EntityW
     @Override
     @Nullable
     public ILivingEntityData onInitialSpawn(IServerWorld world, DifficultyInstance difficulty, SpawnReason reason, @Nullable ILivingEntityData livingdata, CompoundNBT compound) {
-        boolean hostile = this.getRNG().nextInt(HOSTILE_CHANCE) == 0;
+        boolean hostile = this.getRNG().nextInt(getContainer().getCustomConfiguration().getInt("hostile_chance")) == 0;
         int colorVariant = this.getRNG().nextInt(WispColors.values().length) + 1;
 
         if (livingdata instanceof WispData) {
@@ -366,7 +362,7 @@ public class EntityWisp extends AnimalEntity implements IContainerEntity<EntityW
     }
 
     @Override
-    public EntityTypeContainer<?> getContainer() {
+    public EntityTypeContainer<EntityWisp> getContainer() {
         return ModEntities.WISP;
     }
 }
