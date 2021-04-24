@@ -1,7 +1,7 @@
 package dev.itsmeow.whisperwoods.entity;
 
-import dev.itsmeow.imdlib.entity.util.EntityTypeContainer;
-import dev.itsmeow.imdlib.entity.util.EntityVariant;
+import dev.itsmeow.imdlib.entity.EntityTypeContainer;
+import dev.itsmeow.imdlib.entity.util.variant.EntityVariant;
 import dev.itsmeow.whisperwoods.WhisperwoodsMod;
 import dev.itsmeow.whisperwoods.init.ModEntities;
 import dev.itsmeow.whisperwoods.init.ModSounds;
@@ -23,38 +23,28 @@ import net.minecraft.network.datasync.EntityDataManager;
 import net.minecraft.pathfinding.*;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.util.*;
-import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
-import net.minecraft.util.math.shapes.ISelectionContext;
-import net.minecraft.util.math.shapes.VoxelShape;
 import net.minecraft.world.IBlockReader;
 import net.minecraft.world.World;
 import net.minecraft.world.biome.Biome;
 import net.minecraft.world.biome.Biomes;
 import net.minecraftforge.common.BiomeDictionary;
 
-import javax.annotation.Nullable;
 import java.util.EnumSet;
 import java.util.Set;
-import java.util.stream.Stream;
 
 public class EntityHidebehind extends EntityCreatureWithSelectiveTypes implements IOverrideCollisions<EntityCreatureWithTypes> {
 
     public final DamageSource HIDEBEHIND = new EntityDamageSource("hidebehind", this).setDamageIsAbsolute().setDamageBypassesArmor();
-    protected static final DataParameter<Byte> HIDING = EntityDataManager.<Byte>createKey(EntityHidebehind.class, DataSerializers.BYTE);
-    protected static final DataParameter<Byte> OPEN = EntityDataManager.<Byte>createKey(EntityHidebehind.class, DataSerializers.BYTE);
-    protected float nextStepDistance = 1.0F;
-    protected static final DataParameter<Integer> ATTACK_SEQUENCE_TICKS = EntityDataManager.<Integer>createKey(EntityHidebehind.class, DataSerializers.VARINT);
+    protected static final DataParameter<Byte> HIDING = EntityDataManager.createKey(EntityHidebehind.class, DataSerializers.BYTE);
+    protected static final DataParameter<Byte> OPEN = EntityDataManager.createKey(EntityHidebehind.class, DataSerializers.BYTE);
+    protected static final DataParameter<Integer> ATTACK_SEQUENCE_TICKS = EntityDataManager.createKey(EntityHidebehind.class, DataSerializers.VARINT);
 
-    protected EntityHidebehind(EntityType<? extends EntityHidebehind> type, World world) {
+    public EntityHidebehind(EntityType<? extends EntityHidebehind> type, World world) {
         super(type, world);
         this.stepHeight = 2F;
-    }
-
-    public EntityHidebehind(World world) {
-        this(ModEntities.HIDEBEHIND.entityType, world);
     }
 
     @Override
@@ -101,15 +91,15 @@ public class EntityHidebehind extends EntityCreatureWithSelectiveTypes implement
         if(this.isInWater()) {
             int i = 12;
             int j = 2;
-            BlockPos.Mutable blockpos$mutableblockpos = new BlockPos.Mutable();
+            BlockPos.Mutable bp = new BlockPos.Mutable();
             BlockPos destinationBlock = null;
             for(int k = 0; k <= j; k = k > 0 ? -k : 1 - k) {
                 for(int l = 0; l < i; ++l) {
                     for(int i1 = 0; i1 <= l; i1 = i1 > 0 ? -i1 : 1 - i1) {
                         for(int j1 = i1 < l && i1 > -l ? l : 0; j1 <= l; j1 = j1 > 0 ? -j1 : 1 - j1) {
-                            blockpos$mutableblockpos.setPos(this.getPosition()).move(i1, k - 1, j1);
-                            if(this.world.getBlockState(blockpos$mutableblockpos).getBlock().isIn(BlockTags.LOGS)) {
-                                destinationBlock = blockpos$mutableblockpos.toImmutable();
+                            bp.setPos(this.getPosition()).move(i1, k - 1, j1);
+                            if(this.world.getBlockState(bp).getBlock().isIn(BlockTags.LOGS)) {
+                                destinationBlock = bp.toImmutable();
                             }
                         }
                     }
@@ -273,7 +263,7 @@ public class EntityHidebehind extends EntityCreatureWithSelectiveTypes implement
         boolean flag = entity.attackEntityFrom(HIDEBEHIND, f);
         if(flag) {
             if(f1 > 0.0F && entity instanceof LivingEntity) {
-                ((LivingEntity) entity).knockBack(this, f1 * 0.5F, (double) MathHelper.sin(this.rotationYaw * ((float) Math.PI / 180F)), (double) (-MathHelper.cos(this.rotationYaw * ((float) Math.PI / 180F))));
+                ((LivingEntity) entity).knockBack(this, f1 * 0.5F, MathHelper.sin(this.rotationYaw * ((float) Math.PI / 180F)), -MathHelper.cos(this.rotationYaw * ((float) Math.PI / 180F)));
                 this.setMotion(this.getMotion().mul(0.6D, 1.0D, 0.6D));
             }
 
@@ -298,25 +288,7 @@ public class EntityHidebehind extends EntityCreatureWithSelectiveTypes implement
 
     @Override
     public boolean isEntityInsideOpaqueBlock() {
-        if (this.noClip) {
-            return false;
-        } else {
-            try (BlockPos.PooledMutable blockpos$pooledmutable = BlockPos.PooledMutable.retain()) {
-                for(int i = 0; i < 8; ++i) {
-                    int j = MathHelper.floor(this.getPosY() + (double)(((float)((i >> 0) % 2) - 0.5F) * 0.1F) + (double)this.getEyeHeight());
-                    int k = MathHelper.floor(this.getPosX() + (double)(((float)((i >> 1) % 2) - 0.5F) * this.getWidth() * 0.8F));
-                    int l = MathHelper.floor(this.getPosZ() + (double)(((float)((i >> 2) % 2) - 0.5F) * this.getWidth() * 0.8F));
-                    if (blockpos$pooledmutable.getX() != k || blockpos$pooledmutable.getY() != j || blockpos$pooledmutable.getZ() != l) {
-                        blockpos$pooledmutable.setPos(k, j, l);
-                        BlockState state = this.world.getBlockState(blockpos$pooledmutable);
-                        if (state.isSuffocating(this.world, blockpos$pooledmutable) && !state.getBlock().isIn(BlockTags.LOGS)) {
-                            return true;
-                        }
-                    }
-                }
-                return false;
-            }
-        }
+        return insideOpaque();
     }
 
     @Override
@@ -325,18 +297,13 @@ public class EntityHidebehind extends EntityCreatureWithSelectiveTypes implement
     }
 
     @Override
-    public Vec3d transformMove(@Nullable Entity entity, Vec3d vec, AxisAlignedBB bb, World world, ISelectionContext context, ReuseableStream<VoxelShape> stream) {
-        boolean flag = vec.x == 0.0D;
-        boolean flag1 = vec.y == 0.0D;
-        boolean flag2 = vec.z == 0.0D;
-        if((!flag || !flag1) && (!flag || !flag2) && (!flag1 || !flag2)) { // if moving somehow
-            ReuseableStream<VoxelShape> reusableStream = new ReuseableStream<>(Stream.concat(stream.createStream(), world.getCollisionShapes(entity, bb.expand(vec))).filter(shape -> {
-                return !world.getBlockState(new BlockPos(shape.getBoundingBox().minX, shape.getBoundingBox().minY, shape.getBoundingBox().minZ)).getBlock().isIn(BlockTags.LEAVES);
-            }));
-            return collideBoundingBox(vec, bb, reusableStream);
-        } else {
-            return getAllowedMovement(vec, bb, world, context, stream);
-        }
+    public boolean canPassThrough(BlockState state) {
+        return state.getBlock().isIn(BlockTags.LEAVES);
+    }
+
+    @Override
+    public boolean preventSuffocation(BlockState state) {
+        return state.getBlock().isIn(BlockTags.LOGS) || canPassThrough(state);
     }
 
     public static class HideFromTargetGoal extends Goal {
@@ -495,12 +462,12 @@ public class EntityHidebehind extends EntityCreatureWithSelectiveTypes implement
     }
 
     @Override
-    public EntityTypeContainer<?> getContainer() {
+    public EntityTypeContainer<EntityHidebehind> getContainer() {
         return ModEntities.HIDEBEHIND;
     }
 
     @Override
-    public String[] getTypesFor(Biome biome, Set<BiomeDictionary.Type> types) {
+    public String[] getTypesFor(Biome biome, Set<BiomeDictionary.Type> types, SpawnReason reason) {
         if(biome == Biomes.GIANT_SPRUCE_TAIGA || biome == Biomes.GIANT_SPRUCE_TAIGA_HILLS || biome == Biomes.GIANT_TREE_TAIGA || biome == Biomes.GIANT_TREE_TAIGA_HILLS) {
             return new String[] { "mega_taiga", "mega_taiga", "mega_taiga", "darkforest" };
         }

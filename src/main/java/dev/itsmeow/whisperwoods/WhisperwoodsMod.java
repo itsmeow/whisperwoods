@@ -1,6 +1,6 @@
 package dev.itsmeow.whisperwoods;
 
-import dev.itsmeow.imdlib.entity.util.EntityTypeContainer;
+import dev.itsmeow.imdlib.entity.EntityTypeContainer;
 import dev.itsmeow.whisperwoods.config.WhisperwoodsConfig;
 import dev.itsmeow.whisperwoods.init.*;
 import dev.itsmeow.whisperwoods.network.WWNetwork;
@@ -48,7 +48,7 @@ public class WhisperwoodsMod {
         public void fill(NonNullList<ItemStack> toDisplay) {
             super.fill(toDisplay);
             for(EntityTypeContainer<?> cont : ModEntities.getEntities().values()) {
-                ItemStack stack = new ItemStack(cont.egg);
+                ItemStack stack = new ItemStack(cont.getEggItem());
                 toDisplay.add(stack);
             }
         }

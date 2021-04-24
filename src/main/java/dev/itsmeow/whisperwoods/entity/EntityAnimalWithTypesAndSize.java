@@ -1,6 +1,6 @@
 package dev.itsmeow.whisperwoods.entity;
 
-import dev.itsmeow.imdlib.entity.util.IVariant;
+import dev.itsmeow.imdlib.entity.util.variant.IVariant;
 import net.minecraft.entity.*;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.network.datasync.DataParameter;
@@ -14,7 +14,7 @@ import javax.annotation.Nullable;
 
 public abstract class EntityAnimalWithTypesAndSize extends EntityAnimalWithTypes {
 
-    protected static final DataParameter<Float> SIZE = EntityDataManager.<Float>createKey(EntityAnimalWithTypesAndSize.class, DataSerializers.FLOAT);
+    protected static final DataParameter<Float> SIZE = EntityDataManager.createKey(EntityAnimalWithTypesAndSize.class, DataSerializers.FLOAT);
 
     public EntityAnimalWithTypesAndSize(EntityType<? extends EntityAnimalWithTypes> entityType, World worldIn) {
         super(entityType, worldIn);

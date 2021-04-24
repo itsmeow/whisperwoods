@@ -42,7 +42,7 @@ public class WhisperwoodsConfig {
     public static void onLoad(final ModConfig.Loading configEvent) {
         LOGGER.debug("Loading {} {}", WhisperwoodsMod.MODID, configEvent.getConfig().getFileName());
         if(configEvent.getConfig().getSpec() == SERVER_CONFIG_SPEC) {
-            SERVER_CONFIG.onWorldLoad();
+            SERVER_CONFIG.onLoad();
         } else if(configEvent.getConfig().getSpec() == CLIENT_CONFIG_SPEC) {
             CLIENT_CONFIG.onLoad();
         }

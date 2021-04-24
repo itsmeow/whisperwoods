@@ -78,7 +78,7 @@ public class TileEntityHandOfFate extends TileEntity implements ITickableTileEnt
 
     public boolean isLit() {
         Block b = this.getBlockState().getBlock();
-        if(b instanceof BlockHandOfFate) {
+        if(b instanceof BlockHandOfFate && this.getWorld() != null) {
             BlockHandOfFate block = (BlockHandOfFate) b;
             return block.isLit(this.getWorld(), this.getPos());
         }
@@ -94,16 +94,20 @@ public class TileEntityHandOfFate extends TileEntity implements ITickableTileEnt
     }
 
     protected void playSound(SoundEvent sound, float vol, float pitch) {
-        this.world.playSound(null, this.getPos().getX(), this.getPos().getY(), this.getPos().getZ(), sound, SoundCategory.BLOCKS, vol, pitch);
+        if(this.getWorld() != null) {
+            this.getWorld().playSound(null, this.getPos().getX(), this.getPos().getY(), this.getPos().getZ(), sound, SoundCategory.BLOCKS, vol, pitch);
+        }
     }
 
     protected void sendToTrackers(HOFEffectPacket pkt) {
-        WWNetwork.HANDLER.send(PacketDistributor.TRACKING_CHUNK.with(() -> world.getChunkAt(pos)), pkt);
+        if(this.getWorld() != null) {
+            WWNetwork.HANDLER.send(PacketDistributor.TRACKING_CHUNK.with(() -> this.getWorld().getChunkAt(pos)), pkt);
+        }
     }
 
     @Override
     public void tick() {
-        if(this.world != null && this.pos != null && this.world.getGameTime() % 5 == 0 && this.getBlockState() != null && !world.isRemote) {
+        if(this.world != null && this.pos != null && this.world.getGameTime() % 5 == 0 && !world.isRemote) {
             BlockState state = this.getBlockState();
             List<ItemEntity> items = this.world.getEntitiesWithinAABB(ItemEntity.class, state.getCollisionShape(world, pos).getBoundingBox().offset(pos).grow(0.25D));
             for(ItemEntity item : items) {
@@ -115,7 +119,7 @@ public class TileEntityHandOfFate extends TileEntity implements ITickableTileEnt
                             item.getItem().shrink(1);
                             this.playSound(SoundEvents.BLOCK_END_PORTAL_FRAME_FILL, 1F, 1F);
                             this.displayDirty = true;
-                            if(item.getItem() == null || item.getItem().getCount() == 0) {
+                            if(item.getItem().getCount() == 0) {
                                 item.remove();
                             }
                             this.notifyUpdate();
@@ -127,7 +131,7 @@ public class TileEntityHandOfFate extends TileEntity implements ITickableTileEnt
                                 this.playSound(SoundEvents.BLOCK_END_PORTAL_FRAME_FILL, 1F, 1F);
                                 world.setBlockState(pos.up(), i.getBlock().getDefaultState());
                             }
-                            if(item.getItem() == null || item.getItem().getCount() == 0) {
+                            if(item.getItem().getCount() == 0) {
                                 item.remove();
                             }
                             break;
@@ -173,7 +177,7 @@ public class TileEntityHandOfFate extends TileEntity implements ITickableTileEnt
     }
 
     public void onRecipeComplete(HOFRecipe recipe, BlockState state, World worldIn, BlockPos pos) {
-        if(!world.isRemote && worldIn instanceof ServerWorld) {
+        if(worldIn instanceof ServerWorld && !worldIn.isRemote) {
             ServerWorld world = (ServerWorld) worldIn;
             switch(recipe.getName()) {
             case "hirschgeist":
@@ -181,12 +185,10 @@ public class TileEntityHandOfFate extends TileEntity implements ITickableTileEnt
                 this.sendToTrackers(hgpk);
                 this.playSound(SoundEvents.ENTITY_EVOKER_CAST_SPELL, 1F, 1F);
                 this.playSound(SoundEvents.BLOCK_BELL_RESONATE, 1F, 1F);
-                WWServerTaskQueue.schedule(50, () -> {
-                    ModEntities.HIRSCHGEIST.entityType.spawn((ServerWorld) worldIn, null, null, pos.up(), SpawnReason.EVENT, false, false);
-                });
+                WWServerTaskQueue.schedule(50, () -> ModEntities.HIRSCHGEIST.getEntityType().spawn(worldIn, null, null, pos.up(), SpawnReason.EVENT, false, false));
                 break;
             case "wisp":
-                EntityWisp wisp = ModEntities.WISP.entityType.create(world);
+                EntityWisp wisp = ModEntities.WISP.getEntityType().create(world);
                 WispColor wColor;
                 Block above = world.getBlockState(pos.up()).getBlock();
                 if(above instanceof BlockGhostLight) {
@@ -194,15 +196,15 @@ public class TileEntityHandOfFate extends TileEntity implements ITickableTileEnt
                 } else {
                     wColor = WispColors.values()[wisp.getRNG().nextInt(WispColors.values().length)];
                 }
-                wisp.setPosition((double)pos.getX() + 0.5D, (double)(pos.getY() + 1), (double)pos.getZ() + 0.5D);
+                wisp.setPosition((double)pos.getX() + 0.5D, (double)pos.getY() + 1D, (double)pos.getZ() + 0.5D);
                 double d0 = 1.0D + VoxelShapes.getAllowedOffset(Direction.Axis.Y, wisp.getBoundingBox(), world.getCollisionShapes(null, new AxisAlignedBB(pos), Collections.emptySet()), -1.0D);
                 wisp.setLocationAndAngles((double) pos.getX() + 0.5D, (double) pos.getY() + d0, (double) pos.getZ() + 0.5D, MathHelper.wrapDegrees(world.rand.nextFloat() * 360.0F), 0.0F);
                 wisp.rotationYawHead = wisp.rotationYaw;
                 wisp.renderYawOffset = wisp.rotationYaw;
-                wisp.isHostile = wisp.getRNG().nextInt(EntityWisp.HOSTILE_CHANCE) == 0;
+                wisp.isHostile = wisp.getRNG().nextInt(ModEntities.WISP.getCustomConfiguration().getInt("hostile_chance")) == 0;
                 wisp.getDataManager().set(EntityWisp.COLOR_VARIANT, wColor.ordinal() + 1);
-                if (wisp != null && !ForgeEventFactory.doSpecialSpawn(wisp, world, pos.getX(), pos.getY(), pos.getZ(), null, SpawnReason.SPAWN_EGG)) {
-                    world.addEntity(wisp);
+                if (!ForgeEventFactory.doSpecialSpawn(wisp, worldIn, pos.getX(), pos.getY(), pos.getZ(), null, SpawnReason.SPAWN_EGG)) {
+                    worldIn.addEntity(wisp);
                 }
 
                 int color = wisp.getWispColor().getColor();
@@ -263,12 +265,12 @@ public class TileEntityHandOfFate extends TileEntity implements ITickableTileEnt
     }
 
     public void dropItems(World worldIn, BlockPos pos) {
-        if(this.getRecipeContainer().hasRecipe() && this.getRecipeContainer().data != null) {
+        if(worldIn != null && this.getRecipeContainer().hasRecipe() && this.getRecipeContainer().data != null) {
             this.getRecipeContainer().data.getItemData().forEach((i, v) -> {
                 if(v) {
                     Item toDrop = ForgeRegistries.ITEMS.getValue(new ResourceLocation(i));
                     if(toDrop != null) {
-                        InventoryHelper.spawnItemStack(world, pos.getX(), pos.getY(), pos.getZ(), new ItemStack(toDrop));
+                        InventoryHelper.spawnItemStack(worldIn, pos.getX(), pos.getY(), pos.getZ(), new ItemStack(toDrop));
                     }
                 }
             });
@@ -363,12 +365,10 @@ public class TileEntityHandOfFate extends TileEntity implements ITickableTileEnt
 
     public static class RecipeItemData {
 
-        private final Map<String, Boolean> data = new LinkedHashMap<String, Boolean>();
+        private final Map<String, Boolean> data = new LinkedHashMap<>();
 
         public RecipeItemData(HOFRecipe recipe) {
-            recipe.items.forEach(item -> {
-                data.put(item.getRegistryName().toString(), false);
-            });
+            recipe.items.forEach(item -> data.put(item.getRegistryName().toString(), false));
         }
 
         public RecipeItemData(HOFRecipe recipe, Set<String> items) {
@@ -426,8 +426,8 @@ public class TileEntityHandOfFate extends TileEntity implements ITickableTileEnt
 
     public static class HOFRecipe {
 
-        private TextFormatting color;
-        private boolean bold;
+        private final TextFormatting color;
+        private final boolean bold;
         private String name = null;
         public final ImmutableList<Item> items;
 
@@ -437,7 +437,7 @@ public class TileEntityHandOfFate extends TileEntity implements ITickableTileEnt
             }
             this.color = color;
             this.bold = bold;
-            this.items = ImmutableList.<Item>copyOf(items);
+            this.items = ImmutableList.copyOf(items);
         }
 
         public TextFormatting getColor() {

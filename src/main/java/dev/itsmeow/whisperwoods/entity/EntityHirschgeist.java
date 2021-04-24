@@ -1,6 +1,6 @@
 package dev.itsmeow.whisperwoods.entity;
 
-import dev.itsmeow.imdlib.entity.util.EntityTypeContainer;
+import dev.itsmeow.imdlib.entity.EntityTypeContainer;
 import dev.itsmeow.whisperwoods.init.ModEntities;
 import dev.itsmeow.whisperwoods.util.IOverrideCollisions;
 import net.minecraft.block.Block;
@@ -50,8 +50,8 @@ public class EntityHirschgeist extends MonsterEntity implements IMob, IOverrideC
     private final ServerBossInfo bossInfo = (ServerBossInfo) (new ServerBossInfo(this.getDisplayName(), BossInfo.Color.BLUE, BossInfo.Overlay.PROGRESS)).setDarkenSky(false);
     private boolean wasSummoned = false;
 
-    public EntityHirschgeist(World p_i48553_2_) {
-        super(ModEntities.HIRSCHGEIST.entityType, p_i48553_2_);
+    public EntityHirschgeist(EntityType<? extends EntityHirschgeist> entityType, World worldIn) {
+        super(entityType, worldIn);
         this.experienceValue = 150;
     }
 
@@ -268,26 +268,7 @@ public class EntityHirschgeist extends MonsterEntity implements IMob, IOverrideC
 
     @Override
     public boolean isEntityInsideOpaqueBlock() {
-        if (this.noClip) {
-            return false;
-        } else {
-            try (BlockPos.PooledMutable blockpos$pooledmutable = BlockPos.PooledMutable.retain()) {
-                for(int i = 0; i < 8; ++i) {
-                    int j = MathHelper.floor(this.getPosY() + (double)(((float)((i >> 0) % 2) - 0.5F) * 0.1F) + (double)this.getEyeHeight());
-                    int k = MathHelper.floor(this.getPosX() + (double)(((float)((i >> 1) % 2) - 0.5F) * this.getWidth() * 0.8F));
-                    int l = MathHelper.floor(this.getPosZ() + (double)(((float)((i >> 2) % 2) - 0.5F) * this.getWidth() * 0.8F));
-                    if (blockpos$pooledmutable.getX() != k || blockpos$pooledmutable.getY() != j || blockpos$pooledmutable.getZ() != l) {
-                        blockpos$pooledmutable.setPos(k, j, l);
-                        BlockState state = this.world.getBlockState(blockpos$pooledmutable);
-                        if (state.isSuffocating(this.world, blockpos$pooledmutable) && !state.getBlock().isIn(BlockTags.LOGS)) {
-                            return true;
-                        }
-                    }
-                }
-
-                return false;
-            }
-        }
+        return insideOpaque();
     }
 
     @Override
@@ -296,19 +277,8 @@ public class EntityHirschgeist extends MonsterEntity implements IMob, IOverrideC
     }
 
     @Override
-    public Vec3d transformMove(@Nullable Entity entity, Vec3d vec, AxisAlignedBB bb, World world, ISelectionContext context, ReuseableStream<VoxelShape> stream) {
-        boolean flag = vec.x == 0.0D;
-        boolean flag1 = vec.y == 0.0D;
-        boolean flag2 = vec.z == 0.0D;
-        if ((!flag || !flag1) && (!flag || !flag2) && (!flag1 || !flag2)) { // if moving somehow
-            ReuseableStream<VoxelShape> reusableStream = new ReuseableStream<>(Stream.concat(stream.createStream(), world.getCollisionShapes(entity, bb.expand(vec))).filter(shape -> {
-                Block block = world.getBlockState(new BlockPos(shape.getBoundingBox().minX, shape.getBoundingBox().minY, shape.getBoundingBox().minZ)).getBlock();
-                return !block.isIn(BlockTags.LEAVES) && !block.isIn(BlockTags.LOGS);
-            }));
-            return collideBoundingBox(vec, bb, reusableStream);
-        } else {
-            return getAllowedMovement(vec, bb, world, context, stream);
-        }
+    public boolean canPassThrough(BlockState state) {
+        return state.getBlock().isIn(BlockTags.LEAVES) || state.getBlock().isIn(BlockTags.LOGS);
     }
 
     @Override
@@ -325,7 +295,7 @@ public class EntityHirschgeist extends MonsterEntity implements IMob, IOverrideC
     }
 
     @Override
-    public EntityTypeContainer<?> getContainer() {
+    public EntityTypeContainer<EntityHirschgeist> getContainer() {
         return ModEntities.HIRSCHGEIST;
     }
 
@@ -420,7 +390,7 @@ public class EntityHirschgeist extends MonsterEntity implements IMob, IOverrideC
         public void startExecuting() {
             if(parent.world instanceof ServerWorld) {
                 for(int i = 0; i < 3; i++) {
-                    EntityWisp wisp = ModEntities.WISP.entityType.create((ServerWorld) parent.world, null, null, null, parent.getPosition().add(parent.getRNG().nextInt(8) - 4 + 0.5D, parent.getRNG().nextInt(4) + 1 + 0.5D, parent.getRNG().nextInt(8) - 4 + 0.5D), SpawnReason.REINFORCEMENT, false, false);
+                    EntityWisp wisp = ModEntities.WISP.getEntityType().create(parent.world, null, null, null, parent.getPosition().add(parent.getRNG().nextInt(8) - 4 + 0.5D, parent.getRNG().nextInt(4) + 1 + 0.5D, parent.getRNG().nextInt(8) - 4 + 0.5D), SpawnReason.REINFORCEMENT, false, false);
                     wisp.setHirschgeistSummon(true);
                     if (parent.getAttackTarget() != null) {
                         wisp.setAttackTarget(parent.getAttackTarget());

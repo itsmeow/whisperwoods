@@ -1,11 +1,15 @@
 package dev.itsmeow.whisperwoods.util;
 
 import com.google.common.collect.ImmutableSet;
-import dev.itsmeow.imdlib.entity.util.IContainerEntity;
+import dev.itsmeow.imdlib.entity.interfaces.IContainerEntity;
+import net.minecraft.block.BlockState;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.MobEntity;
+import net.minecraft.tags.BlockTags;
 import net.minecraft.util.ReuseableStream;
 import net.minecraft.util.math.AxisAlignedBB;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.math.shapes.IBooleanFunction;
 import net.minecraft.util.math.shapes.ISelectionContext;
@@ -52,6 +56,43 @@ public interface IOverrideCollisions<T extends MobEntity> extends IContainerEnti
         return vec3d;
     }
 
-    Vec3d transformMove(@Nullable Entity entity, Vec3d vec, AxisAlignedBB bb, World world, ISelectionContext context, ReuseableStream<VoxelShape> stream);
+    default Vec3d transformMove(@Nullable Entity entity, Vec3d vec, AxisAlignedBB bb, World world, ISelectionContext context, ReuseableStream<VoxelShape> stream) {
+        boolean flag = vec.x == 0.0D;
+        boolean flag1 = vec.y == 0.0D;
+        boolean flag2 = vec.z == 0.0D;
+        if((!flag || !flag1) && (!flag || !flag2) && (!flag1 || !flag2)) { // if moving somehow
+            ReuseableStream<VoxelShape> reusableStream = new ReuseableStream<>(Stream.concat(stream.createStream(), world.getCollisionShapes(entity, bb.expand(vec))).filter(shape -> !canPassThrough(world.getBlockState(new BlockPos(shape.getBoundingBox().minX, shape.getBoundingBox().minY, shape.getBoundingBox().minZ)))));
+            return getImplementation().collideBoundingBox(vec, bb, reusableStream);
+        } else {
+            return getImplementation().getAllowedMovement(vec, bb, world, context, stream);
+        }
+    }
 
+    default boolean insideOpaque() {
+        if (getImplementation().noClip) {
+            return false;
+        } else {
+            try (BlockPos.PooledMutable bp = BlockPos.PooledMutable.retain()) {
+                for(int i = 0; i < 8; ++i) {
+                    int j = MathHelper.floor(getImplementation().getPosY() + (double)(((float)(i % 2) - 0.5F) * 0.1F) + (double)getImplementation().getEyeHeight());
+                    int k = MathHelper.floor(getImplementation().getPosX() + (double)(((float)((i >> 1) % 2) - 0.5F) * getImplementation().getWidth() * 0.8F));
+                    int l = MathHelper.floor(getImplementation().getPosZ() + (double)(((float)((i >> 2) % 2) - 0.5F) * getImplementation().getWidth() * 0.8F));
+                    if (bp.getX() != k || bp.getY() != j || bp.getZ() != l) {
+                        bp.setPos(k, j, l);
+                        BlockState state = getImplementation().world.getBlockState(bp);
+                        if (state.isSuffocating(getImplementation().world, bp) && !preventSuffocation(state)) {
+                            return true;
+                        }
+                    }
+                }
+                return false;
+            }
+        }
+    }
+
+    boolean canPassThrough(BlockState state);
+
+    default boolean preventSuffocation(BlockState state) {
+        return canPassThrough(state);
+    }
 }
