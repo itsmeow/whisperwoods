@@ -64,7 +64,7 @@ public class ModEntities {
     .spawn(EntityClassification.CREATURE, 13, 1, 3)
     .egg(0xc36406, 0xffc008)
     .size(0.75F, 0.9F)
-    .config((holder, builder) -> holder.put(builder.comment("Chance of wisp being hostile (soul stealer). Chance is 1/x, where x is the value specified. 0 is no chance, 1 is 100% chance, 2 is 50% chance, etc").worldRestart().defineInRange("hostile_chance", 8, 0, Integer.MAX_VALUE)))
+    .config((holder, builder) -> holder.put(builder.comment("Chance of wisp being hostile (soul stealer). Chance is a percentage out of 100. 0 is never, 100 is always").worldRestart().defineInRange("hostile_chance", 12.5D, 0D, 100D)))
     .biomes(Type.FOREST, Type.SWAMP));
 
     public static final EntityTypeContainer<EntityHirschgeist> HIRSCHGEIST = H.add(EntityHirschgeist.class, EntityHirschgeist::new, "hirschgeist", b -> b
