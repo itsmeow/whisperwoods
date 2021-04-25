@@ -204,7 +204,7 @@ public class TileEntityHandOfFate extends TileEntity implements ITickableTileEnt
                 wisp.setLocationAndAngles((double) pos.getX() + 0.5D, (double) pos.getY() + d0, (double) pos.getZ() + 0.5D, MathHelper.wrapDegrees(world.rand.nextFloat() * 360.0F), 0.0F);
                 wisp.rotationYawHead = wisp.rotationYaw;
                 wisp.renderYawOffset = wisp.rotationYaw;
-                wisp.isHostile = wisp.getRNG().nextInt(ModEntities.WISP.getCustomConfiguration().getInt("hostile_chance")) == 0;
+                wisp.isHostile = wisp.getNewHostileChance();
                 wisp.getDataManager().set(EntityWisp.COLOR_VARIANT, wColor.ordinal() + 1);
                 if (!ForgeEventFactory.doSpecialSpawn(wisp, worldIn, pos.getX(), pos.getY(), pos.getZ(), null, SpawnReason.SPAWN_EGG)) {
                     worldIn.addEntity(wisp);

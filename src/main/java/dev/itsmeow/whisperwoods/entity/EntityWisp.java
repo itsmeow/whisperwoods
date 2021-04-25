@@ -322,10 +322,14 @@ public class EntityWisp extends AnimalEntity implements IContainerEntity<EntityW
         return null;
     }
 
+    public boolean getNewHostileChance() {
+        return getContainer().getCustomConfiguration().getDouble("hostile_chance") / 100D > Math.random();
+    }
+
     @Override
     @Nullable
     public ILivingEntityData onInitialSpawn(IServerWorld world, DifficultyInstance difficulty, SpawnReason reason, @Nullable ILivingEntityData livingdata, CompoundNBT compound) {
-        boolean hostile = this.getRNG().nextInt(getContainer().getCustomConfiguration().getInt("hostile_chance")) == 0;
+        boolean hostile = this.getNewHostileChance();
         int colorVariant = this.getRNG().nextInt(WispColors.values().length) + 1;
 
         if (livingdata instanceof WispData) {
