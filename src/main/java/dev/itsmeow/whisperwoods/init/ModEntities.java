@@ -53,6 +53,7 @@ public class ModEntities {
     .defaultPlacement((t, w, e, p, r) -> w.getDifficulty() != Difficulty.PEACEFUL && MobEntity.canSpawnOn(t, w, e, p, r))
     .egg(0x473123, 0xfff494)
     .size(1F, 5.2F)
+    .despawn()
     .variants(
     new HidebehindVariant("black"),
     new HidebehindVariant("coniferous"),
