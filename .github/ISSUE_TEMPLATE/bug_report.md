@@ -1,6 +1,6 @@
 ---
 name: Bug report
-about: Create a bug report for Better Animals Plus
+about: Create a bug report for Whisperwoods
 
 ---
 
