@@ -1,6 +1,7 @@
 package dev.itsmeow.whisperwoods.client.renderer.entity.layer;
 
 import com.mojang.blaze3d.matrix.MatrixStack;
+import dev.itsmeow.whisperwoods.client.init.ClientLifecycleHandler;
 import net.minecraft.client.renderer.IRenderTypeBuffer;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.entity.MobRenderer;
@@ -16,7 +17,7 @@ public class LayerEyes<T extends MobEntity, A extends EntityModel<T>> extends La
 
     public LayerEyes(MobRenderer<T, A> baseRenderer, ResourceLocation texture) {
         super(baseRenderer);
-        this.GLOW_STATE = RenderType.getEyes(texture);
+        this.GLOW_STATE = ClientLifecycleHandler.RenderTypes.getEyesEntityCutoutNoCullDepthMaskOff(texture);
     }
 
     @Override
