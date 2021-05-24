@@ -44,25 +44,13 @@ public class ClientLifecycleHandler {
     public static RenderFactory R = IMDLibClient.getRenderRegistry(WhisperwoodsMod.MODID);
 
     public static class RenderTypes extends RenderType {
-        protected static final RenderState.WriteMaskState NO_WRITE = new RenderState.WriteMaskState(false, false);
-        private static final RenderType TRANSLUCENT_DEPTH_MASK_OFF = makeType("translucent_depth_mask_off", DefaultVertexFormats.BLOCK, 7, 262144, true, true, RenderType.State.getBuilder().shadeModel(SHADE_ENABLED).lightmap(LIGHTMAP_ENABLED).texture(BLOCK_SHEET_MIPPED).transparency(TRANSLUCENT_TRANSPARENCY).target(OUTLINE_TARGET).writeMask(COLOR_WRITE).build(true));
-
         public RenderTypes() {
             super(null, null, 0, 0, false, false, null, null);
         }
 
-        public static RenderType getEyesDepthMaskOff(ResourceLocation locationIn) {
-            RenderState.TextureState renderstate$texturestate = new RenderState.TextureState(locationIn, false, false);
-            return makeType("eyes_depth_mask_off", DefaultVertexFormats.ENTITY, 7, 256, false, true, RenderType.State.getBuilder().texture(renderstate$texturestate).cull(CULL_DISABLED).transparency(ADDITIVE_TRANSPARENCY).writeMask(COLOR_WRITE).fog(BLACK_FOG).build(false));
-        }
-
         public static RenderType getEyesEntityCutoutNoCullDepthMaskOff(ResourceLocation locationIn) {
             RenderState.TextureState renderstate$texturestate = new RenderState.TextureState(locationIn, false, false);
-            return makeType("eyes_entity_cutout_no_cull_depth_mask_off", DefaultVertexFormats.ENTITY, 7, 256, false, true, RenderType.State.getBuilder().texture(renderstate$texturestate).cull(CULL_DISABLED).transparency(ADDITIVE_TRANSPARENCY).writeMask(COLOR_WRITE).fog(BLACK_FOG).diffuseLighting(DIFFUSE_LIGHTING_ENABLED).alpha(DEFAULT_ALPHA).lightmap(LIGHTMAP_ENABLED).overlay(OVERLAY_ENABLED).build(false));
-        }
-
-        public static RenderType getTranslucentDepthMaskOff() {
-            return TRANSLUCENT_DEPTH_MASK_OFF;
+            return makeType("eyes_entity_cutout_no_cull_depth_mask_off", DefaultVertexFormats.ENTITY, 7, 256, false, true, RenderType.State.getBuilder().texture(renderstate$texturestate).cull(CULL_DISABLED).transparency(ADDITIVE_TRANSPARENCY).writeMask(COLOR_WRITE).fog(BLACK_FOG).diffuseLighting(DIFFUSE_LIGHTING_ENABLED).alpha(DEFAULT_ALPHA).lightmap(LIGHTMAP_DISABLED).overlay(OVERLAY_ENABLED).build(false));
         }
     }
 
@@ -84,7 +72,7 @@ public class ClientLifecycleHandler {
                     matrixStackIn.push();
                     this.getEntityModel().setLivingAnimations(entity, limbSwing, limbSwingAmount, partialTicks);
                     this.getEntityModel().setRotationAngles(entity, limbSwing, limbSwingAmount, ageInTicks, netHeadYaw, headPitch);
-                    this.getEntityModel().render(matrixStackIn, bufferIn.getBuffer(entity.getOpen() ? RenderTypes.getEyesDepthMaskOff(ModResources.HIDEBEHIND_OPEN_GLOW) : RenderTypes.getEyesDepthMaskOff(ModResources.HIDEBEHIND_GLOW)), 15728640, OverlayTexture.NO_OVERLAY, 1.0F, 1.0F, 1.0F, 1.0F);
+                    this.getEntityModel().render(matrixStackIn, bufferIn.getBuffer(entity.getOpen() ? RenderTypes.getEyesEntityCutoutNoCullDepthMaskOff(ModResources.HIDEBEHIND_OPEN_GLOW) : RenderTypes.getEyesEntityCutoutNoCullDepthMaskOff(ModResources.HIDEBEHIND_GLOW)), 15728640, OverlayTexture.NO_OVERLAY, 1.0F, 1.0F, 1.0F, 1.0F);
                     matrixStackIn.pop();
                 }
             }
