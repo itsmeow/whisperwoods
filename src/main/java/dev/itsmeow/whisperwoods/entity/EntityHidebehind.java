@@ -12,6 +12,7 @@ import net.minecraft.enchantment.EnchantmentHelper;
 import net.minecraft.entity.*;
 import net.minecraft.entity.ai.RandomPositionGenerator;
 import net.minecraft.entity.ai.goal.Goal;
+import net.minecraft.entity.ai.goal.HurtByTargetGoal;
 import net.minecraft.entity.ai.goal.SwimGoal;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.BlockItem;
@@ -21,6 +22,8 @@ import net.minecraft.network.datasync.DataParameter;
 import net.minecraft.network.datasync.DataSerializers;
 import net.minecraft.network.datasync.EntityDataManager;
 import net.minecraft.pathfinding.*;
+import net.minecraft.potion.EffectInstance;
+import net.minecraft.potion.Effects;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.util.*;
 import net.minecraft.util.math.BlockPos;
@@ -78,6 +81,22 @@ public class EntityHidebehind extends EntityCreatureWithSelectiveTypes implement
     public boolean attackEntityFrom(DamageSource source, float amount) {
         if(source.getTrueSource() == this.getAttackTarget() && this.attackSequenceTicks() > 0) {
             this.setAttackSequenceTicks(0);
+        }
+        if (!world.isRemote()) {
+            boolean isImmediate = source.getImmediateSource() instanceof PlayerEntity;
+            PlayerEntity player = isImmediate ? (PlayerEntity) source.getImmediateSource() : (source.getTrueSource() instanceof PlayerEntity ? (PlayerEntity) source.getTrueSource() : null);
+            if (player != null) {
+                if (!this.isEntityAttackable(player)) {
+                    // retaliate attacks if you can't chase due to light
+                    if (!player.isCreative()) {
+                        player.addPotionEffect(new EffectInstance(Effects.BLINDNESS, 15 * 20, 1));
+                        if (player.getDistance(this) < 3)
+                            player.attackEntityFrom(HIDEBEHIND, 1F);
+                    }
+                    HideFromTargetGoal.doTreeTick(this);
+                    return false;
+                }
+            }
         }
         return super.attackEntityFrom(source, amount);
     }
@@ -337,7 +356,11 @@ public class EntityHidebehind extends EntityCreatureWithSelectiveTypes implement
 
         @Override
         public void tick() {
-            this.hidebehind.getNavigator().clearPath();
+            doTreeTick(hidebehind);
+        }
+
+        public static void doTreeTick(EntityHidebehind hidebehind) {
+            hidebehind.getNavigator().clearPath();
             boolean nearTree = false;
             for(Direction dir : Direction.values()) {
                 if(!nearTree) {
@@ -390,6 +413,11 @@ public class EntityHidebehind extends EntityCreatureWithSelectiveTypes implement
         this.dataManager.register(HIDING, (byte) 0);
         this.dataManager.register(OPEN, (byte) 0);
         this.dataManager.register(ATTACK_SEQUENCE_TICKS, 0);
+    }
+
+    @Override
+    public boolean canDespawn(double range) {
+        return world.isDaytime() && super.canDespawn(range);
     }
 
     @Override
