@@ -1,6 +1,6 @@
 ---
 name: Crash report
-about: Create a crash report for Better Animals Plus
+about: Create a crash report for Whisperwoods
 
 ---
 
