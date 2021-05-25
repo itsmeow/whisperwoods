@@ -1,9 +1,5 @@
 package dev.itsmeow.whisperwoods.block;
 
-import java.util.List;
-
-import javax.annotation.Nullable;
-
 import dev.itsmeow.whisperwoods.tileentity.TileEntityHandOfFate;
 import dev.itsmeow.whisperwoods.tileentity.TileEntityHandOfFate.HOFRecipe;
 import net.minecraft.block.Block;
@@ -22,12 +18,7 @@ import net.minecraft.state.EnumProperty;
 import net.minecraft.state.StateContainer;
 import net.minecraft.state.properties.BlockStateProperties;
 import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.ActionResultType;
-import net.minecraft.util.Direction;
-import net.minecraft.util.Hand;
-import net.minecraft.util.IStringSerializable;
-import net.minecraft.util.SoundCategory;
-import net.minecraft.util.SoundEvents;
+import net.minecraft.util.*;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.BlockRayTraceResult;
 import net.minecraft.util.math.MathHelper;
@@ -43,6 +34,9 @@ import net.minecraft.world.IWorldReader;
 import net.minecraft.world.World;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
+
+import javax.annotation.Nullable;
+import java.util.List;
 
 public class BlockHandOfFate extends Block {
 
@@ -151,16 +145,15 @@ public class BlockHandOfFate extends Block {
         String recipePrefix = tooltipPrefix + "recipe.";
         if(Screen.hasShiftDown()) {
             tooltip.add(new TranslationTextComponent(tooltipPrefix + "recipehint").setStyle(gIS));
-            for(String recipeKey : TileEntityHandOfFate.RECIPES.keySet()) {
+            for (String recipeKey : TileEntityHandOfFate.RECIPES.keySet()) {
                 HOFRecipe recipe = TileEntityHandOfFate.RECIPES.get(recipeKey);
-                ITextComponent t = new TranslationTextComponent(recipePrefix + recipeKey)
-                .setStyle(new Style().setColor(recipe.getColor()).setBold(recipe.isBold()))
-                .appendText(": ")
-                .appendSibling(new TranslationTextComponent(recipe.getFirst().getTranslationKey()).setStyle(new Style().setColor(TextFormatting.WHITE).setBold(false)));
-                if(I18n.hasKey(recipePrefix + recipeKey + ".hint")) {
-                    t.appendText(" ").appendSibling(new TranslationTextComponent(recipePrefix + recipeKey + ".hint").setStyle(new Style().setColor(TextFormatting.GRAY).setBold(false)));
-                }
-                tooltip.add(t);
+                tooltip.add(
+                    new TranslationTextComponent("block.whisperwoods.hand_of_fate.tooltip.recipe_format" + (I18n.hasKey(recipePrefix + recipeKey + ".hint") ? "_hint" : ""),
+                        new TranslationTextComponent(recipePrefix + recipeKey).setStyle(new Style().setColor(recipe.getColor()).setBold(recipe.isBold())),
+                        new TranslationTextComponent(recipe.getFirst().getTranslationKey()).applyTextStyle(TextFormatting.WHITE),
+                        new TranslationTextComponent(recipePrefix + recipeKey + ".hint").applyTextStyle(TextFormatting.GRAY)
+                    ).applyTextStyle(TextFormatting.GRAY)
+                );
             }
         } else {
             tooltip.add(new TranslationTextComponent(tooltipPrefix + "shiftdown").setStyle(gIS));
