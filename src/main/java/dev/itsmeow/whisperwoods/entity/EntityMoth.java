@@ -20,6 +20,7 @@ import net.minecraft.network.datasync.EntityDataManager;
 import net.minecraft.util.DamageSource;
 import net.minecraft.util.Direction;
 import net.minecraft.util.Hand;
+import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.vector.Vector3d;
@@ -80,6 +81,8 @@ public class EntityMoth extends EntityAnimalWithTypesAndSizeContainable {
 
     public void setNotLanded() {
         this.dataManager.set(LANDED, 1);
+        // Re-center so moth does not suffocate itself
+        this.setPositionAndUpdate(this.getPosition().getX() + 0.5D, this.getPosition().getY() + 0.5D, this.getPosition().getZ() + 0.5D);
     }
 
     @Override
@@ -184,6 +187,12 @@ public class EntityMoth extends EntityAnimalWithTypesAndSizeContainable {
             double d2 = (double) this.targetPosition.getZ() + 0.5D - this.getPosZ();
             Vector3d vec3d = this.getMotion();
             Vector3d vec3d1 = vec3d.add((Math.signum(d0) * 0.5D - vec3d.x) * (double) 0.1F, (Math.signum(d1) * (double) 0.7F - vec3d.y) * (double) 0.1F, (Math.signum(d2) * 0.5D - vec3d.z) * (double) 0.1F);
+            float width = this.getContainer().getEntityType().getSize().width * 0.8F;
+            AxisAlignedBB axisalignedbb = AxisAlignedBB.withSizeAtOrigin(width, 0.1F, width).offset(this.getPosX() + vec3d1.getX(), this.getPosYEye() + vec3d1.getY(), this.getPosZ() + vec3d1.getZ());
+            boolean collides = this.world.func_241457_a_(this, axisalignedbb, (state, pos2) -> state.isSuffocating(this.world, pos2)).findAny().isPresent();
+            if(collides) {
+                vec3d1 = vec3d1.mul(0.5, 0.5, 0.5);
+            }
             this.setMotion(vec3d1);
             float f = (float) (MathHelper.atan2(vec3d1.z, vec3d1.x) * (double) (180F / (float) Math.PI)) - 90.0F;
             float f1 = MathHelper.wrapDegrees(f - this.rotationYaw);
