@@ -12,6 +12,7 @@ import net.minecraft.entity.EntityClassification;
 import net.minecraft.entity.MobEntity;
 import net.minecraft.entity.ai.attributes.Attributes;
 import net.minecraft.item.Items;
+import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.world.Difficulty;
 import net.minecraftforge.common.BiomeDictionary.Type;
 import net.minecraftforge.eventbus.api.IEventBus;
@@ -77,6 +78,7 @@ public class ModEntities {
     .createMutableAttribute(Attributes.ATTACK_DAMAGE)
     .createMutableAttribute(Attributes.ATTACK_DAMAGE, 6.0D), b -> b
     .spawn(EntityClassification.CREATURE, 2, 1, 1)
+    .defaultPlacement((t, w, e, p, r) -> w.getEntitiesWithinAABB(EntityHirschgeist.class, new AxisAlignedBB(p).grow(300D)).size() == 0)
     .egg(0xfffff, 0x00000)
     .size(3F, 4F)
     .biomesOverworld(Type.FOREST));
