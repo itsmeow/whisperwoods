@@ -1,7 +1,6 @@
 {
     "pack": {
         "description": "whisperwoods resources",
-        "pack_format": 4,
-        "_comment": "Format 4 requires JSON lang. 4 also required for all mods"
+        "pack_format": 6
     }
 }
