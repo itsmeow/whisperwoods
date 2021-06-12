@@ -45,7 +45,7 @@ public class ModEntities {
     "black_white_deaths_head",
     "brown_grey_deaths_head",
     "brown_orange_deaths_head")
-    .biomes(Type.FOREST, Type.SWAMP)
+    .biomesOverworld(Type.FOREST, Type.SWAMP)
     .containers(ItemModEntityContainer.get("bottled_%s", WhisperwoodsMod.TAB), c -> Items.GLASS_BOTTLE, EntityMoth::bottleTooltip));
 
     public static final EntityTypeContainer<EntityHidebehind> HIDEBEHIND = H.add(EntityHidebehind.class, EntityHidebehind::new, "hidebehind", () -> MobEntity.func_233666_p_().createMutableAttribute(Attributes.MAX_HEALTH, 20D).createMutableAttribute(Attributes.ATTACK_DAMAGE).createMutableAttribute(Attributes.ATTACK_DAMAGE, 15D), b -> b
@@ -60,7 +60,7 @@ public class ModEntities {
     new HidebehindVariant("darkforest"),
     new HidebehindVariant("forest"),
     new HidebehindVariant("mega_taiga"))
-    .biomes(Type.FOREST));
+    .biomesOverworld(Type.FOREST));
 
     public static final EntityTypeContainer<EntityWisp> WISP = H.add(EntityWisp.class, EntityWisp::new, "wisp", () -> MobEntity.func_233666_p_().createMutableAttribute(Attributes.MAX_HEALTH, 4.5D), b -> b
     .spawn(EntityClassification.CREATURE, 13, 1, 3)
@@ -79,7 +79,7 @@ public class ModEntities {
     .spawn(EntityClassification.CREATURE, 2, 1, 1)
     .egg(0xfffff, 0x00000)
     .size(3F, 4F)
-    .biomes(Type.FOREST));
+    .biomesOverworld(Type.FOREST));
 
     public static final EntityTypeContainer<EntityZotzpyre> ZOTZPYRE = H.add(EntityZotzpyre.class, EntityZotzpyre::new, "zotzpyre", () -> MobEntity.func_233666_p_()
     .createMutableAttribute(Attributes.MAX_HEALTH, 20.0D)
@@ -88,7 +88,7 @@ public class ModEntities {
     .defaultPlacement(EntityZotzpyre::canSpawn)
     .egg(0x321e13, 0x543a28).size(1F, 1F)
     .despawn()
-    .biomes(Type.FOREST, Type.JUNGLE, Type.BEACH, Type.CONIFEROUS, Type.LUSH, Type.WASTELAND, Type.SWAMP, Type.HILLS, Type.MOUNTAIN)
+    .biomesOverworld(Type.FOREST, Type.JUNGLE, Type.BEACH, Type.CONIFEROUS, Type.LUSH, Type.WASTELAND, Type.SWAMP, Type.HILLS, Type.MOUNTAIN)
     .variants(5));
 
 }
