@@ -20,6 +20,7 @@ import net.minecraft.network.datasync.EntityDataManager;
 import net.minecraft.util.DamageSource;
 import net.minecraft.util.Direction;
 import net.minecraft.util.Hand;
+import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
@@ -86,6 +87,8 @@ public class EntityMoth extends EntityAnimalWithTypesAndSizeContainable {
 
     public void setNotLanded() {
         this.dataManager.set(LANDED, 1);
+        // Re-center so moth does not suffocate itself
+        this.setPositionAndUpdate(this.getPosition().getX() + 0.5D, this.getPosition().getY() + 0.5D, this.getPosition().getZ() + 0.5D);
     }
 
     @Override
@@ -189,7 +192,27 @@ public class EntityMoth extends EntityAnimalWithTypesAndSizeContainable {
             double d1 = (double) this.targetPosition.getY() + 0.1D - this.getPosY();
             double d2 = (double) this.targetPosition.getZ() + 0.5D - this.getPosZ();
             Vec3d vec3d = this.getMotion();
+
             Vec3d vec3d1 = vec3d.add((Math.signum(d0) * 0.5D - vec3d.x) * (double) 0.1F, (Math.signum(d1) * (double) 0.7F - vec3d.y) * (double) 0.1F, (Math.signum(d2) * 0.5D - vec3d.z) * (double) 0.1F);
+
+            boolean collides = false;
+            float width = this.getContainer().getEntityType().getSize().width * 0.8F;
+            try (BlockPos.PooledMutable blockpos$pooledmutable = BlockPos.PooledMutable.retain()) {
+                for (int i = 0; i < 8; ++i) {
+                    int j = MathHelper.floor(this.getPosY() + vec3d1.getY() + (double) (((float) ((i >> 0) % 2) - 0.5F) * 0.1F) + (double) this.getEyeHeight());
+                    int k = MathHelper.floor(this.getPosX() + vec3d1.getX() + (double) (((float) ((i >> 1) % 2) - 0.5F) * width));
+                    int l = MathHelper.floor(this.getPosZ() + vec3d1.getZ() + (double) (((float) ((i >> 2) % 2) - 0.5F) * width));
+                    if (blockpos$pooledmutable.getX() != k || blockpos$pooledmutable.getY() != j || blockpos$pooledmutable.getZ() != l) {
+                        blockpos$pooledmutable.setPos(k, j, l);
+                        if (this.world.getBlockState(blockpos$pooledmutable).isSuffocating(this.world, blockpos$pooledmutable)) {
+                            collides = true;
+                        }
+                    }
+                }
+            }
+            if (collides) {
+                vec3d1 = vec3d1.mul(0.5, 0.5, 0.5);
+            }
             this.setMotion(vec3d1);
             float f = (float) (MathHelper.atan2(vec3d1.z, vec3d1.x) * (double) (180F / (float) Math.PI)) - 90.0F;
             float f1 = MathHelper.wrapDegrees(f - this.rotationYaw);
