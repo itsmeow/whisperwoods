@@ -3,6 +3,7 @@ package dev.itsmeow.whisperwoods.client.renderer.entity.model;
 import com.mojang.blaze3d.matrix.MatrixStack;
 import com.mojang.blaze3d.vertex.IVertexBuilder;
 import dev.itsmeow.whisperwoods.entity.EntityHidebehind;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.entity.model.EntityModel;
 import net.minecraft.client.renderer.model.ModelRenderer;
 import net.minecraft.entity.LivingEntity;
@@ -329,9 +330,11 @@ public class ModelHidebehind extends EntityModel<EntityHidebehind> {
     @Override
     public void setRotationAngles(EntityHidebehind entity, float limbSwing, float limbSwingAmount, float ageInTicks, float netHeadYaw, float headPitch) {
         this.lowerJawOpen.showModel = entity.getOpen();
-        this.alpha = entity.getHiding() ? 0.5F : 1F;
-        if(entity.attackSequenceTicks() > 0 && entity.getAttackTarget() != null) {
-            LivingEntity target = entity.getAttackTarget();
+
+        int h = entity.getHidingInt();
+        this.alpha = h == 0 || h > 2 ? 1F : (h == 1 ? 0.5F : 0.05F);
+        if(entity.attackSequenceTicks() > 0 && entity.isSequenceTarget(Minecraft.getInstance().player)) {
+            LivingEntity target = Minecraft.getInstance().player;
             Vec3d targetEyes = target.getEyePosition(1F);
             Vec3d entityEyes = entity.getEyePosition(1F);
             this.head.rotateAngleY = 0;
