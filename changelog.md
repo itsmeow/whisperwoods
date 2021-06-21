@@ -1,3 +1,21 @@
+# 2.0.2
+
+- Add Russian Translation (Credit: Magnaderra)
+- Add English (Upside Down) support
+- Improve lang support for Hand of Fate recipes
+- Fix pack format being incorrect causing datapack error
+- Fix moths randomly suffocating during flight and when taking off
+- Add check so Hirschgeist won't spawn within 300 blocks of each other naturally
+- Improve hidebehind targeting behavior and consistency
+- Fix hidebehind targeting players in creative
+- Fix hidebehind spawning during the day time
+- Make hidebehind retaliate even if it's night
+- Make hidebehind further transparent during the day
+- Make hidebehind 25% damage during the day instead of invincible
+- Reduce hidebehind blindness time during retaliation if it's night to ~4 seconds (still 15 during day)
+- Change hidebehind blindness level to 1 instead of 2
+- 1.16: Fix mobs (except wisps) spawning in nether forests
+
 # 2.0.1
 
 - Rewrite config system and changed field names to make more sense. YOU MUST DELETE YOUR CONFIG OR THINGS WILL BREAK
