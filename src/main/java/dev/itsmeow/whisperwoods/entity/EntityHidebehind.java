@@ -8,14 +8,16 @@ import dev.itsmeow.whisperwoods.init.ModSounds;
 import dev.itsmeow.whisperwoods.util.IOverrideCollisions;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.TorchBlock;
+import net.minecraft.client.Minecraft;
 import net.minecraft.enchantment.EnchantmentHelper;
 import net.minecraft.entity.*;
 import net.minecraft.entity.ai.RandomPositionGenerator;
 import net.minecraft.entity.ai.attributes.Attributes;
 import net.minecraft.entity.ai.goal.Goal;
-import net.minecraft.entity.ai.goal.HurtByTargetGoal;
+import net.minecraft.entity.ai.goal.NearestAttackableTargetGoal;
 import net.minecraft.entity.ai.goal.SwimGoal;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.item.BlockItem;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
@@ -31,20 +33,27 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.vector.Vector3d;
 import net.minecraft.world.IBlockReader;
+import net.minecraft.world.LightType;
 import net.minecraft.world.World;
 import net.minecraft.world.biome.Biome;
 import net.minecraft.world.biome.Biomes;
+import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.common.BiomeDictionary;
+import net.minecraftforge.fml.loading.FMLEnvironment;
 
 import java.util.EnumSet;
+import java.util.Optional;
 import java.util.Set;
+import java.util.UUID;
+import java.util.function.Supplier;
 
 public class EntityHidebehind extends EntityCreatureWithSelectiveTypes implements IOverrideCollisions<EntityCreatureWithTypes> {
 
     public final DamageSource HIDEBEHIND = new EntityDamageSource("hidebehind", this).setDamageIsAbsolute().setDamageBypassesArmor();
-    protected static final DataParameter<Byte> HIDING = EntityDataManager.createKey(EntityHidebehind.class, DataSerializers.BYTE);
-    protected static final DataParameter<Byte> OPEN = EntityDataManager.createKey(EntityHidebehind.class, DataSerializers.BYTE);
+    protected static final DataParameter<Integer> HIDING = EntityDataManager.createKey(EntityHidebehind.class, DataSerializers.VARINT);
+    protected static final DataParameter<Boolean> OPEN = EntityDataManager.createKey(EntityHidebehind.class, DataSerializers.BOOLEAN);
     protected static final DataParameter<Integer> ATTACK_SEQUENCE_TICKS = EntityDataManager.createKey(EntityHidebehind.class, DataSerializers.VARINT);
+    protected static final DataParameter<Optional<UUID>> TARGET_UUID = EntityDataManager.createKey(EntityHidebehind.class, DataSerializers.OPTIONAL_UNIQUE_ID);
 
     public EntityHidebehind(EntityType<? extends EntityHidebehind> type, World world) {
         super(type, world);
@@ -56,6 +65,20 @@ public class EntityHidebehind extends EntityCreatureWithSelectiveTypes implement
         this.goalSelector.addGoal(0, new SwimGoal(this));
         this.goalSelector.addGoal(1, new HideFromTargetGoal(this));
         this.goalSelector.addGoal(3, new StalkTargetGoal(this, 0.5D, 35F));
+        this.targetSelector.addGoal(0, new NearestAttackableTargetGoal<>(this, PlayerEntity.class, 0, false, false, this::isEntityAttackable));
+    }
+
+    public boolean hasTargetUUID() {
+        return this.getDataManager().get(TARGET_UUID).isPresent();
+    }
+
+    public boolean isSequenceTarget(PlayerEntity player) {
+        Optional<UUID> opt = this.getDataManager().get(TARGET_UUID);
+        return player != null && player.getGameProfile().getId() != null && opt.isPresent() && player.getGameProfile().getId().equals(opt.get());
+    }
+
+    public void setSequenceTarget(PlayerEntity player) {
+        this.getDataManager().set(TARGET_UUID, player == null || player.getGameProfile().getId() == null ? Optional.empty() : Optional.of(player.getGameProfile().getId()));
     }
 
     public int attackSequenceTicks() {
@@ -68,6 +91,9 @@ public class EntityHidebehind extends EntityCreatureWithSelectiveTypes implement
 
     public void setAttackSequenceTicks(int value) {
         this.dataManager.set(ATTACK_SEQUENCE_TICKS, value);
+        if(value == 0) {
+            this.setSequenceTarget(null);
+        }
     }
 
     @Override
@@ -79,15 +105,17 @@ public class EntityHidebehind extends EntityCreatureWithSelectiveTypes implement
             boolean isImmediate = source.getImmediateSource() instanceof PlayerEntity;
             PlayerEntity player = isImmediate ? (PlayerEntity) source.getImmediateSource() : (source.getTrueSource() instanceof PlayerEntity ? (PlayerEntity) source.getTrueSource() : null);
             if (player != null) {
-                if (!this.isEntityAttackable(player)) {
+                int hiding = this.getHidingInt();
+                boolean attackable = this.isEntityAttackable(player);
+                if (!attackable || hiding > 0) {
                     // retaliate attacks if you can't chase due to light
                     if (!player.isCreative()) {
-                        player.addPotionEffect(new EffectInstance(Effects.BLINDNESS, 15 * 20, 1));
+                        player.addPotionEffect(new EffectInstance(Effects.BLINDNESS, 15 * (hiding == 1 ? 5 : 20), 0));
                         if (player.getDistance(this) < 3)
                             player.attackEntityFrom(HIDEBEHIND, 1F);
                     }
                     HideFromTargetGoal.doTreeTick(this);
-                    return false;
+                    return super.attackEntityFrom(source, amount * (hiding == 1 ? 0.5F : 0.25F));
                 }
             }
         }
@@ -132,21 +160,26 @@ public class EntityHidebehind extends EntityCreatureWithSelectiveTypes implement
                 this.setPositionAndUpdate(destinationBlock.getX(), destinationBlock.getY(), destinationBlock.getZ());
             }
         }
+        if(!world.isRemote()) {
+            if (world.isDaytime() && world.getLightFor(LightType.SKY, this.getPosition()) > 10) {
+                this.setHiding(2);
+            } else if (this.getHidingInt() == 2) {
+                this.setHiding(1);
+            }
+            if (!this.isBeingViewed() && this.getHidingInt() == 1) {
+                this.setHiding(false);
+            }
+        }
         float atkTicks = attackSequenceTicks();
-        if(this.getHiding() && !this.isBeingViewed()) {
-            this.setHiding(false);
-        }
-        if(this.getAttackTarget() == null) {
-            this.setAttackTarget(world.getClosestEntityWithinAABB(PlayerEntity.class, EntityPredicate.DEFAULT, null, this.getPosX(), this.getPosY(), this.getPosZ(), this.getBoundingBox().grow(25)));
-        }
         if(this.getAttackTarget() != null && this.getAttackTarget().getDistanceSq(this) < 5D && atkTicks == 0 && !this.getHiding() && this.isEntityAttackable(this.getAttackTarget())) {
             if(this.getAttackTarget() instanceof PlayerEntity) {
                 PlayerEntity player = (PlayerEntity) this.getAttackTarget();
                 if(!this.world.isRemote && this.getRNG().nextInt(20) == 0) {
-                    if(player.getHealth() > 11) {
+                    if(player.getHealth() > this.getAttribute(Attributes.ATTACK_DAMAGE).getValue()) {
                         this.attackEntityAsMob(player);
                     } else {
                         this.setAttackSequenceTicks(40);
+                        this.setSequenceTarget(player);
                     }
                 }
             }
@@ -156,8 +189,14 @@ public class EntityHidebehind extends EntityCreatureWithSelectiveTypes implement
             if(!this.getOpen()) {
                 this.setOpen(true);
             }
-            if(this.getAttackTarget() != null) {
-                LivingEntity target = this.getAttackTarget();
+            PlayerEntity target = null;
+            if(this.getAttackTarget() instanceof ServerPlayerEntity) {
+                target = (ServerPlayerEntity) this.getAttackTarget();
+            } else if(FMLEnvironment.dist == Dist.CLIENT) {
+                Supplier<Supplier<PlayerEntity>> s = () -> ClientSafeLogic::getTargetClient;
+                target = s.get().get();
+            }
+            if(this.isSequenceTarget(target)) {
                 target.setMotion(0, 0, 0);
                 double d0 = this.getPosX() - target.getPosX();
                 double d1 = this.getPosZ() - target.getPosZ();
@@ -168,23 +207,29 @@ public class EntityHidebehind extends EntityCreatureWithSelectiveTypes implement
                 float angle1 = (float) (MathHelper.atan2(e1, e0) * (double) (180F / (float) Math.PI)) - 90.0F;
                 this.setPositionAndRotation(this.getPosX(), this.getPosY(), this.getPosZ(), angle1, 0);
                 this.rotationYaw = angle1;
-                if(atkTicks == 20) {
+                if (this.attackSequenceTicks() == 20) {
                     target.playSound(ModSounds.HIDEBEHIND_SOUND.get(), 2F, 1F);
                 }
-                this.lookController.setLookPositionWithEntity(target, 360F, 360F);
+                this.getLookController().setLookPositionWithEntity(target, 360F, 360F);
             }
             this.attackSequenceTicksDecrement();
-            if(atkTicks - 1 == 0) {
+            if(atkTicks - 1 == 0 && !world.isRemote()) {
                 this.setOpen(false);
                 if(this.getAttackTarget() != null) {
-                    LivingEntity target = this.getAttackTarget();
                     this.attackEntityAsMob(target);
                     this.setAttackTarget(null);
+                    this.getDataManager().set(TARGET_UUID, Optional.empty());
                 }
             }
         }
         if(atkTicks == 0 && this.getOpen()) {
             this.setOpen(false);
+        }
+    }
+
+    public static class ClientSafeLogic {
+        public static PlayerEntity getTargetClient() {
+            return Minecraft.getInstance().player;
         }
     }
 
@@ -205,29 +250,27 @@ public class EntityHidebehind extends EntityCreatureWithSelectiveTypes implement
     }
 
     public boolean getHiding() {
-        return (this.dataManager.get(HIDING) & 1) != 0;
+        return this.getHidingInt() != 0;
+    }
+
+    public int getHidingInt() {
+        return this.getDataManager().get(HIDING);
     }
 
     public void setHiding(boolean hiding) {
-        byte b0 = this.dataManager.get(HIDING);
-        if(hiding) {
-            this.dataManager.set(HIDING, (byte) (b0 | 1));
-        } else {
-            this.dataManager.set(HIDING, (byte) (b0 & -2));
-        }
+        this.getDataManager().set(HIDING, hiding ? 1 : 0);
+    }
+
+    public void setHiding(int hiding) {
+        this.getDataManager().set(HIDING, hiding);
     }
 
     public boolean getOpen() {
-        return (this.dataManager.get(OPEN) & 1) != 0;
+        return this.getDataManager().get(OPEN);
     }
 
     public void setOpen(boolean open) {
-        byte b0 = this.dataManager.get(OPEN);
-        if(open) {
-            this.dataManager.set(OPEN, (byte) (b0 | 1));
-        } else {
-            this.dataManager.set(OPEN, (byte) (b0 & -2));
-        }
+        this.getDataManager().set(OPEN, open);
     }
 
     public boolean isBeingViewed() {
@@ -338,12 +381,14 @@ public class EntityHidebehind extends EntityCreatureWithSelectiveTypes implement
 
         @Override
         public void resetTask() {
-            hidebehind.setHiding(false);
+            if(hidebehind.getHidingInt() == 1)
+                hidebehind.setHiding(false);
         }
 
         @Override
         public void startExecuting() {
-            hidebehind.setHiding(true);
+            if(!hidebehind.getHiding())
+                hidebehind.setHiding(true);
             this.hidebehind.getNavigator().clearPath();
         }
 
@@ -403,9 +448,10 @@ public class EntityHidebehind extends EntityCreatureWithSelectiveTypes implement
     @Override
     protected void registerData() {
         super.registerData();
-        this.dataManager.register(HIDING, (byte) 0);
-        this.dataManager.register(OPEN, (byte) 0);
+        this.dataManager.register(HIDING, 0);
+        this.dataManager.register(OPEN, false);
         this.dataManager.register(ATTACK_SEQUENCE_TICKS, 0);
+        this.dataManager.register(TARGET_UUID, Optional.empty());
     }
 
     @Override
