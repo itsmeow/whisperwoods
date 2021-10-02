@@ -18,3 +18,9 @@ Spooky forest stuff for spooky jam'''
     versionRange="[34.1.0,)"
     ordering="NONE"
     side="BOTH"
+  [[dependencies.whisperwoods]]
+    modId="minecraft"
+    mandatory=true
+    versionRange="[1.16.3,)"
+    ordering="NONE"
+    side="BOTH"
