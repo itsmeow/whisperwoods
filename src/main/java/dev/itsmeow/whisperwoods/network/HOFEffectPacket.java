@@ -1,14 +1,13 @@
 package dev.itsmeow.whisperwoods.network;
 
 import java.util.function.Supplier;
-
+import com.mojang.math.Vector3f;
 import dev.itsmeow.whisperwoods.particle.WispParticleData;
 import dev.itsmeow.whisperwoods.util.WWClientTaskQueue;
 import net.minecraft.client.Minecraft;
-import net.minecraft.network.PacketBuffer;
-import net.minecraft.util.SoundCategory;
-import net.minecraft.util.SoundEvents;
-import net.minecraft.util.math.vector.Vector3f;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
 import net.minecraftforge.fml.network.NetworkDirection;
 import net.minecraftforge.fml.network.NetworkEvent;
 
@@ -24,15 +23,15 @@ public class HOFEffectPacket {
         this.color = color;
     }
 
-    public static void encode(HOFEffectPacket pkt, PacketBuffer buf) {
+    public static void encode(HOFEffectPacket pkt, FriendlyByteBuf buf) {
         buf.writeInt(pkt.type.ordinal());
-        buf.writeFloat(pkt.pos.getX());
-        buf.writeFloat(pkt.pos.getY());
-        buf.writeFloat(pkt.pos.getZ());
+        buf.writeFloat(pkt.pos.x());
+        buf.writeFloat(pkt.pos.y());
+        buf.writeFloat(pkt.pos.z());
         buf.writeInt(pkt.color);
     }
 
-    public static HOFEffectPacket decode(PacketBuffer buf) {
+    public static HOFEffectPacket decode(FriendlyByteBuf buf) {
         int i = buf.readInt();
         if(i < 0 || i >= HOFEffectType.values().length) {
             return null;
@@ -45,7 +44,7 @@ public class HOFEffectPacket {
         if(ctx.get().getDirection() != NetworkDirection.PLAY_TO_CLIENT)
             return;
         ctx.get().enqueueWork(() -> {
-            if(Minecraft.getInstance().world != null && msg != null) {
+            if(Minecraft.getInstance().level != null && msg != null) {
                 HOFEffectType type = msg.type;
                 Vector3f pos = msg.pos;
                 int color = msg.color;
@@ -59,22 +58,22 @@ public class HOFEffectPacket {
                 final WispParticleData data = new WispParticleData(r, g, b, 1);
                 for(int i = 0; i < amt; i++) {
                     float pAngle = (float) Math.toRadians(angle * (float) i);
-                    Minecraft.getInstance().world.addParticle(data, pos.getX(), pos.getY(), pos.getZ(), speed * Math.cos(pAngle), 0F, speed * Math.sin(pAngle));
+                    Minecraft.getInstance().level.addParticle(data, pos.x(), pos.y(), pos.z(), speed * Math.cos(pAngle), 0F, speed * Math.sin(pAngle));
                 }
                 if(type == HOFEffectType.HIRSCHGEIST) {
                     WWClientTaskQueue.schedule(21, () -> {
                         for(int i = 0; i < amt; i++) {
                             float pAngle = (float) Math.toRadians(angle * (float) i);
-                            Minecraft.getInstance().world.addParticle(data, pos.getX() + 16 * speed * Math.cos(pAngle), pos.getY(), pos.getZ() + 16 * speed * Math.sin(pAngle), -speed * Math.cos(pAngle), 0F, -speed * Math.sin(pAngle));
+                            Minecraft.getInstance().level.addParticle(data, pos.x() + 16 * speed * Math.cos(pAngle), pos.y(), pos.z() + 16 * speed * Math.sin(pAngle), -speed * Math.cos(pAngle), 0F, -speed * Math.sin(pAngle));
                         }
                         WWClientTaskQueue.schedule(25, () -> {
-                            Minecraft.getInstance().world.playSound(pos.getX(), pos.getY(), pos.getZ(), SoundEvents.ENTITY_RAVAGER_ROAR, SoundCategory.BLOCKS, 1F, 0.25F, false);
+                            Minecraft.getInstance().level.playLocalSound(pos.x(), pos.y(), pos.z(), SoundEvents.RAVAGER_ROAR, SoundSource.BLOCKS, 1F, 0.25F, false);
                             final WispParticleData data2 = new WispParticleData(r, g, b, 0.25F);
                             for(int i = 0; i < 500; i++) {
                                 float xOff = (float) ((Math.random() - 0.5F) * 5F);
                                 float yOff = (float) (Math.random() * 2.5F);
                                 float zOff = (float) ((Math.random() - 0.5F) * 5F);
-                                Minecraft.getInstance().world.addParticle(data2, pos.getX() + xOff, Math.floor(pos.getY()) - 1F + yOff, pos.getZ() + zOff, xOff / 16F, yOff / 16F, zOff / 16F);
+                                Minecraft.getInstance().level.addParticle(data2, pos.x() + xOff, Math.floor(pos.y()) - 1F + yOff, pos.z() + zOff, xOff / 16F, yOff / 16F, zOff / 16F);
                             }
                         });
                     });

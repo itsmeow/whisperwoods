@@ -2,59 +2,63 @@ package dev.itsmeow.whisperwoods.entity;
 
 import dev.itsmeow.imdlib.entity.util.variant.IVariant;
 import net.minecraft.entity.*;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.network.datasync.DataParameter;
-import net.minecraft.network.datasync.DataSerializers;
-import net.minecraft.network.datasync.EntityDataManager;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.syncher.EntityDataAccessor;
+import net.minecraft.network.syncher.EntityDataSerializers;
+import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.world.DifficultyInstance;
-import net.minecraft.world.IServerWorld;
-import net.minecraft.world.World;
-
+import net.minecraft.world.entity.EntityDimensions;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.MobSpawnType;
+import net.minecraft.world.entity.Pose;
+import net.minecraft.world.entity.SpawnGroupData;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.ServerLevelAccessor;
 import javax.annotation.Nullable;
 
 public abstract class EntityAnimalWithTypesAndSize extends EntityAnimalWithTypes {
 
-    protected static final DataParameter<Float> SIZE = EntityDataManager.createKey(EntityAnimalWithTypesAndSize.class, DataSerializers.FLOAT);
+    protected static final EntityDataAccessor<Float> SIZE = SynchedEntityData.defineId(EntityAnimalWithTypesAndSize.class, EntityDataSerializers.FLOAT);
 
-    public EntityAnimalWithTypesAndSize(EntityType<? extends EntityAnimalWithTypes> entityType, World worldIn) {
+    public EntityAnimalWithTypesAndSize(EntityType<? extends EntityAnimalWithTypes> entityType, Level worldIn) {
         super(entityType, worldIn);
         this.setSize(0.35F);
     }
 
     @Override
-    protected void registerData() {
-        super.registerData();
-        this.dataManager.register(SIZE, 1F);
+    protected void defineSynchedData() {
+        super.defineSynchedData();
+        this.entityData.define(SIZE, 1F);
     }
 
     @Override
-    public EntitySize getSize(Pose pose) {
-        float size = this.dataManager.get(SIZE);
-        return EntitySize.flexible(size, size).scale(this.getRenderScale());
+    public EntityDimensions getDimensions(Pose pose) {
+        float size = this.entityData.get(SIZE);
+        return EntityDimensions.scalable(size, size).scale(this.getScale());
     }
 
     public void setSize(float size) {
-        this.dataManager.set(SIZE, size);
+        this.entityData.set(SIZE, size);
     }
 
     @Override
-    public void writeAdditional(CompoundNBT compound) {
-        super.writeAdditional(compound);
-        compound.putFloat("Size", this.getSize(Pose.STANDING).width);
+    public void addAdditionalSaveData(CompoundTag compound) {
+        super.addAdditionalSaveData(compound);
+        compound.putFloat("Size", this.getDimensions(Pose.STANDING).width);
     }
 
     @Override
-    public void readAdditional(CompoundNBT compound) {
-        super.readAdditional(compound);
+    public void readAdditionalSaveData(CompoundTag compound) {
+        super.readAdditionalSaveData(compound);
         float size = compound.getFloat("Size");
         this.setSize(size);
     }
 
     @Override
     @Nullable
-    public ILivingEntityData onInitialSpawn(IServerWorld world, DifficultyInstance difficulty, SpawnReason reason, @Nullable ILivingEntityData livingdata, CompoundNBT compound) {
-        livingdata = super.onInitialSpawn(world, difficulty, reason, livingdata, compound);
-        if(!this.isChild()) {
+    public SpawnGroupData finalizeSpawn(ServerLevelAccessor world, DifficultyInstance difficulty, MobSpawnType reason, @Nullable SpawnGroupData livingdata, CompoundTag compound) {
+        livingdata = super.finalizeSpawn(world, difficulty, reason, livingdata, compound);
+        if(!this.isBaby()) {
             IVariant i = this.getRandomType();
             float rand = this.getRandomizedSize();
 

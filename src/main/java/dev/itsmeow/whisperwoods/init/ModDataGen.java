@@ -18,30 +18,36 @@ import dev.itsmeow.whisperwoods.block.BlockHandOfFate;
 import dev.itsmeow.whisperwoods.block.BlockWispLantern;
 import dev.itsmeow.whisperwoods.util.WispColors;
 import dev.itsmeow.whisperwoods.util.WispColors.WispColor;
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockRenderType;
 import net.minecraft.client.renderer.RenderType;
-import net.minecraft.data.BlockTagsProvider;
+import net.minecraft.core.Direction;
+import net.minecraft.core.Direction.Axis;
 import net.minecraft.data.DataGenerator;
-import net.minecraft.data.IFinishedRecipe;
-import net.minecraft.data.ItemTagsProvider;
-import net.minecraft.data.LootTableProvider;
-import net.minecraft.data.RecipeProvider;
-import net.minecraft.data.ShapedRecipeBuilder;
-import net.minecraft.data.loot.BlockLootTables;
-import net.minecraft.data.loot.EntityLootTables;
-import net.minecraft.entity.EntityType;
-import net.minecraft.item.BlockItem;
-import net.minecraft.item.Item;
-import net.minecraft.item.Items;
+import net.minecraft.data.loot.BlockLoot;
+import net.minecraft.data.loot.EntityLoot;
+import net.minecraft.data.loot.LootTableProvider;
+import net.minecraft.data.recipes.FinishedRecipe;
+import net.minecraft.data.recipes.RecipeProvider;
+import net.minecraft.data.recipes.ShapedRecipeBuilder;
+import net.minecraft.data.tags.BlockTagsProvider;
+import net.minecraft.data.tags.ItemTagsProvider;
 import net.minecraft.loot.*;
-import net.minecraft.loot.LootTable.Builder;
-import net.minecraft.loot.functions.SetCount;
-import net.minecraft.state.properties.BlockStateProperties;
-import net.minecraft.util.Direction;
-import net.minecraft.util.Direction.Axis;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.registry.Registry;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.item.BlockItem;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.RenderShape;
+import net.minecraft.world.level.block.state.properties.BlockStateProperties;
+import net.minecraft.world.level.storage.loot.ConstantIntValue;
+import net.minecraft.world.level.storage.loot.LootPool;
+import net.minecraft.world.level.storage.loot.LootTable;
+import net.minecraft.world.level.storage.loot.LootTable.Builder;
+import net.minecraft.world.level.storage.loot.ValidationContext;
+import net.minecraft.world.level.storage.loot.entries.LootItem;
+import net.minecraft.world.level.storage.loot.functions.SetItemCountFunction;
+import net.minecraft.world.level.storage.loot.parameters.LootContextParamSet;
+import net.minecraft.world.level.storage.loot.parameters.LootContextParamSets;
 import net.minecraftforge.client.model.generators.BlockModelBuilder;
 import net.minecraftforge.client.model.generators.BlockStateProvider;
 import net.minecraftforge.client.model.generators.ConfiguredModel;
@@ -82,9 +88,9 @@ public class ModDataGen {
         }
 
         @Override
-        protected void registerTags() {
-            Builder<Block> ghostLights = this.getOrCreateBuilder(ModTags.Blocks.GHOST_LIGHT);
-            Builder<Block> wispLanterns = this.getOrCreateBuilder(ModTags.Blocks.WISP_LANTERN);
+        protected void addTags() {
+            TagAppender<Block> ghostLights = this.tag(ModTags.Blocks.GHOST_LIGHT);
+            TagAppender<Block> wispLanterns = this.tag(ModTags.Blocks.WISP_LANTERN);
             for(WispColor color : WispColors.values()) {
                 ghostLights.add(color.getGhostLight().get());
                 wispLanterns.add(color.getLantern().get());
@@ -104,7 +110,7 @@ public class ModDataGen {
         }
 
         @Override
-        protected void registerTags() {
+        protected void addTags() {
             this.copy(ModTags.Blocks.GHOST_LIGHT, ModTags.Items.GHOST_LIGHT);
             this.copy(ModTags.Blocks.WISP_LANTERN, ModTags.Items.WISP_LANTERN);
         }
@@ -145,7 +151,7 @@ public class ModDataGen {
         }
 
         @Override
-        protected void registerRecipes(Consumer<IFinishedRecipe> consumer) {
+        protected void buildShapelessRecipes(Consumer<FinishedRecipe> consumer) {
             ModBlocks.getBlocks().forEach(blockEntry -> {
                 Block block = blockEntry.get();
                 if(block instanceof BlockWispLantern) {
@@ -156,27 +162,27 @@ public class ModDataGen {
             });
         }
 
-        protected  void makeHOFRecipe(Consumer<IFinishedRecipe> consumer, BlockHandOfFate block) {
-            ShapedRecipeBuilder.shapedRecipe(block.asItem())
-                    .key('i', Items.IRON_BARS)
-                    .key('b', Items.BLAZE_POWDER)
-                    .key('s', Tags.Items.STONE)
-                    .patternLine("ibi")
-                    .patternLine(" i ")
-                    .patternLine("sss")
-                    .addCriterion("has_blaze_powder", hasItem(Items.BLAZE_POWDER))
-                    .build(consumer);
+        protected  void makeHOFRecipe(Consumer<FinishedRecipe> consumer, BlockHandOfFate block) {
+            ShapedRecipeBuilder.shaped(block.asItem())
+                    .define('i', Items.IRON_BARS)
+                    .define('b', Items.BLAZE_POWDER)
+                    .define('s', Tags.Items.STONE)
+                    .pattern("ibi")
+                    .pattern(" i ")
+                    .pattern("sss")
+                    .unlockedBy("has_blaze_powder", has(Items.BLAZE_POWDER))
+                    .save(consumer);
         }
 
-        protected void makeLanternRecipe(Consumer<IFinishedRecipe> consumer, BlockWispLantern block) {
-            ShapedRecipeBuilder.shapedRecipe(block.asItem())
-                    .key('l', WispColors.byColor(block.getColor()).getGhostLight().get())
-                    .key('n', Tags.Items.NUGGETS_IRON)
-                    .patternLine("nnn")
-                    .patternLine("nln")
-                    .patternLine("nnn")
-                    .addCriterion("has_ghost_light", hasItem(ModTags.Items.GHOST_LIGHT))
-                    .build(consumer);
+        protected void makeLanternRecipe(Consumer<FinishedRecipe> consumer, BlockWispLantern block) {
+            ShapedRecipeBuilder.shaped(block.asItem())
+                    .define('l', WispColors.byColor(block.getColor()).getGhostLight().get())
+                    .define('n', Tags.Items.NUGGETS_IRON)
+                    .pattern("nnn")
+                    .pattern("nln")
+                    .pattern("nnn")
+                    .unlockedBy("has_ghost_light", has(ModTags.Items.GHOST_LIGHT))
+                    .save(consumer);
         }
 
     }
@@ -198,7 +204,7 @@ public class ModDataGen {
                 Block block = blockEntry.get();
                 if(block instanceof BlockWispLantern) {
                     this.buildWispLanternState(block);
-                } else if(block.getDefaultState().getRenderType() != BlockRenderType.MODEL) {
+                } else if(block.defaultBlockState().getRenderShape() != RenderShape.MODEL) {
                     this.soulSand(block);
                 }
             });
@@ -217,13 +223,13 @@ public class ModDataGen {
             this.itemModels().getBuilder(block.getRegistryName().getPath().toString()).parent(hanging);
             this.getVariantBuilder(block)
             .forAllStatesExcept(state -> {
-                Direction dir = state.get(BlockStateProperties.FACING);
+                Direction dir = state.getValue(BlockStateProperties.FACING);
                 return ConfiguredModel.builder()
                 .modelFile(
                 dir.getAxis().isVertical() ? (dir == Direction.UP ? hanging
                 : sitting)
                 : wall)
-                .rotationY(dir.getAxis().isVertical() ? (((int) state.get(BlockWispLantern.HORIZONTAL_FACING).getOpposite().getHorizontalAngle()) % 360) : (((int) dir.getHorizontalAngle())) % 360)
+                .rotationY(dir.getAxis().isVertical() ? (((int) state.getValue(BlockWispLantern.HORIZONTAL_FACING).getOpposite().toYRot()) % 360) : (((int) dir.toYRot())) % 360)
                 .build();
             }, BlockStateProperties.WATERLOGGED);
         }
@@ -253,8 +259,8 @@ public class ModDataGen {
             .end()
             .end()
             .customLoader(MultiLayerModelBuilder::begin)
-            .submodel(RenderType.getSolid(), nestedParent(parent))
-            .submodel(RenderType.getTranslucent(), nestedParent("minecraft:block/block")
+            .submodel(RenderType.solid(), nestedParent(parent))
+            .submodel(RenderType.translucent(), nestedParent("minecraft:block/block")
             .element()
             .from(5, 2, ext.equals("wall") ? 7.8F : 3.8F)
             .to(11, 8, ext.equals("wall") ? 8.8F : 4.8F)
@@ -298,21 +304,21 @@ public class ModDataGen {
         }
 
         @Override
-        protected List<Pair<Supplier<Consumer<BiConsumer<ResourceLocation, Builder>>>, LootParameterSet>> getTables() {
-            return ImmutableList.of(Pair.of(WWBlockLootTables::new, LootParameterSets.BLOCK), Pair.of(WWEntityLootTables::new, LootParameterSets.ENTITY));
+        protected List<Pair<Supplier<Consumer<BiConsumer<ResourceLocation, Builder>>>, LootContextParamSet>> getTables() {
+            return ImmutableList.of(Pair.of(WWBlockLootTables::new, LootContextParamSets.BLOCK), Pair.of(WWEntityLootTables::new, LootContextParamSets.ENTITY));
         }
 
         @Override
-        protected void validate(Map<ResourceLocation, LootTable> map, ValidationTracker validationtracker) {
+        protected void validate(Map<ResourceLocation, LootTable> map, ValidationContext validationtracker) {
         }
 
-        public static class WWEntityLootTables extends EntityLootTables {
+        public static class WWEntityLootTables extends EntityLoot {
             @Override
             protected void addTables() {
                 for(EntityType<?> type : getKnownEntities()) {
-                    this.registerLootTable(type, LootTable.builder());
+                    this.add(type, LootTable.lootTable());
                 }
-                this.registerLootTable(ModEntities.HIRSCHGEIST.getEntityType(), LootTable.builder().addLootPool(LootPool.builder().rolls(ConstantRange.of(1)).addEntry(ItemLootEntry.builder(ModItems.HIRSCHGEIST_SKULL.get())).acceptFunction(SetCount.builder(ConstantRange.of(1)))));
+                this.add(ModEntities.HIRSCHGEIST.getEntityType(), LootTable.lootTable().withPool(LootPool.lootPool().setRolls(ConstantIntValue.exactly(1)).add(LootItem.lootTableItem(ModItems.HIRSCHGEIST_SKULL.get())).apply(SetItemCountFunction.setCount(ConstantIntValue.exactly(1)))));
             }
 
             @Override
@@ -321,7 +327,7 @@ public class ModDataGen {
             }
         }
 
-        public static class WWBlockLootTables extends BlockLootTables {
+        public static class WWBlockLootTables extends BlockLoot {
 
             @Override
             protected void addTables() {
@@ -334,7 +340,7 @@ public class ModDataGen {
             }
 
             protected void reg(RegistryObject<Block> block) {
-                this.registerDropSelfLootTable(block.get());
+                this.dropSelf(block.get());
             }
 
         }

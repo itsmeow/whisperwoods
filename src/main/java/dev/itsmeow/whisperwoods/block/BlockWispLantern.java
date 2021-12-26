@@ -1,47 +1,46 @@
 package dev.itsmeow.whisperwoods.block;
 
 import javax.annotation.Nullable;
-
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.core.Direction.Axis;
+import net.minecraft.world.item.context.BlockPlaceContext;
+import net.minecraft.world.level.BlockGetter;
+import net.minecraft.world.level.LevelAccessor;
+import net.minecraft.world.level.LevelReader;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.SimpleWaterloggedBlock;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.StateDefinition;
+import net.minecraft.world.level.block.state.properties.BlockStateProperties;
+import net.minecraft.world.level.block.state.properties.BooleanProperty;
+import net.minecraft.world.level.block.state.properties.DirectionProperty;
+import net.minecraft.world.level.material.FluidState;
+import net.minecraft.world.level.material.Fluids;
+import net.minecraft.world.level.material.PushReaction;
+import net.minecraft.world.level.pathfinder.PathComputationType;
+import net.minecraft.world.phys.shapes.CollisionContext;
+import net.minecraft.world.phys.shapes.Shapes;
+import net.minecraft.world.phys.shapes.VoxelShape;
 import dev.itsmeow.whisperwoods.tileentity.TileEntityGhostLight;
 import dev.itsmeow.whisperwoods.util.IHaveColor;
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.Blocks;
-import net.minecraft.block.IWaterLoggable;
-import net.minecraft.block.material.PushReaction;
-import net.minecraft.fluid.FluidState;
-import net.minecraft.fluid.Fluids;
-import net.minecraft.item.BlockItemUseContext;
-import net.minecraft.pathfinding.PathType;
-import net.minecraft.state.BooleanProperty;
-import net.minecraft.state.DirectionProperty;
-import net.minecraft.state.StateContainer;
-import net.minecraft.state.properties.BlockStateProperties;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.Direction;
-import net.minecraft.util.Direction.Axis;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.shapes.ISelectionContext;
-import net.minecraft.util.math.shapes.VoxelShape;
-import net.minecraft.util.math.shapes.VoxelShapes;
-import net.minecraft.world.IBlockReader;
-import net.minecraft.world.IWorld;
-import net.minecraft.world.IWorldReader;
 
-public class BlockWispLantern extends Block implements IWaterLoggable, IHaveColor {
+public class BlockWispLantern extends Block implements SimpleWaterloggedBlock, IHaveColor {
 
     private static VoxelShape[] SHAPES = new VoxelShape[Direction.values().length];
     static {
         for(Direction facing : Direction.values()) {
             final double d = 0.0625D * 4;
             if(facing == Direction.UP) {
-                SHAPES[facing.ordinal()] = VoxelShapes.create(d, 0.0D, d, 1D - d, 1D, 1D - d);
+                SHAPES[facing.ordinal()] = Shapes.box(d, 0.0D, d, 1D - d, 1D, 1D - d);
             } else if(facing == Direction.DOWN) {
-                SHAPES[facing.ordinal()] = VoxelShapes.create(d, 0.0D, d, 1D - d, 1D - (0.0625D * 3), 1D - d);
+                SHAPES[facing.ordinal()] = Shapes.box(d, 0.0D, d, 1D - d, 1D - (0.0625D * 3), 1D - d);
             } else {
                 int x = facing == Direction.WEST ? 1 : (facing == Direction.EAST ? -1 : 0);
                 int z = facing == Direction.NORTH ? 1 : (facing == Direction.SOUTH ? -1 : 0);
-                SHAPES[facing.ordinal()] = VoxelShapes.create(d - (d * x), 0.0D, d - (d * z), 1D - d - (d * x), 1D - (0.0625D * 3), 1D - d - (d * z));
+                SHAPES[facing.ordinal()] = Shapes.box(d - (d * x), 0.0D, d - (d * z), 1D - d - (d * x), 1D - (0.0625D * 3), 1D - d - (d * z));
             }
         }
     }
@@ -53,7 +52,7 @@ public class BlockWispLantern extends Block implements IWaterLoggable, IHaveColo
     public BlockWispLantern(int color, Properties properties) {
         super(properties);
         this.color = color;
-        this.setDefaultState(this.stateContainer.getBaseState().with(FACING, Direction.DOWN).with(HORIZONTAL_FACING, Direction.NORTH).with(WATERLOGGED, false));
+        this.registerDefaultState(this.stateDefinition.any().setValue(FACING, Direction.DOWN).setValue(HORIZONTAL_FACING, Direction.NORTH).setValue(WATERLOGGED, false));
     }
 
     @Override
@@ -62,7 +61,7 @@ public class BlockWispLantern extends Block implements IWaterLoggable, IHaveColo
     }
 
     @Override
-    public TileEntity createTileEntity(BlockState state, IBlockReader worldIn) {
+    public BlockEntity createTileEntity(BlockState state, BlockGetter worldIn) {
         return new TileEntityGhostLight();
     }
 
@@ -71,22 +70,22 @@ public class BlockWispLantern extends Block implements IWaterLoggable, IHaveColo
     }
 
     @Override
-    public VoxelShape getShape(BlockState state, IBlockReader worldIn, BlockPos pos, ISelectionContext ctx) {
-        return SHAPES[state.get(FACING).ordinal()];
+    public VoxelShape getShape(BlockState state, BlockGetter worldIn, BlockPos pos, CollisionContext ctx) {
+        return SHAPES[state.getValue(FACING).ordinal()];
     }
 
     @Nullable
     @Override
-    public BlockState getStateForPlacement(BlockItemUseContext context) {
-        FluidState fluidstate = context.getWorld().getFluidState(context.getPos());
+    public BlockState getStateForPlacement(BlockPlaceContext context) {
+        FluidState fluidstate = context.getLevel().getFluidState(context.getClickedPos());
 
         for(Direction direction : context.getNearestLookingDirections()) {
-            BlockState blockstate = this.getDefaultState().with(FACING, direction);
-            if(blockstate.isValidPosition(context.getWorld(), context.getPos())) {
+            BlockState blockstate = this.defaultBlockState().setValue(FACING, direction);
+            if(blockstate.canSurvive(context.getLevel(), context.getClickedPos())) {
                 if(direction.getAxis() == Axis.Y) {
-                    blockstate = blockstate.with(HORIZONTAL_FACING, context.getPlayer().getAdjustedHorizontalFacing().getOpposite());
+                    blockstate = blockstate.setValue(HORIZONTAL_FACING, context.getPlayer().getMotionDirection().getOpposite());
                 }
-                return blockstate.with(WATERLOGGED, Boolean.valueOf(fluidstate.getFluid() == Fluids.WATER));
+                return blockstate.setValue(WATERLOGGED, Boolean.valueOf(fluidstate.getType() == Fluids.WATER));
             }
         }
 
@@ -94,39 +93,39 @@ public class BlockWispLantern extends Block implements IWaterLoggable, IHaveColo
     }
 
     @Override
-    protected void fillStateContainer(StateContainer.Builder<Block, BlockState> builder) {
+    protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
         builder.add(FACING, HORIZONTAL_FACING, WATERLOGGED);
     }
 
     @Override
-    public boolean isValidPosition(BlockState state, IWorldReader worldIn, BlockPos pos) {
-        Direction direction = state.get(FACING);
-        return Block.hasEnoughSolidSide(worldIn, pos.offset(direction), direction.getOpposite());
+    public boolean canSurvive(BlockState state, LevelReader worldIn, BlockPos pos) {
+        Direction direction = state.getValue(FACING);
+        return Block.canSupportCenter(worldIn, pos.relative(direction), direction.getOpposite());
     }
 
     @Override
-    public PushReaction getPushReaction(BlockState state) {
+    public PushReaction getPistonPushReaction(BlockState state) {
         return PushReaction.DESTROY;
     }
 
     @SuppressWarnings("deprecation")
     @Override
-    public BlockState updatePostPlacement(BlockState stateIn, Direction facing, BlockState facingState, IWorld worldIn, BlockPos currentPos, BlockPos facingPos) {
-        if(stateIn.get(WATERLOGGED)) {
-            worldIn.getPendingFluidTicks().scheduleTick(currentPos, Fluids.WATER, Fluids.WATER.getTickRate(worldIn));
+    public BlockState updateShape(BlockState stateIn, Direction facing, BlockState facingState, LevelAccessor worldIn, BlockPos currentPos, BlockPos facingPos) {
+        if(stateIn.getValue(WATERLOGGED)) {
+            worldIn.getLiquidTicks().scheduleTick(currentPos, Fluids.WATER, Fluids.WATER.getTickDelay(worldIn));
         }
 
-        return stateIn.get(FACING) == facing && !stateIn.isValidPosition(worldIn, currentPos) ? Blocks.AIR.getDefaultState() : super.updatePostPlacement(stateIn, facing, facingState, worldIn, currentPos, facingPos);
+        return stateIn.getValue(FACING) == facing && !stateIn.canSurvive(worldIn, currentPos) ? Blocks.AIR.defaultBlockState() : super.updateShape(stateIn, facing, facingState, worldIn, currentPos, facingPos);
     }
 
     @SuppressWarnings("deprecation")
     @Override
     public FluidState getFluidState(BlockState state) {
-        return state.get(WATERLOGGED) ? Fluids.WATER.getStillFluidState(false) : super.getFluidState(state);
+        return state.getValue(WATERLOGGED) ? Fluids.WATER.getSource(false) : super.getFluidState(state);
     }
 
     @Override
-    public boolean allowsMovement(BlockState state, IBlockReader worldIn, BlockPos pos, PathType type) {
+    public boolean isPathfindable(BlockState state, BlockGetter worldIn, BlockPos pos, PathComputationType type) {
         return false;
     }
 

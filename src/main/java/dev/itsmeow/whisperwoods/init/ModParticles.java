@@ -6,9 +6,9 @@ import com.mojang.serialization.Codec;
 
 import dev.itsmeow.whisperwoods.WhisperwoodsMod;
 import dev.itsmeow.whisperwoods.particle.WispParticleData;
-import net.minecraft.particles.BasicParticleType;
-import net.minecraft.particles.IParticleData;
-import net.minecraft.particles.ParticleType;
+import net.minecraft.core.particles.ParticleOptions;
+import net.minecraft.core.particles.ParticleType;
+import net.minecraft.core.particles.SimpleParticleType;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.fml.RegistryObject;
 import net.minecraftforge.registries.DeferredRegister;
@@ -20,13 +20,13 @@ public class ModParticles {
 
     public static final RegistryObject<ParticleType<WispParticleData>> WISP = r("wisp", () -> new ParticleType<WispParticleData>(false, WispParticleData.DESERIALIZER) {
         @Override
-        public Codec<WispParticleData> func_230522_e_() {
+        public Codec<WispParticleData> codec() {
             return WispParticleData.CODEC;
         }
     });
-    public static final RegistryObject<ParticleType<BasicParticleType>> FLAME = r("flame", () -> new BasicParticleType(false));
+    public static final RegistryObject<ParticleType<SimpleParticleType>> FLAME = r("flame", () -> new SimpleParticleType(false));
 
-    private static <T extends IParticleData> RegistryObject<ParticleType<T>> r(String name, Supplier<ParticleType<T>> b) {
+    private static <T extends ParticleOptions> RegistryObject<ParticleType<T>> r(String name, Supplier<ParticleType<T>> b) {
         return PARTICLES.register(name, b);
     }
 

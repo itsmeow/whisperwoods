@@ -1,8 +1,8 @@
 package dev.itsmeow.whisperwoods.init;
 
 import dev.itsmeow.whisperwoods.WhisperwoodsMod;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.SoundEvent;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.sounds.SoundEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.fml.RegistryObject;
 import net.minecraftforge.registries.DeferredRegister;

@@ -5,25 +5,25 @@ import javax.annotation.Nullable;
 import dev.itsmeow.whisperwoods.WhisperwoodsMod;
 import dev.itsmeow.whisperwoods.client.renderer.tile.model.ModelHGSkullMask;
 import net.minecraft.advancements.CriteriaTriggers;
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.SoundType;
-import net.minecraft.client.renderer.entity.model.BipedModel;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.player.ServerPlayerEntity;
-import net.minecraft.inventory.EquipmentSlotType;
-import net.minecraft.item.BlockItemUseContext;
-import net.minecraft.item.IArmorMaterial;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.crafting.Ingredient;
-import net.minecraft.util.ActionResultType;
-import net.minecraft.util.Direction;
-import net.minecraft.util.SoundCategory;
-import net.minecraft.util.SoundEvent;
-import net.minecraft.util.SoundEvents;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
+import net.minecraft.client.model.HumanoidModel;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.sounds.SoundEvent;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ArmorMaterial;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.context.BlockPlaceContext;
+import net.minecraft.world.item.crafting.Ingredient;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.SoundType;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.common.Tags;
@@ -31,39 +31,39 @@ import net.minecraftforge.common.Tags;
 public class ItemBlockHirschgeistSkull extends ItemBlockModeledArmor {
 
     public ItemBlockHirschgeistSkull(Block blockIn) {
-        super(blockIn, HGArmorMaterial.get(), EquipmentSlotType.HEAD, new Item.Properties().group(WhisperwoodsMod.TAB));
-        this.addToBlockToItemMap(Item.BLOCK_TO_ITEM, this);
+        super(blockIn, HGArmorMaterial.get(), EquipmentSlot.HEAD, new Item.Properties().tab(WhisperwoodsMod.TAB));
+        this.addToBlockToItemMap(Item.BY_BLOCK, this);
     }
 
     @SuppressWarnings("unchecked")
     @OnlyIn(Dist.CLIENT)
     @Override
-    protected <A extends BipedModel<?>> A getBaseModelInstance() {
+    protected <A extends HumanoidModel<?>> A getBaseModelInstance() {
         return (A) ModelHGSkullMask.INSTANCE;
     }
 
     @OnlyIn(Dist.CLIENT)
     @Override
-    protected <A extends BipedModel<?>> A displays(A armorModel, EquipmentSlotType slot) {
-        armorModel.bipedHead.showModel = true;
-        armorModel.bipedHeadwear.showModel = true;
-        armorModel.bipedBody.showModel = false;
-        armorModel.bipedRightArm.showModel = false;
-        armorModel.bipedLeftArm.showModel = false;
-        armorModel.bipedRightLeg.showModel = false;
-        armorModel.bipedLeftLeg.showModel = false;
+    protected <A extends HumanoidModel<?>> A displays(A armorModel, EquipmentSlot slot) {
+        armorModel.head.visible = true;
+        armorModel.hat.visible = true;
+        armorModel.body.visible = false;
+        armorModel.rightArm.visible = false;
+        armorModel.leftArm.visible = false;
+        armorModel.rightLeg.visible = false;
+        armorModel.leftLeg.visible = false;
         return armorModel;
     }
 
     @Override
     @Nullable
-    protected BlockState getStateForPlacement(BlockItemUseContext ctx) {
+    protected BlockState getStateForPlacement(BlockPlaceContext ctx) {
         BlockState returnedState = null;
-        World world = ctx.getWorld();
-        BlockPos clickPos = ctx.getPos();
+        Level world = ctx.getLevel();
+        BlockPos clickPos = ctx.getClickedPos();
         for(@SuppressWarnings("unused") Direction side : ctx.getNearestLookingDirections()) {
             BlockState newState = this.getBlock().getStateForPlacement(ctx);
-            if(newState == null || !newState.isValidPosition(world, clickPos))
+            if(newState == null || !newState.canSurvive(world, clickPos))
                 continue;
             returnedState = newState;
             break;
@@ -72,42 +72,42 @@ public class ItemBlockHirschgeistSkull extends ItemBlockModeledArmor {
     }
 
     @Override
-    public ActionResultType tryPlace(BlockItemUseContext ctx) {
+    public InteractionResult tryPlace(BlockPlaceContext ctx) {
         if(!ctx.canPlace()) {
-            return ActionResultType.FAIL;
+            return InteractionResult.FAIL;
         } else {
-            if(ctx.getFace() == Direction.DOWN) {
-                return ActionResultType.FAIL;
+            if(ctx.getClickedFace() == Direction.DOWN) {
+                return InteractionResult.FAIL;
             }
             BlockState placementState = this.getStateForPlacement(ctx);
             if(placementState == null) {
-                return ActionResultType.FAIL;
+                return InteractionResult.FAIL;
             } else if(!this.placeBlock(ctx, placementState)) {
-                return ActionResultType.FAIL;
+                return InteractionResult.FAIL;
             } else {
-                BlockPos blockpos = ctx.getPos();
-                World world = ctx.getWorld();
-                PlayerEntity player = ctx.getPlayer();
-                ItemStack stack = ctx.getItem();
+                BlockPos blockpos = ctx.getClickedPos();
+                Level world = ctx.getLevel();
+                Player player = ctx.getPlayer();
+                ItemStack stack = ctx.getItemInHand();
                 BlockState newState = world.getBlockState(blockpos);
                 Block block = newState.getBlock();
                 if(block == placementState.getBlock()) {
                     this.onBlockPlaced(blockpos, world, player, stack, newState);
-                    block.onBlockPlacedBy(world, blockpos, newState, player, stack);
-                    if(player instanceof ServerPlayerEntity) {
-                        CriteriaTriggers.PLACED_BLOCK.trigger((ServerPlayerEntity) player, blockpos, stack);
+                    block.setPlacedBy(world, blockpos, newState, player, stack);
+                    if(player instanceof ServerPlayer) {
+                        CriteriaTriggers.PLACED_BLOCK.trigger((ServerPlayer) player, blockpos, stack);
                     }
                 }
 
                 SoundType soundtype = newState.getSoundType(world, blockpos, ctx.getPlayer());
-                world.playSound(player, blockpos, soundtype.getPlaceSound(), SoundCategory.BLOCKS, (soundtype.getVolume() + 1.0F) / 2.0F, soundtype.getPitch() * 0.8F);
+                world.playSound(player, blockpos, soundtype.getPlaceSound(), SoundSource.BLOCKS, (soundtype.getVolume() + 1.0F) / 2.0F, soundtype.getPitch() * 0.8F);
                 stack.shrink(1);
-                return ActionResultType.SUCCESS;
+                return InteractionResult.SUCCESS;
             }
         }
     }
 
-    public static class HGArmorMaterial implements IArmorMaterial {
+    public static class HGArmorMaterial implements ArmorMaterial {
 
         private static HGArmorMaterial INSTANCE;
 
@@ -122,28 +122,28 @@ public class ItemBlockHirschgeistSkull extends ItemBlockModeledArmor {
         private static final int[] DAMAGE_REDUCTION_AMOUNT_ARRAY = new int[] { 2, 5, 6, 2 };
 
         @Override
-        public int getDurability(EquipmentSlotType slotIn) {
+        public int getDurabilityForSlot(EquipmentSlot slotIn) {
             return MAX_DAMAGE_ARRAY[slotIn.getIndex()] * 15;
         }
 
         @Override
-        public int getDamageReductionAmount(EquipmentSlotType slotIn) {
+        public int getDefenseForSlot(EquipmentSlot slotIn) {
             return DAMAGE_REDUCTION_AMOUNT_ARRAY[slotIn.getIndex()];
         }
 
         @Override
-        public int getEnchantability() {
+        public int getEnchantmentValue() {
             return 9;
         }
 
         @Override
-        public SoundEvent getSoundEvent() {
-            return SoundEvents.ITEM_ARMOR_EQUIP_GENERIC;
+        public SoundEvent getEquipSound() {
+            return SoundEvents.ARMOR_EQUIP_GENERIC;
         }
 
         @Override
-        public Ingredient getRepairMaterial() {
-            return Ingredient.fromTag(Tags.Items.BONES);
+        public Ingredient getRepairIngredient() {
+            return Ingredient.of(Tags.Items.BONES);
         }
 
         @Override

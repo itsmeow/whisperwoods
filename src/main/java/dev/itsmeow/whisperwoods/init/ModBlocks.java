@@ -10,13 +10,13 @@ import dev.itsmeow.whisperwoods.block.BlockHandOfFate;
 import dev.itsmeow.whisperwoods.block.BlockWispLantern;
 import dev.itsmeow.whisperwoods.tileentity.TileEntityHGSkull;
 import dev.itsmeow.whisperwoods.util.WispColors;
-import net.minecraft.block.AbstractBlock;
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.SoundType;
-import net.minecraft.block.material.Material;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.world.IBlockReader;
+import net.minecraft.world.level.BlockGetter;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.SoundType;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.state.BlockBehaviour;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.material.Material;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.fml.RegistryObject;
 import net.minecraftforge.registries.DeferredRegister;
@@ -33,17 +33,17 @@ public class ModBlocks {
     public static RegistryObject<Block> GHOST_LIGHT_MAGIC_PURPLE = r("ghost_light_magic_purple", () -> new BlockGhostLight(WispColors.PURPLE.getColor()));
     public static RegistryObject<Block> HIRSCHGEIST_SKULL = r("hirschgeist_skull", () -> new BlockAnimalSkull() {
         @Override
-        public TileEntity createTileEntity(BlockState state, IBlockReader world) {
+        public BlockEntity createTileEntity(BlockState state, BlockGetter world) {
             return new TileEntityHGSkull();
         }
     });
-    private static final AbstractBlock.Properties LANTERN_PROPS = AbstractBlock.Properties.create(Material.IRON).setRequiresTool().hardnessAndResistance(3.5F).sound(SoundType.LANTERN).setLightLevel(state -> 15).notSolid();
+    private static final BlockBehaviour.Properties LANTERN_PROPS = BlockBehaviour.Properties.of(Material.METAL).requiresCorrectToolForDrops().strength(3.5F).sound(SoundType.LANTERN).lightLevel(state -> 15).noOcclusion();
     public static RegistryObject<Block> WISP_LANTERN_BLUE = r("wisp_lantern_blue", () -> new BlockWispLantern(WispColors.BLUE.getColor(), LANTERN_PROPS));
     public static RegistryObject<Block> WISP_LANTERN_GREEN = r("wisp_lantern_green", () -> new BlockWispLantern(WispColors.GREEN.getColor(), LANTERN_PROPS));
     public static RegistryObject<Block> WISP_LANTERN_ORANGE = r("wisp_lantern_orange", () -> new BlockWispLantern(WispColors.ORANGE.getColor(), LANTERN_PROPS));
     public static RegistryObject<Block> WISP_LANTERN_PURPLE = r("wisp_lantern_purple", () -> new BlockWispLantern(WispColors.PURPLE.getColor(), LANTERN_PROPS));
     public static RegistryObject<Block> WISP_LANTERN_YELLOW = r("wisp_lantern_yellow", () -> new BlockWispLantern(WispColors.YELLOW.getColor(), LANTERN_PROPS));
-    public static RegistryObject<Block> HAND_OF_FATE = r("hand_of_fate", () -> new BlockHandOfFate(AbstractBlock.Properties.create(Material.IRON).hardnessAndResistance(3.0F, 2.0F)));
+    public static RegistryObject<Block> HAND_OF_FATE = r("hand_of_fate", () -> new BlockHandOfFate(BlockBehaviour.Properties.of(Material.METAL).strength(3.0F, 2.0F)));
 
     private static RegistryObject<Block> r(String name, Supplier<Block> b) {
         return BLOCKS.register(name, b);

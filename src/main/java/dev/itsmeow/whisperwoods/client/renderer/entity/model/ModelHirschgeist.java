@@ -1,27 +1,25 @@
 package dev.itsmeow.whisperwoods.client.renderer.entity.model;
 
 import java.util.function.Function;
-
-import com.mojang.blaze3d.matrix.MatrixStack;
 import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.vertex.IVertexBuilder;
-
+import com.mojang.blaze3d.vertex.BufferBuilder;
+import com.mojang.blaze3d.vertex.BufferUploader;
+import com.mojang.blaze3d.vertex.DefaultVertexFormat;
+import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.blaze3d.vertex.Tesselator;
+import com.mojang.blaze3d.vertex.VertexConsumer;
+import com.mojang.math.Matrix4f;
 import dev.itsmeow.whisperwoods.WhisperwoodsMod;
 import dev.itsmeow.whisperwoods.client.init.ClientLifecycleHandler;
 import dev.itsmeow.whisperwoods.entity.EntityHirschgeist;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.BufferBuilder;
-import net.minecraft.client.renderer.IRenderTypeBuffer;
+import net.minecraft.client.model.EntityModel;
+import net.minecraft.client.model.Model;
+import net.minecraft.client.model.geom.ModelPart;
+import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
-import net.minecraft.client.renderer.Tessellator;
-import net.minecraft.client.renderer.WorldVertexBufferUploader;
-import net.minecraft.client.renderer.entity.model.EntityModel;
-import net.minecraft.client.renderer.model.Model;
-import net.minecraft.client.renderer.model.ModelRenderer;
-import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.math.vector.Matrix4f;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.Mth;
 
 /**
  * hirschgeist_2 - CyberCat5555 Created using Tabula 8.0.0
@@ -163,572 +161,572 @@ public class ModelHirschgeist extends EntityModel<EntityHirschgeist> {
     private boolean isDaytime = false;
 
     public ModelHirschgeist() {
-        this.textureWidth = 128;
-        this.textureHeight = 128;
+        this.texWidth = 128;
+        this.texHeight = 128;
         this.rLeg01Ecto = new EctoModelRenderer(this, 60, 31);
         this.rLeg01Ecto.mirror = true;
-        this.rLeg01Ecto.setRotationPoint(0.2F, 0.1F, 0.0F);
+        this.rLeg01Ecto.setPos(0.2F, 0.1F, 0.0F);
         this.rLeg01Ecto.addBox(-1.5F, -1.5F, -9.3F, 3.0F, 3.0F, 11.0F, 0.0F, 0.0F, 0.0F);
         this.setRotateAngle(rLeg01Ecto, -0.006981317112007048F, 0.0F, 0.0F);
         this.rbHoofClaw02b_4 = new BoneModelRenderer(this, 59, 25);
         this.rbHoofClaw02b_4.mirror = true;
-        this.rbHoofClaw02b_4.setRotationPoint(0.0F, -0.2F, 0.6F);
+        this.rbHoofClaw02b_4.setPos(0.0F, -0.2F, 0.6F);
         this.rbHoofClaw02b_4.addBox(-0.49F, -1.8F, -0.5F, 1.0F, 3.0F, 1.0F, 0.0F, 0.0F, 0.0F);
         this.setRotateAngle(rbHoofClaw02b_4, 0.3490658503988659F, 0.0F, 0.0F);
         this.ribs04 = new BoneModelRenderer(this, 77, 0);
-        this.ribs04.setRotationPoint(0.0F, 0.2F, -3.6F);
+        this.ribs04.setPos(0.0F, 0.2F, -3.6F);
         this.ribs04.addBox(-3.0F, 0.0F, -2.0F, 6.0F, 8.0F, 4.0F, 0.0F, 0.0F, 0.0F);
         this.setRotateAngle(ribs04, -0.2617993877991494F, 0.0F, 0.0F);
         this.rbHoofClaw01a_1 = new BoneModelRenderer(this, 54, 26);
         this.rbHoofClaw01a_1.mirror = true;
-        this.rbHoofClaw01a_1.setRotationPoint(-0.5F, -1.5F, -0.8F);
+        this.rbHoofClaw01a_1.setPos(-0.5F, -1.5F, -0.8F);
         this.rbHoofClaw01a_1.addBox(-0.5F, -1.8F, -0.5F, 1.0F, 2.0F, 1.0F, 0.0F, 0.0F, 0.0F);
         this.setRotateAngle(rbHoofClaw01a_1, 0.0F, 0.0F, -0.06981317007977318F);
         this.lAntler09 = new BoneModelRenderer(this, 70, 25);
-        this.lAntler09.setRotationPoint(-0.2F, -2.8F, 0.0F);
+        this.lAntler09.setPos(-0.2F, -2.8F, 0.0F);
         this.lAntler09.addBox(-0.5F, -3.0F, -0.5F, 1.0F, 3.0F, 1.0F, 0.0F, 0.0F, 0.0F);
         this.setRotateAngle(lAntler09, -0.3490658503988659F, 0.0F, -1.1344640137963142F);
         this.lbHoofClaw01b = new BoneModelRenderer(this, 59, 25);
-        this.lbHoofClaw01b.setRotationPoint(0.0F, -0.2F, 0.6F);
+        this.lbHoofClaw01b.setPos(0.0F, -0.2F, 0.6F);
         this.lbHoofClaw01b.addBox(-0.49F, -1.8F, -0.5F, 1.0F, 3.0F, 1.0F, 0.0F, 0.0F, 0.0F);
         this.setRotateAngle(lbHoofClaw01b, 0.3490658503988659F, 0.0F, 0.0F);
         this.rAntler10 = new BoneModelRenderer(this, 70, 25);
         this.rAntler10.mirror = true;
-        this.rAntler10.setRotationPoint(0.2F, -0.1F, 0.0F);
+        this.rAntler10.setPos(0.2F, -0.1F, 0.0F);
         this.rAntler10.addBox(-0.5F, -2.0F, -0.5F, 0.8F, 2.0F, 0.8F, 0.0F, 0.0F, 0.0F);
         this.setRotateAngle(rAntler10, 0.3490658503988659F, 0.0F, 1.1344640137963142F);
         this.rAntler07 = new BoneModelRenderer(this, 70, 25);
         this.rAntler07.mirror = true;
-        this.rAntler07.setRotationPoint(-0.3F, -2.2F, 0.0F);
+        this.rAntler07.setPos(-0.3F, -2.2F, 0.0F);
         this.rAntler07.addBox(-0.5F, -3.0F, -0.5F, 0.9F, 3.0F, 0.9F, 0.0F, 0.0F, 0.0F);
         this.setRotateAngle(rAntler07, -0.2617993877991494F, 0.0F, -0.6981317007977318F);
         this.lHip02 = new BoneModelRenderer(this, 45, 16);
-        this.lHip02.setRotationPoint(0.6F, -0.2F, 4.6F);
+        this.lHip02.setPos(0.6F, -0.2F, 4.6F);
         this.lHip02.addBox(-0.5F, -1.5F, 0.0F, 1.0F, 3.0F, 4.0F, 0.0F, 0.0F, 0.0F);
         this.setRotateAngle(lHip02, 0.17453292519943295F, -0.4886921905584123F, -0.17453292519943295F);
         this.lowerNeckEcto = new EctoModelRenderer(this, 79, 62);
-        this.lowerNeckEcto.setRotationPoint(0.0F, -2.5F, -2.3F);
+        this.lowerNeckEcto.setPos(0.0F, -2.5F, -2.3F);
         this.lowerNeckEcto.addBox(-4.0F, -1.0F, -0.6F, 8.0F, 12.0F, 6.0F, 0.0F, 0.0F, 0.0F);
         this.rAntler06 = new FlameTipModelRenderer(this, 70, 25);
         this.rAntler06.mirror = true;
-        this.rAntler06.setRotationPoint(-0.3F, -2.4F, 0.0F);
+        this.rAntler06.setPos(-0.3F, -2.4F, 0.0F);
         this.rAntler06.addBox(-0.4F, -2.8F, -0.4F, 0.8F, 3.0F, 0.8F, 0.0F, 0.0F, 0.0F);
         this.setRotateAngle(rAntler06, 0.0F, 0.0F, -0.8726646259971648F);
         this.rbLegFlame = new EctoModelRenderer(this, 46, 94);
         this.rbLegFlame.mirror = true;
-        this.rbLegFlame.setRotationPoint(-0.2F, -0.5F, -6.6F);
+        this.rbLegFlame.setPos(-0.2F, -0.5F, -6.6F);
         this.rbLegFlame.addBox(-4.0F, 0.0F, 0.0F, 8.0F, 0.0F, 13.0F, 0.0F, 0.0F, 0.0F);
         this.setRotateAngle(rbLegFlame, -0.5235987755982988F, -0.7853981633974483F, -0.9599310885968813F);
         this.head = new BoneModelRenderer(this, 98, 0);
-        this.head.setRotationPoint(0.0F, 0.3F, -1.1F);
+        this.head.setPos(0.0F, 0.3F, -1.1F);
         this.head.addBox(-3.0F, -5.1F, -5.1F, 6.0F, 6.0F, 6.0F, 0.0F, 0.0F, 0.0F);
         this.setRotateAngle(head, 1.7976891295541593F, 0.0F, 0.0F);
         this.lArm01a = new BoneModelRenderer(this, 21, 51);
-        this.lArm01a.setRotationPoint(0.8F, 0.6F, 8.2F);
+        this.lArm01a.setPos(0.8F, 0.6F, 8.2F);
         this.lArm01a.addBox(-0.5F, -0.6F, -0.5F, 1.0F, 11.0F, 1.0F, 0.0F, 0.0F, 0.0F);
         this.setRotateAngle(lArm01a, 0.6108652381980153F, -0.05235987755982988F, 0.12217304763960307F);
         this.rAntler08b = new FlameTipModelRenderer(this, 70, 25);
         this.rAntler08b.mirror = true;
-        this.rAntler08b.setRotationPoint(0.0F, -2.8F, 0.0F);
+        this.rAntler08b.setPos(0.0F, -2.8F, 0.0F);
         this.rAntler08b.addBox(-0.4F, -2.0F, -0.4F, 0.7F, 2.0F, 0.7F, 0.0F, 0.0F, 0.0F);
         this.setRotateAngle(rAntler08b, 0.0F, 0.0F, 0.5235987755982988F);
         this.tail01 = new BoneModelRenderer(this, 14, 0);
-        this.tail01.setRotationPoint(0.0F, 0.0F, 7.6F);
+        this.tail01.setPos(0.0F, 0.0F, 7.6F);
         this.tail01.addBox(-1.0F, -1.0F, 0.0F, 2.0F, 2.0F, 4.0F, 0.0F, 0.0F, 0.0F);
         this.setRotateAngle(tail01, -0.22689280275926282F, 0.0F, 0.0F);
         this.rLeg02Ecto = new EctoModelRenderer(this, 62, 32);
         this.rLeg02Ecto.mirror = true;
-        this.rLeg02Ecto.setRotationPoint(0.2F, -0.4F, 0.0F);
+        this.rLeg02Ecto.setPos(0.2F, -0.4F, 0.0F);
         this.rLeg02Ecto.addBox(-1.0F, -0.5F, -10.0F, 2.0F, 2.0F, 10.0F, 0.0F, 0.0F, 0.0F);
         this.neck03 = new BoneModelRenderer(this, 59, 2);
-        this.neck03.setRotationPoint(0.0F, 0.2F, -5.2F);
+        this.neck03.setPos(0.0F, 0.2F, -5.2F);
         this.neck03.addBox(-1.5F, -1.0F, -4.0F, 3.0F, 3.0F, 4.0F, 0.0F, 0.0F, 0.0F);
         this.setRotateAngle(neck03, -0.40142572795869574F, 0.0F, 0.0F);
         this.ribs02 = new BoneModelRenderer(this, 0, 34);
-        this.ribs02.setRotationPoint(0.0F, 0.0F, 5.1F);
+        this.ribs02.setPos(0.0F, 0.0F, 5.1F);
         this.ribs02.addBox(-3.5F, 0.0F, -2.0F, 7.0F, 9.0F, 4.0F, 0.0F, 0.0F, 0.0F);
         this.lLeg00Ecto = new EctoModelRenderer(this, 60, 32);
-        this.lLeg00Ecto.setRotationPoint(0.2F, 0.1F, 0.0F);
+        this.lLeg00Ecto.setPos(0.2F, 0.1F, 0.0F);
         this.lLeg00Ecto.addBox(-1.5F, -2.7F, -7.6F, 4.0F, 6.0F, 10.0F, 0.0F, 0.0F, 0.0F);
         this.rbHoofClaw02a = new BoneModelRenderer(this, 54, 26);
         this.rbHoofClaw02a.mirror = true;
-        this.rbHoofClaw02a.setRotationPoint(0.5F, -1.5F, -0.8F);
+        this.rbHoofClaw02a.setPos(0.5F, -1.5F, -0.8F);
         this.rbHoofClaw02a.addBox(-0.5F, -1.8F, -0.5F, 1.0F, 2.0F, 1.0F, 0.0F, 0.0F, 0.0F);
         this.setRotateAngle(rbHoofClaw02a, 0.0F, 0.0F, 0.06981317007977318F);
         this.tail02 = new BoneModelRenderer(this, 14, 0);
-        this.tail02.setRotationPoint(0.0F, 0.0F, 3.7F);
+        this.tail02.setPos(0.0F, 0.0F, 3.7F);
         this.tail02.addBox(-0.8F, -0.8F, 0.0F, 1.5F, 1.5F, 4.0F, 0.0F, 0.0F, 0.0F);
         this.setRotateAngle(tail02, -0.22689280275926282F, 0.0F, 0.0F);
         this.chestEcto = new EctoModelRenderer(this, 0, 67);
-        this.chestEcto.setRotationPoint(0.0F, 0.0F, 2.4F);
+        this.chestEcto.setPos(0.0F, 0.0F, 2.4F);
         this.chestEcto.addBox(-5.5F, -2.1F, -5.5F, 11.0F, 13.0F, 16.0F, 0.0F, 0.0F, 0.0F);
         this.backFlameL02 = new EctoModelRenderer(this, 68, 95);
-        this.backFlameL02.setRotationPoint(0.0F, 0.2F, 2.5F);
+        this.backFlameL02.setPos(0.0F, 0.2F, 2.5F);
         this.backFlameL02.addBox(-5.0F, 0.0F, 0.0F, 8.0F, 0.0F, 13.0F, 0.0F, 0.0F, 0.0F);
         this.setRotateAngle(backFlameL02, 1.5707963267948966F, -0.5759586531581287F, 0.3490658503988659F);
         this.tail04Ecto = new EctoModelRenderer(this, 45, 40);
-        this.tail04Ecto.setRotationPoint(0.0F, 0.0F, 0.0F);
+        this.tail04Ecto.setPos(0.0F, 0.0F, 0.0F);
         this.tail04Ecto.addBox(-1.0F, -1.0F, 0.0F, 2.0F, 2.0F, 4.5F, 0.0F, 0.0F, 0.0F);
         this.neckFlameL02 = new EctoModelRenderer(this, 46, 94);
         this.neckFlameL02.mirror = true;
-        this.neckFlameL02.setRotationPoint(1.3F, 4.8F, 0.5F);
+        this.neckFlameL02.setPos(1.3F, 4.8F, 0.5F);
         this.neckFlameL02.addBox(-4.0F, 0.0F, 0.0F, 8.0F, 0.0F, 13.0F, 0.0F, 0.0F, 0.0F);
         this.setRotateAngle(neckFlameL02, -0.7853981633974483F, -0.22689280275926282F, -0.4363323129985824F);
         this.rbHoofClaw01a = new BoneModelRenderer(this, 54, 26);
         this.rbHoofClaw01a.mirror = true;
-        this.rbHoofClaw01a.setRotationPoint(-0.5F, -1.5F, -0.8F);
+        this.rbHoofClaw01a.setPos(-0.5F, -1.5F, -0.8F);
         this.rbHoofClaw01a.addBox(-0.5F, -1.8F, -0.5F, 1.0F, 2.0F, 1.0F, 0.0F, 0.0F, 0.0F);
         this.setRotateAngle(rbHoofClaw01a, 0.0F, 0.0F, -0.06981317007977318F);
         this.rbHoofClaw02b = new BoneModelRenderer(this, 54, 26);
         this.rbHoofClaw02b.mirror = true;
-        this.rbHoofClaw02b.setRotationPoint(-0.5F, -1.5F, -0.8F);
+        this.rbHoofClaw02b.setPos(-0.5F, -1.5F, -0.8F);
         this.rbHoofClaw02b.addBox(-0.5F, -1.8F, -0.5F, 1.0F, 2.0F, 1.0F, 0.0F, 0.0F, 0.0F);
         this.setRotateAngle(rbHoofClaw02b, 0.0F, 0.0F, -0.06981317007977318F);
         this.lLeg02 = new BoneModelRenderer(this, 41, 25);
-        this.lLeg02.setRotationPoint(0.0F, 0.6F, -8.4F);
+        this.lLeg02.setPos(0.0F, 0.6F, -8.4F);
         this.lLeg02.addBox(-0.5F, -0.5F, -10.0F, 1.0F, 1.0F, 10.0F, 0.0F, 0.0F, 0.0F);
         this.setRotateAngle(lLeg02, -0.6108652381980153F, -0.08726646259971647F, -0.19198621771937624F);
         this.rArm02 = new BoneModelRenderer(this, 19, 52);
         this.rArm02.mirror = true;
-        this.rArm02.setRotationPoint(0.0F, 10.4F, -0.3F);
+        this.rArm02.setPos(0.0F, 10.4F, -0.3F);
         this.rArm02.addBox(-0.5F, -0.6F, -0.5F, 1.0F, 10.0F, 1.0F, 0.0F, 0.0F, 0.0F);
         this.setRotateAngle(rArm02, -0.03490658503988659F, 0.17453292519943295F, 0.0F);
         this.rbHoofClaw02b_1 = new BoneModelRenderer(this, 59, 25);
         this.rbHoofClaw02b_1.mirror = true;
-        this.rbHoofClaw02b_1.setRotationPoint(0.0F, -0.2F, 0.6F);
+        this.rbHoofClaw02b_1.setPos(0.0F, -0.2F, 0.6F);
         this.rbHoofClaw02b_1.addBox(-0.49F, -1.8F, -0.5F, 1.0F, 3.0F, 1.0F, 0.0F, 0.0F, 0.0F);
         this.setRotateAngle(rbHoofClaw02b_1, 0.3490658503988659F, 0.0F, 0.0F);
         this.backFlameR01 = new EctoModelRenderer(this, 63, 108);
         this.backFlameR01.mirror = true;
-        this.backFlameR01.setRotationPoint(-1.0F, -2.1F, -6.0F);
+        this.backFlameR01.setPos(-1.0F, -2.1F, -6.0F);
         this.backFlameR01.addBox(-5.0F, 0.0F, 0.0F, 10.0F, 0.0F, 16.0F, 0.0F, 0.0F, 0.0F);
         this.setRotateAngle(backFlameR01, 0.3839724354387525F, 0.15707963267948966F, -0.9599310885968813F);
         this.rbHoofClaw02b_2 = new BoneModelRenderer(this, 59, 25);
         this.rbHoofClaw02b_2.mirror = true;
-        this.rbHoofClaw02b_2.setRotationPoint(0.0F, -0.2F, 0.6F);
+        this.rbHoofClaw02b_2.setPos(0.0F, -0.2F, 0.6F);
         this.rbHoofClaw02b_2.addBox(-0.49F, -1.8F, -0.5F, 1.0F, 3.0F, 1.0F, 0.0F, 0.0F, 0.0F);
         this.setRotateAngle(rbHoofClaw02b_2, 0.3490658503988659F, 0.0F, 0.0F);
         this.rbHoofClaw01b_1 = new BoneModelRenderer(this, 59, 25);
         this.rbHoofClaw01b_1.mirror = true;
-        this.rbHoofClaw01b_1.setRotationPoint(0.0F, -0.2F, 0.6F);
+        this.rbHoofClaw01b_1.setPos(0.0F, -0.2F, 0.6F);
         this.rbHoofClaw01b_1.addBox(-0.49F, -1.8F, -0.5F, 1.0F, 3.0F, 1.0F, 0.0F, 0.0F, 0.0F);
         this.setRotateAngle(rbHoofClaw01b_1, 0.3490658503988659F, 0.0F, 0.0F);
         this.rAntler02 = new BoneModelRenderer(this, 70, 25);
         this.rAntler02.mirror = true;
-        this.rAntler02.setRotationPoint(0.3F, -2.5F, 0.0F);
+        this.rAntler02.setPos(0.3F, -2.5F, 0.0F);
         this.rAntler02.addBox(-0.7F, -4.0F, -0.7F, 1.5F, 4.0F, 1.5F, 0.0F, 0.0F, 0.0F);
         this.setRotateAngle(rAntler02, -0.08726646259971647F, 0.0F, -0.7853981633974483F);
         this.rLeg02 = new BoneModelRenderer(this, 41, 25);
         this.rLeg02.mirror = true;
-        this.rLeg02.setRotationPoint(0.0F, 0.6F, -8.4F);
+        this.rLeg02.setPos(0.0F, 0.6F, -8.4F);
         this.rLeg02.addBox(-0.5F, -0.5F, -10.0F, 1.0F, 1.0F, 10.0F, 0.0F, 0.0F, 0.0F);
         this.setRotateAngle(rLeg02, -0.6108652381980153F, 0.08726646259971647F, 0.19198621771937624F);
         this.lAntler07b = new FlameTipModelRenderer(this, 70, 25);
-        this.lAntler07b.setRotationPoint(0.0F, -2.8F, 0.0F);
+        this.lAntler07b.setPos(0.0F, -2.8F, 0.0F);
         this.lAntler07b.addBox(-0.4F, -2.0F, -0.4F, 0.7F, 2.0F, 0.7F, 0.0F, 0.0F, 0.0F);
         this.setRotateAngle(lAntler07b, 0.0F, 0.0F, -0.5235987755982988F);
         this.rAntler08 = new BoneModelRenderer(this, 70, 25);
         this.rAntler08.mirror = true;
-        this.rAntler08.setRotationPoint(-0.4F, -1.2F, 0.0F);
+        this.rAntler08.setPos(-0.4F, -1.2F, 0.0F);
         this.rAntler08.addBox(-0.5F, -3.0F, -0.5F, 0.9F, 3.0F, 0.9F, 0.0F, 0.0F, 0.0F);
         this.setRotateAngle(rAntler08, 0.3839724354387525F, 0.0F, -0.6108652381980153F);
         this.neck02Ecto = new EctoModelRenderer(this, 106, 36);
-        this.neck02Ecto.setRotationPoint(0.0F, 0.5F, -4.2F);
+        this.neck02Ecto.setPos(0.0F, 0.5F, -4.2F);
         this.neck02Ecto.addBox(-2.5F, -2.5F, -1.5F, 5.0F, 8.0F, 6.0F, 0.0F, 0.0F, 0.0F);
         this.spine02 = new BoneModelRenderer(this, 22, 0);
-        this.spine02.setRotationPoint(0.0F, 0.5F, 4.8F);
+        this.spine02.setPos(0.0F, 0.5F, 4.8F);
         this.spine02.addBox(-1.5F, -1.5F, 0.0F, 3.0F, 3.0F, 8.0F, 0.0F, 0.0F, 0.0F);
         this.setRotateAngle(spine02, 0.10471975511965977F, 0.0F, 0.0F);
         this.rHip02 = new BoneModelRenderer(this, 45, 16);
-        this.rHip02.setRotationPoint(-0.6F, -0.2F, 4.6F);
+        this.rHip02.setPos(-0.6F, -0.2F, 4.6F);
         this.rHip02.addBox(-0.5F, -1.5F, 0.0F, 1.0F, 3.0F, 4.0F, 0.0F, 0.0F, 0.0F);
         this.setRotateAngle(rHip02, 0.17453292519943295F, 0.4886921905584123F, 0.17453292519943295F);
         this.rbHoofClaw02b_3 = new BoneModelRenderer(this, 54, 26);
         this.rbHoofClaw02b_3.mirror = true;
-        this.rbHoofClaw02b_3.setRotationPoint(0.5F, -1.5F, -0.8F);
+        this.rbHoofClaw02b_3.setPos(0.5F, -1.5F, -0.8F);
         this.rbHoofClaw02b_3.addBox(-0.5F, -1.8F, -0.5F, 1.0F, 2.0F, 1.0F, 0.0F, 0.0F, 0.0F);
         this.setRotateAngle(rbHoofClaw02b_3, 0.0F, 0.0F, 0.06981317007977318F);
         this.lAntler08 = new BoneModelRenderer(this, 70, 25);
-        this.lAntler08.setRotationPoint(0.4F, -1.2F, 0.0F);
+        this.lAntler08.setPos(0.4F, -1.2F, 0.0F);
         this.lAntler08.addBox(-0.5F, -3.0F, -0.5F, 0.9F, 3.0F, 0.9F, 0.0F, 0.0F, 0.0F);
         this.setRotateAngle(lAntler08, 0.3839724354387525F, 0.0F, 0.6108652381980153F);
         this.assEcto = new EctoModelRenderer(this, 41, 53);
-        this.assEcto.setRotationPoint(0.0F, 2.4F, 10.7F);
+        this.assEcto.setPos(0.0F, 2.4F, 10.7F);
         this.assEcto.addBox(-4.0F, -3.8F, -5.5F, 8.0F, 11.0F, 10.0F, 0.0F, 0.0F, 0.0F);
         this.setRotateAngle(assEcto, -0.13962634015954636F, 0.0F, 0.0F);
         this.headEcto = new EctoModelRenderer(this, 54, 75);
-        this.headEcto.setRotationPoint(0.0F, -1.8F, -1.7F);
+        this.headEcto.setPos(0.0F, -1.8F, -1.7F);
         this.headEcto.addBox(-4.0F, -4.0F, -4.0F, 8.0F, 8.0F, 8.0F, 0.0F, 0.0F, 0.0F);
         this.lfLegFlame = new EctoModelRenderer(this, 46, 94);
-        this.lfLegFlame.setRotationPoint(-0.7F, 0.4F, 5.9F);
+        this.lfLegFlame.setPos(-0.7F, 0.4F, 5.9F);
         this.lfLegFlame.addBox(-4.0F, 0.0F, 0.0F, 8.0F, 0.0F, 13.0F, 0.0F, 0.0F, 0.0F);
         this.setRotateAngle(lfLegFlame, 2.1816615649929116F, -1.0471975511965976F, -0.22689280275926282F);
         this.lShoulderBlade01 = new BoneModelRenderer(this, 24, 46);
-        this.lShoulderBlade01.setRotationPoint(3.1F, -0.5F, 1.1F);
+        this.lShoulderBlade01.setPos(3.1F, -0.5F, 1.1F);
         this.lShoulderBlade01.addBox(-1.1F, -0.8F, -4.0F, 2.0F, 1.0F, 8.0F, 0.0F, 0.0F, 0.0F);
         this.setRotateAngle(lShoulderBlade01, 0.9599310885968813F, 0.0F, -0.9250245035569946F);
         this.rAntler05 = new BoneModelRenderer(this, 70, 25);
         this.rAntler05.mirror = true;
-        this.rAntler05.setRotationPoint(0.0F, -3.8F, 0.0F);
+        this.rAntler05.setPos(0.0F, -3.8F, 0.0F);
         this.rAntler05.addBox(-0.4F, -2.8F, -0.4F, 0.8F, 3.0F, 0.8F, 0.0F, 0.0F, 0.0F);
         this.setRotateAngle(rAntler05, 0.0F, 0.0F, -0.5235987755982988F);
         this.spine01 = new BoneModelRenderer(this, 0, 1);
-        this.spine01.setRotationPoint(0.0F, -3.9F, -14.8F);
+        this.spine01.setPos(0.0F, -3.9F, -14.8F);
         this.spine01.addBox(-1.5F, -1.0F, -2.0F, 3.0F, 3.0F, 7.0F, 0.0F, 0.0F, 0.0F);
         this.rAntler03 = new BoneModelRenderer(this, 70, 25);
         this.rAntler03.mirror = true;
-        this.rAntler03.setRotationPoint(0.0F, -3.7F, 0.0F);
+        this.rAntler03.setPos(0.0F, -3.7F, 0.0F);
         this.rAntler03.addBox(-0.7F, -4.0F, -0.69F, 1.5F, 4.0F, 1.5F, 0.0F, 0.0F, 0.0F);
         this.setRotateAngle(rAntler03, 0.0F, 0.0F, 0.5235987755982988F);
         this.lShoulderBlade02 = new BoneModelRenderer(this, 26, 34);
-        this.lShoulderBlade02.setRotationPoint(0.0F, -0.2F, -1.9F);
+        this.lShoulderBlade02.setPos(0.0F, -0.2F, -1.9F);
         this.lShoulderBlade02.addBox(-0.5F, -1.5F, -2.1F, 1.0F, 4.0F, 8.0F, 0.0F, 0.0F, 0.0F);
         this.setRotateAngle(lShoulderBlade02, -0.3141592653589793F, 0.0F, 0.0F);
         this.rAntler07b = new FlameTipModelRenderer(this, 70, 25);
         this.rAntler07b.mirror = true;
-        this.rAntler07b.setRotationPoint(0.0F, -2.8F, 0.0F);
+        this.rAntler07b.setPos(0.0F, -2.8F, 0.0F);
         this.rAntler07b.addBox(-0.4F, -2.0F, -0.4F, 0.7F, 2.0F, 0.7F, 0.0F, 0.0F, 0.0F);
         this.setRotateAngle(rAntler07b, 0.0F, 0.0F, 0.5235987755982988F);
         this.rAntler04 = new BoneModelRenderer(this, 70, 25);
         this.rAntler04.mirror = true;
-        this.rAntler04.setRotationPoint(0.0F, -3.7F, 0.0F);
+        this.rAntler04.setPos(0.0F, -3.7F, 0.0F);
         this.rAntler04.addBox(-0.5F, -4.0F, -0.5F, 1.0F, 4.0F, 1.0F, 0.0F, 0.0F, 0.0F);
         this.setRotateAngle(rAntler04, 0.0F, 0.0F, 0.5759586531581287F);
         this.neck01 = new BoneModelRenderer(this, 57, 0);
-        this.neck01.setRotationPoint(0.0F, 0.0F, -2.1F);
+        this.neck01.setPos(0.0F, 0.0F, -2.1F);
         this.neck01.addBox(-1.5F, -1.0F, -6.0F, 3.0F, 3.0F, 6.0F, 0.0F, 0.0F, 0.0F);
         this.setRotateAngle(neck01, -0.9250245035569946F, 0.0F, 0.0F);
         this.rAntler09c = new FlameTipModelRenderer(this, 70, 25);
         this.rAntler09c.mirror = true;
-        this.rAntler09c.setRotationPoint(0.1F, -1.3F, 0.0F);
+        this.rAntler09c.setPos(0.1F, -1.3F, 0.0F);
         this.rAntler09c.addBox(-0.2F, -1.5F, -0.3F, 0.6F, 1.5F, 0.6F, 0.0F, 0.0F, 0.0F);
         this.setRotateAngle(rAntler09c, 0.0F, 0.0F, -0.5235987755982988F);
         this.lAntler05b = new FlameTipModelRenderer(this, 70, 25);
-        this.lAntler05b.setRotationPoint(0.0F, -2.5F, 0.0F);
+        this.lAntler05b.setPos(0.0F, -2.5F, 0.0F);
         this.lAntler05b.addBox(-0.4F, -2.0F, -0.4F, 0.6F, 2.0F, 0.6F, 0.0F, 0.0F, 0.0F);
         this.setRotateAngle(lAntler05b, 0.0F, 0.0F, 0.5235987755982988F);
         this.spineEcto = new EctoModelRenderer(this, 80, 33);
-        this.spineEcto.setRotationPoint(0.0F, 0.0F, 1.5F);
+        this.spineEcto.setPos(0.0F, 0.0F, 1.5F);
         this.spineEcto.addBox(-1.0F, -5.7F, -6.2F, 2.0F, 6.0F, 22.0F, 0.0F, 0.0F, 0.0F);
         this.lAntler02 = new BoneModelRenderer(this, 70, 25);
-        this.lAntler02.setRotationPoint(-0.3F, -2.5F, 0.0F);
+        this.lAntler02.setPos(-0.3F, -2.5F, 0.0F);
         this.lAntler02.addBox(-0.7F, -4.0F, -0.7F, 1.5F, 4.0F, 1.5F, 0.0F, 0.0F, 0.0F);
         this.setRotateAngle(lAntler02, -0.08726646259971647F, 0.0F, 0.7853981633974483F);
         this.lAntler09b = new BoneModelRenderer(this, 70, 25);
-        this.lAntler09b.setRotationPoint(0.0F, -2.8F, 0.0F);
+        this.lAntler09b.setPos(0.0F, -2.8F, 0.0F);
         this.lAntler09b.addBox(-0.3F, -1.5F, -0.4F, 0.8F, 1.5F, 0.8F, 0.0F, 0.0F, 0.0F);
         this.setRotateAngle(lAntler09b, 0.22689280275926282F, 0.0F, -0.17453292519943295F);
         this.rLeg00 = new BoneModelRenderer(this, 42, 26);
         this.rLeg00.mirror = true;
-        this.rLeg00.setRotationPoint(0.1F, -0.7F, 1.8F);
+        this.rLeg00.setPos(0.1F, -0.7F, 1.8F);
         this.rLeg00.addBox(-1.5F, -1.0F, -7.7F, 2.0F, 2.0F, 8.0F, 0.0F, 0.0F, 0.0F);
         this.setRotateAngle(rLeg00, 1.5707963267948966F, 0.0F, 0.40142572795869574F);
         this.lAntler01 = new BoneModelRenderer(this, 70, 25);
-        this.lAntler01.setRotationPoint(1.5F, -4.5F, -1.0F);
+        this.lAntler01.setPos(1.5F, -4.5F, -1.0F);
         this.lAntler01.addBox(-1.0F, -3.0F, -1.0F, 2.0F, 3.0F, 2.0F, 0.0F, 0.0F, 0.0F);
         this.setRotateAngle(lAntler01, -0.08726646259971647F, 0.0F, 0.5235987755982988F);
         this.rShoulderBlade01 = new BoneModelRenderer(this, 24, 46);
         this.rShoulderBlade01.mirror = true;
-        this.rShoulderBlade01.setRotationPoint(-3.1F, -0.5F, 1.1F);
+        this.rShoulderBlade01.setPos(-3.1F, -0.5F, 1.1F);
         this.rShoulderBlade01.addBox(-1.1F, -0.8F, -4.0F, 2.0F, 1.0F, 8.0F, 0.0F, 0.0F, 0.0F);
         this.setRotateAngle(rShoulderBlade01, 0.9599310885968813F, 0.0F, 0.9250245035569946F);
         this.rfLegFlame = new EctoModelRenderer(this, 68, 94);
-        this.rfLegFlame.setRotationPoint(0.7F, 0.4F, 5.9F);
+        this.rfLegFlame.setPos(0.7F, 0.4F, 5.9F);
         this.rfLegFlame.addBox(-4.0F, 0.0F, 0.0F, 8.0F, 0.0F, 13.0F, 0.0F, 0.0F, 0.0F);
         this.setRotateAngle(rfLegFlame, 2.1816615649929116F, 1.0471975511965976F, 0.22689280275926282F);
         this.rAntler010b = new FlameTipModelRenderer(this, 70, 25);
         this.rAntler010b.mirror = true;
-        this.rAntler010b.setRotationPoint(0.0F, -1.7F, 0.0F);
+        this.rAntler010b.setPos(0.0F, -1.7F, 0.0F);
         this.rAntler010b.addBox(-0.3F, -1.5F, -0.4F, 0.6F, 1.5F, 0.6F, 0.0F, 0.0F, 0.0F);
         this.setRotateAngle(rAntler010b, 0.0F, 0.0F, 0.593411945678072F);
         this.lowerJaw = new BoneModelRenderer(this, 107, 14);
-        this.lowerJaw.setRotationPoint(0.0F, 0.3F, -5.0F);
+        this.lowerJaw.setPos(0.0F, 0.3F, -5.0F);
         this.lowerJaw.addBox(-1.5F, -1.4F, -5.6F, 3.0F, 2.0F, 6.0F, 0.0F, 0.0F, 0.0F);
         this.setRotateAngle(lowerJaw, -0.08726646259971647F, 0.0F, 0.0F);
         this.lArm02 = new BoneModelRenderer(this, 19, 52);
-        this.lArm02.setRotationPoint(0.0F, 10.4F, -0.3F);
+        this.lArm02.setPos(0.0F, 10.4F, -0.3F);
         this.lArm02.addBox(-0.5F, -0.6F, -0.5F, 1.0F, 10.0F, 1.0F, 0.0F, 0.0F, 0.0F);
         this.setRotateAngle(lArm02, -0.03490658503988659F, -0.17453292519943295F, 0.0F);
         this.rAntler09b = new BoneModelRenderer(this, 70, 25);
         this.rAntler09b.mirror = true;
-        this.rAntler09b.setRotationPoint(0.0F, -2.8F, 0.0F);
+        this.rAntler09b.setPos(0.0F, -2.8F, 0.0F);
         this.rAntler09b.addBox(-0.3F, -1.5F, -0.4F, 0.8F, 1.5F, 0.8F, 0.0F, 0.0F, 0.0F);
         this.setRotateAngle(rAntler09b, 0.22689280275926282F, 0.0F, 0.17453292519943295F);
         this.rAntler09 = new BoneModelRenderer(this, 70, 25);
         this.rAntler09.mirror = true;
-        this.rAntler09.setRotationPoint(0.2F, -2.8F, 0.0F);
+        this.rAntler09.setPos(0.2F, -2.8F, 0.0F);
         this.rAntler09.addBox(-0.5F, -3.0F, -0.5F, 1.0F, 3.0F, 1.0F, 0.0F, 0.0F, 0.0F);
         this.setRotateAngle(rAntler09, -0.3490658503988659F, 0.0F, 1.1344640137963142F);
         this.backFlameR02 = new EctoModelRenderer(this, 46, 94);
         this.backFlameR02.mirror = true;
-        this.backFlameR02.setRotationPoint(0.0F, -0.2F, 2.5F);
+        this.backFlameR02.setPos(0.0F, -0.2F, 2.5F);
         this.backFlameR02.addBox(-5.0F, 0.0F, 0.0F, 8.0F, 0.0F, 13.0F, 0.0F, 0.0F, 0.0F);
         this.setRotateAngle(backFlameR02, 1.5707963267948966F, 0.5759586531581287F, -0.3490658503988659F);
         this.tail03 = new BoneModelRenderer(this, 38, 0);
-        this.tail03.setRotationPoint(0.0F, 0.0F, 3.7F);
+        this.tail03.setPos(0.0F, 0.0F, 3.7F);
         this.tail03.addBox(-0.5F, -0.5F, 0.0F, 1.0F, 1.0F, 4.0F, 0.0F, 0.0F, 0.0F);
         this.setRotateAngle(tail03, -0.22689280275926282F, 0.0F, 0.0F);
         this.rArm01Ecto = new EctoModelRenderer(this, 61, 31);
         this.rArm01Ecto.mirror = true;
-        this.rArm01Ecto.setRotationPoint(-0.2F, -0.5F, 0.0F);
+        this.rArm01Ecto.setPos(-0.2F, -0.5F, 0.0F);
         this.rArm01Ecto.addBox(-1.0F, -2.2F, 0.0F, 2.0F, 3.0F, 11.0F, 0.0F, 0.0F, 0.0F);
         this.setRotateAngle(rArm01Ecto, -1.6755160819145563F, 0.0F, 0.0F);
         this.neck01Ecto = new EctoModelRenderer(this, 104, 75);
-        this.neck01Ecto.setRotationPoint(0.0F, 0.5F, -6.6F);
+        this.neck01Ecto.setPos(0.0F, 0.5F, -6.6F);
         this.neck01Ecto.addBox(-3.2F, -2.5F, -0.6F, 6.0F, 8.0F, 6.0F, 0.0F, 0.0F, 0.0F);
         this.lAntler10 = new BoneModelRenderer(this, 70, 25);
-        this.lAntler10.setRotationPoint(-0.2F, -0.1F, 0.0F);
+        this.lAntler10.setPos(-0.2F, -0.1F, 0.0F);
         this.lAntler10.addBox(-0.5F, -2.0F, -0.5F, 0.8F, 2.0F, 0.8F, 0.0F, 0.0F, 0.0F);
         this.setRotateAngle(lAntler10, 0.3490658503988659F, 0.0F, -1.1344640137963142F);
         this.lAntler07 = new BoneModelRenderer(this, 70, 25);
-        this.lAntler07.setRotationPoint(0.3F, -2.2F, 0.0F);
+        this.lAntler07.setPos(0.3F, -2.2F, 0.0F);
         this.lAntler07.addBox(-0.5F, -3.0F, -0.5F, 0.9F, 3.0F, 0.9F, 0.0F, 0.0F, 0.0F);
         this.setRotateAngle(lAntler07, -0.2617993877991494F, 0.0F, 0.6981317007977318F);
         this.neck02 = new BoneModelRenderer(this, 57, 0);
-        this.neck02.setRotationPoint(0.01F, 0.2F, -5.2F);
+        this.neck02.setPos(0.01F, 0.2F, -5.2F);
         this.neck02.addBox(-1.5F, -1.0F, -6.1F, 3.0F, 3.0F, 6.0F, 0.0F, 0.0F, 0.0F);
         this.setRotateAngle(neck02, -0.40142572795869574F, 0.0F, 0.0F);
         this.rArm01b = new BoneModelRenderer(this, 19, 50);
         this.rArm01b.mirror = true;
-        this.rArm01b.setRotationPoint(0.0F, 6.8F, -0.3F);
+        this.rArm01b.setPos(0.0F, 6.8F, -0.3F);
         this.rArm01b.addBox(-0.5F, -8.4F, 0.0F, 1.0F, 12.0F, 1.0F, 0.0F, 0.0F, 0.0F);
         this.setRotateAngle(rArm01b, -0.17453292519943295F, -0.03490658503988659F, 0.03490658503988659F);
         this.snout = new BoneModelRenderer(this, 66, 13);
-        this.snout.setRotationPoint(0.0F, -3.94F, -5.0F);
+        this.snout.setPos(0.0F, -3.94F, -5.0F);
         this.snout.addBox(-1.5F, -1.0F, -6.1F, 3.0F, 2.0F, 7.0F, 0.0F, 0.0F, 0.0F);
         this.setRotateAngle(snout, 0.20943951023931953F, 0.0F, 0.0F);
         this.ribs03 = new BoneModelRenderer(this, 0, 49);
-        this.ribs03.setRotationPoint(0.0F, 0.0F, 9.1F);
+        this.ribs03.setPos(0.0F, 0.0F, 9.1F);
         this.ribs03.addBox(-2.5F, 0.0F, -1.5F, 5.0F, 7.0F, 3.0F, 0.0F, 0.0F, 0.0F);
         this.setRotateAngle(ribs03, 0.05235987755982988F, 0.0F, 0.001745329278001762F);
         this.lbLegFlame = new EctoModelRenderer(this, 68, 94);
-        this.lbLegFlame.setRotationPoint(-0.2F, -0.5F, -6.6F);
+        this.lbLegFlame.setPos(-0.2F, -0.5F, -6.6F);
         this.lbLegFlame.addBox(-4.0F, 0.0F, 0.0F, 8.0F, 0.0F, 13.0F, 0.0F, 0.0F, 0.0F);
         this.setRotateAngle(lbLegFlame, -0.5235987755982988F, 0.7853981633974483F, 0.9599310885968813F);
         this.lbHoofClaw01a = new BoneModelRenderer(this, 54, 26);
-        this.lbHoofClaw01a.setRotationPoint(0.5F, -1.5F, -0.8F);
+        this.lbHoofClaw01a.setPos(0.5F, -1.5F, -0.8F);
         this.lbHoofClaw01a.addBox(-0.5F, -1.8F, -0.5F, 1.0F, 2.0F, 1.0F, 0.0F, 0.0F, 0.0F);
         this.setRotateAngle(lbHoofClaw01a, 0.0F, 0.0F, 0.06981317007977318F);
         this.snoutEcto = new EctoModelRenderer(this, 31, 97);
-        this.snoutEcto.setRotationPoint(0.0F, 0.0F, -3.8F);
+        this.snoutEcto.setPos(0.0F, 0.0F, -3.8F);
         this.snoutEcto.addBox(-3.5F, -3.4F, -5.8F, 7.0F, 6.0F, 6.0F, 0.0F, 0.0F, 0.0F);
         this.lArm01b = new BoneModelRenderer(this, 19, 50);
-        this.lArm01b.setRotationPoint(0.0F, 6.8F, -0.4F);
+        this.lArm01b.setPos(0.0F, 6.8F, -0.4F);
         this.lArm01b.addBox(-0.5F, -8.4F, 0.0F, 1.0F, 12.0F, 1.0F, 0.0F, 0.0F, 0.0F);
         this.setRotateAngle(lArm01b, -0.17453292519943295F, 0.03490658503988659F, -0.03490658503988659F);
         this.lAntler06 = new FlameTipModelRenderer(this, 70, 25);
-        this.lAntler06.setRotationPoint(0.3F, -2.4F, 0.0F);
+        this.lAntler06.setPos(0.3F, -2.4F, 0.0F);
         this.lAntler06.addBox(-0.4F, -2.8F, -0.4F, 0.8F, 3.0F, 0.8F, 0.0F, 0.0F, 0.0F);
         this.setRotateAngle(lAntler06, 0.0F, 0.0F, 0.8726646259971648F);
         this.lArm00 = new BoneModelRenderer(this, 11, 52);
-        this.lArm00.setRotationPoint(-1.4F, 0.1F, -1.0F);
+        this.lArm00.setPos(-1.4F, 0.1F, -1.0F);
         this.lArm00.addBox(-0.3F, -1.5F, 0.0F, 2.0F, 2.0F, 9.0F, 0.0F, 0.0F, 0.0F);
         this.setRotateAngle(lArm00, -1.1344640137963142F, 0.5585053606381855F, 0.6108652381980153F);
         this.spine03 = new BoneModelRenderer(this, 45, 6);
-        this.spine03.setRotationPoint(0.0F, 0.0F, 7.5F);
+        this.spine03.setPos(0.0F, 0.0F, 7.5F);
         this.spine03.addBox(-1.0F, -1.5F, 0.0F, 2.0F, 3.0F, 6.0F, 0.0F, 0.0F, 0.0F);
         this.setRotateAngle(spine03, -0.17453292519943295F, 0.0F, 0.0F);
         this.rArm00Ecto = new EctoModelRenderer(this, 61, 32);
         this.rArm00Ecto.mirror = true;
-        this.rArm00Ecto.setRotationPoint(-0.8F, -0.5F, 0.0F);
+        this.rArm00Ecto.setPos(-0.8F, -0.5F, 0.0F);
         this.rArm00Ecto.addBox(-1.5F, -3.0F, 0.0F, 3.0F, 5.0F, 10.0F, 0.0F, 0.0F, 0.0F);
         this.lLeg01Ecto = new EctoModelRenderer(this, 60, 31);
-        this.lLeg01Ecto.setRotationPoint(0.2F, 0.1F, 0.0F);
+        this.lLeg01Ecto.setPos(0.2F, 0.1F, 0.0F);
         this.lLeg01Ecto.addBox(-1.5F, -1.5F, -9.3F, 3.0F, 3.0F, 11.0F, 0.0F, 0.0F, 0.0F);
         this.setRotateAngle(lLeg01Ecto, -0.006981317112007048F, 0.0F, 0.0F);
         this.lAntler04 = new BoneModelRenderer(this, 70, 25);
-        this.lAntler04.setRotationPoint(0.0F, -3.7F, 0.0F);
+        this.lAntler04.setPos(0.0F, -3.7F, 0.0F);
         this.lAntler04.addBox(-0.5F, -4.0F, -0.5F, 1.0F, 4.0F, 1.0F, 0.0F, 0.0F, 0.0F);
         this.setRotateAngle(lAntler04, 0.0F, 0.0F, -0.5759586531581287F);
         this.lLeg02Ecto = new EctoModelRenderer(this, 62, 32);
-        this.lLeg02Ecto.setRotationPoint(0.2F, -0.4F, 0.0F);
+        this.lLeg02Ecto.setPos(0.2F, -0.4F, 0.0F);
         this.lLeg02Ecto.addBox(-1.0F, -0.5F, -10.0F, 2.0F, 2.0F, 10.0F, 0.0F, 0.0F, 0.0F);
         this.backFlameL01 = new EctoModelRenderer(this, 41, 108);
-        this.backFlameL01.setRotationPoint(1.0F, -2.1F, -6.0F);
+        this.backFlameL01.setPos(1.0F, -2.1F, -6.0F);
         this.backFlameL01.addBox(-5.0F, 0.0F, 0.0F, 10.0F, 0.0F, 16.0F, 0.0F, 0.0F, 0.0F);
         this.setRotateAngle(backFlameL01, 0.3839724354387525F, -0.15707963267948966F, 0.8726646259971648F);
         this.rAntler05b = new FlameTipModelRenderer(this, 70, 25);
         this.rAntler05b.mirror = true;
-        this.rAntler05b.setRotationPoint(0.0F, -2.5F, 0.0F);
+        this.rAntler05b.setPos(0.0F, -2.5F, 0.0F);
         this.rAntler05b.addBox(-0.2F, -2.0F, -0.4F, 0.6F, 2.0F, 0.6F, 0.0F, 0.0F, 0.0F);
         this.setRotateAngle(rAntler05b, 0.0F, 0.0F, -0.5235987755982988F);
         this.lLeg01 = new BoneModelRenderer(this, 41, 25);
-        this.lLeg01.setRotationPoint(0.5F, -0.3F, -6.9F);
+        this.lLeg01.setPos(0.5F, -0.3F, -6.9F);
         this.lLeg01.addBox(-1.0F, -1.0F, -9.0F, 2.0F, 2.0F, 9.0F, 0.0F, 0.0F, 0.0F);
         this.setRotateAngle(lLeg01, 0.9948376736367678F, 0.2617993877991494F, 0.12217304763960307F);
         this.lbHoof = new BoneModelRenderer(this, 41, 26);
-        this.lbHoof.setRotationPoint(0.0F, 0.0F, -9.7F);
+        this.lbHoof.setPos(0.0F, 0.0F, -9.7F);
         this.lbHoof.addBox(-1.0F, -1.7F, -1.3F, 2.0F, 3.0F, 1.5F, 0.0F, 0.0F, 0.0F);
         this.setRotateAngle(lbHoof, 0.24434609527920614F, 0.0F, 0.10471975511965977F);
         this.spine04 = new BoneModelRenderer(this, 43, 4);
-        this.spine04.setRotationPoint(0.0F, 0.0F, 5.8F);
+        this.spine04.setPos(0.0F, 0.0F, 5.8F);
         this.spine04.addBox(-0.99F, -1.5F, 0.0F, 2.0F, 3.0F, 8.0F, 0.0F, 0.0F, 0.0F);
         this.setRotateAngle(spine04, 0.08726646259971647F, 0.0F, 0.0F);
         this.lLeg00 = new BoneModelRenderer(this, 42, 26);
-        this.lLeg00.setRotationPoint(-0.1F, -0.7F, 1.8F);
+        this.lLeg00.setPos(-0.1F, -0.7F, 1.8F);
         this.lLeg00.addBox(-0.5F, -1.0F, -7.7F, 2.0F, 2.0F, 8.0F, 0.0F, 0.0F, 0.0F);
         this.setRotateAngle(lLeg00, 1.5707963267948966F, 0.0F, -0.40142572795869574F);
         this.lfHoofClaw02b_1 = new BoneModelRenderer(this, 59, 25);
         this.lfHoofClaw02b_1.mirror = true;
-        this.lfHoofClaw02b_1.setRotationPoint(0.0F, -0.2F, 0.6F);
+        this.lfHoofClaw02b_1.setPos(0.0F, -0.2F, 0.6F);
         this.lfHoofClaw02b_1.addBox(-0.49F, -1.8F, -0.5F, 1.0F, 3.0F, 1.0F, 0.0F, 0.0F, 0.0F);
         this.setRotateAngle(lfHoofClaw02b_1, 0.3490658503988659F, 0.0F, 0.0F);
         this.lfHoofClaw01b = new BoneModelRenderer(this, 59, 25);
-        this.lfHoofClaw01b.setRotationPoint(0.0F, -0.2F, 0.6F);
+        this.lfHoofClaw01b.setPos(0.0F, -0.2F, 0.6F);
         this.lfHoofClaw01b.addBox(-0.49F, -1.8F, -0.5F, 1.0F, 3.0F, 1.0F, 0.0F, 0.0F, 0.0F);
         this.setRotateAngle(lfHoofClaw01b, 0.3490658503988659F, 0.0F, 0.0F);
         this.rfHoof = new BoneModelRenderer(this, 41, 26);
         this.rfHoof.mirror = true;
-        this.rfHoof.setRotationPoint(0.0F, 9.5F, 0.0F);
+        this.rfHoof.setPos(0.0F, 9.5F, 0.0F);
         this.rfHoof.addBox(-1.0F, -1.7F, -1.3F, 2.0F, 3.0F, 1.5F, 0.0F, 0.0F, 0.0F);
         this.setRotateAngle(rfHoof, 1.605702911834783F, 0.0F, 0.0F);
         this.rbHoofClaw01b = new BoneModelRenderer(this, 59, 25);
         this.rbHoofClaw01b.mirror = true;
-        this.rbHoofClaw01b.setRotationPoint(0.0F, -0.2F, 0.6F);
+        this.rbHoofClaw01b.setPos(0.0F, -0.2F, 0.6F);
         this.rbHoofClaw01b.addBox(-0.49F, -1.8F, -0.5F, 1.0F, 3.0F, 1.0F, 0.0F, 0.0F, 0.0F);
         this.setRotateAngle(rbHoofClaw01b, 0.3490658503988659F, 0.0F, 0.0F);
         this.torsoEcto = new EctoModelRenderer(this, 0, 99);
-        this.torsoEcto.setRotationPoint(0.0F, 2.3F, 6.3F);
+        this.torsoEcto.setPos(0.0F, 2.3F, 6.3F);
         this.torsoEcto.addBox(-5.0F, -4.5F, -5.5F, 10.0F, 9.0F, 11.0F, 0.0F, 0.0F, 0.0F);
         this.setRotateAngle(torsoEcto, 0.08726646259971647F, 0.0F, 0.0F);
         this.rLeg01 = new BoneModelRenderer(this, 41, 25);
         this.rLeg01.mirror = true;
-        this.rLeg01.setRotationPoint(-0.5F, -0.3F, -6.9F);
+        this.rLeg01.setPos(-0.5F, -0.3F, -6.9F);
         this.rLeg01.addBox(-1.0F, -1.0F, -9.0F, 2.0F, 2.0F, 9.0F, 0.0F, 0.0F, 0.0F);
         this.setRotateAngle(rLeg01, 0.9948376736367678F, -0.2617993877991494F, -0.12217304763960307F);
         this.rbHoof = new BoneModelRenderer(this, 41, 26);
         this.rbHoof.mirror = true;
-        this.rbHoof.setRotationPoint(0.0F, 0.0F, -9.7F);
+        this.rbHoof.setPos(0.0F, 0.0F, -9.7F);
         this.rbHoof.addBox(-1.0F, -1.7F, -1.3F, 2.0F, 3.0F, 1.5F, 0.0F, 0.0F, 0.0F);
         this.setRotateAngle(rbHoof, 0.24434609527920614F, 0.0F, -0.10471975511965977F);
         this.lAntler09c = new FlameTipModelRenderer(this, 70, 25);
-        this.lAntler09c.setRotationPoint(-0.1F, -1.3F, 0.0F);
+        this.lAntler09c.setPos(-0.1F, -1.3F, 0.0F);
         this.lAntler09c.addBox(-0.2F, -1.5F, -0.3F, 0.6F, 1.5F, 0.6F, 0.0F, 0.0F, 0.0F);
         this.setRotateAngle(lAntler09c, 0.0F, 0.0F, 0.5235987755982988F);
         this.rHip03 = new BoneModelRenderer(this, 45, 16);
         this.rHip03.mirror = true;
-        this.rHip03.setRotationPoint(-0.2F, 0.0F, 3.6F);
+        this.rHip03.setPos(-0.2F, 0.0F, 3.6F);
         this.rHip03.addBox(-0.5F, -1.5F, 0.0F, 1.0F, 3.0F, 4.0F, 0.0F, 0.0F, 0.0F);
         this.setRotateAngle(rHip03, 0.0F, 0.8726646259971648F, 0.0F);
         this.lfHoofClaw01a = new BoneModelRenderer(this, 54, 26);
-        this.lfHoofClaw01a.setRotationPoint(0.5F, -1.5F, -0.8F);
+        this.lfHoofClaw01a.setPos(0.5F, -1.5F, -0.8F);
         this.lfHoofClaw01a.addBox(-0.5F, -1.8F, -0.5F, 1.0F, 2.0F, 1.0F, 0.0F, 0.0F, 0.0F);
         this.setRotateAngle(lfHoofClaw01a, 0.0F, 0.0F, 0.06981317007977318F);
         this.lUpperJaw = new BoneModelRenderer(this, 86, 13);
-        this.lUpperJaw.setRotationPoint(2.0F, -2.0F, -4.8F);
+        this.lUpperJaw.setPos(2.0F, -2.0F, -4.8F);
         this.lUpperJaw.addBox(-1.0F, -1.5F, -6.0F, 2.0F, 3.0F, 6.0F, 0.0F, 0.0F, 0.0F);
         this.setRotateAngle(lUpperJaw, 0.13962634015954636F, 0.22689280275926282F, 0.0F);
         this.lArmShoulderEcto = new EctoModelRenderer(this, 61, 32);
-        this.lArmShoulderEcto.setRotationPoint(-0.9F, -0.8F, -5.2F);
+        this.lArmShoulderEcto.setPos(-0.9F, -0.8F, -5.2F);
         this.lArmShoulderEcto.addBox(-1.5F, -3.2F, 0.0F, 3.0F, 6.0F, 10.0F, 0.0F, 0.0F, 0.0F);
         this.setRotateAngle(lArmShoulderEcto, -0.3490658503988659F, 0.2617993877991494F, 0.0F);
         this.lArm00Ecto = new EctoModelRenderer(this, 61, 32);
-        this.lArm00Ecto.setRotationPoint(0.8F, -0.5F, 0.0F);
+        this.lArm00Ecto.setPos(0.8F, -0.5F, 0.0F);
         this.lArm00Ecto.addBox(-1.5F, -3.0F, 0.0F, 3.0F, 5.0F, 10.0F, 0.0F, 0.0F, 0.0F);
         this.lfHoofClaw02b = new BoneModelRenderer(this, 54, 26);
         this.lfHoofClaw02b.mirror = true;
-        this.lfHoofClaw02b.setRotationPoint(-0.5F, -1.5F, -0.8F);
+        this.lfHoofClaw02b.setPos(-0.5F, -1.5F, -0.8F);
         this.lfHoofClaw02b.addBox(-0.5F, -1.8F, -0.5F, 1.0F, 2.0F, 1.0F, 0.0F, 0.0F, 0.0F);
         this.setRotateAngle(lfHoofClaw02b, 0.0F, 0.0F, -0.06981317007977318F);
         this.tail04 = new BoneModelRenderer(this, 38, 0);
-        this.tail04.setRotationPoint(0.0F, 0.0F, 3.7F);
+        this.tail04.setPos(0.0F, 0.0F, 3.7F);
         this.tail04.addBox(-0.5F, -0.5F, 0.0F, 1.0F, 1.0F, 4.0F, 0.0F, 0.0F, 0.0F);
         this.setRotateAngle(tail04, -0.22689280275926282F, 0.0F, 0.0F);
         this.rArm02Ecto = new EctoModelRenderer(this, 62, 32);
         this.rArm02Ecto.mirror = true;
-        this.rArm02Ecto.setRotationPoint(-0.2F, -0.4F, 0.0F);
+        this.rArm02Ecto.setPos(-0.2F, -0.4F, 0.0F);
         this.rArm02Ecto.addBox(-1.0F, -1.0F, 0.0F, 2.0F, 2.0F, 10.0F, 0.0F, 0.0F, 0.0F);
         this.setRotateAngle(rArm02Ecto, -1.5707963267948966F, 0.0F, 0.0F);
         this.rArmShoulderEcto = new EctoModelRenderer(this, 61, 32);
         this.rArmShoulderEcto.mirror = true;
-        this.rArmShoulderEcto.setRotationPoint(0.9F, -0.8F, -5.2F);
+        this.rArmShoulderEcto.setPos(0.9F, -0.8F, -5.2F);
         this.rArmShoulderEcto.addBox(-1.5F, -3.2F, 0.0F, 3.0F, 6.0F, 10.0F, 0.0F, 0.0F, 0.0F);
         this.setRotateAngle(rArmShoulderEcto, -0.3490658503988659F, -0.2617993877991494F, 0.0F);
         this.lHip03 = new BoneModelRenderer(this, 45, 16);
-        this.lHip03.setRotationPoint(0.2F, 0.0F, 3.6F);
+        this.lHip03.setPos(0.2F, 0.0F, 3.6F);
         this.lHip03.addBox(-0.5F, -1.5F, 0.0F, 1.0F, 3.0F, 4.0F, 0.0F, 0.0F, 0.0F);
         this.setRotateAngle(lHip03, 0.0F, -0.8726646259971648F, 0.0F);
         this.lAntler03 = new BoneModelRenderer(this, 70, 25);
-        this.lAntler03.setRotationPoint(0.0F, -3.7F, 0.0F);
+        this.lAntler03.setPos(0.0F, -3.7F, 0.0F);
         this.lAntler03.addBox(-0.7F, -4.0F, -0.69F, 1.5F, 4.0F, 1.5F, 0.0F, 0.0F, 0.0F);
         this.setRotateAngle(lAntler03, 0.0F, 0.0F, -0.5235987755982988F);
         this.lfHoof = new BoneModelRenderer(this, 41, 26);
-        this.lfHoof.setRotationPoint(0.0F, 9.5F, 0.0F);
+        this.lfHoof.setPos(0.0F, 9.5F, 0.0F);
         this.lfHoof.addBox(-1.0F, -1.7F, -1.3F, 2.0F, 3.0F, 1.5F, 0.0F, 0.0F, 0.0F);
         this.setRotateAngle(lfHoof, 1.605702911834783F, 0.0F, 0.0F);
         this.lArm02Ecto = new EctoModelRenderer(this, 62, 32);
-        this.lArm02Ecto.setRotationPoint(0.2F, -0.4F, 0.0F);
+        this.lArm02Ecto.setPos(0.2F, -0.4F, 0.0F);
         this.lArm02Ecto.addBox(-1.0F, -1.0F, 0.0F, 2.0F, 2.0F, 10.0F, 0.0F, 0.0F, 0.0F);
         this.setRotateAngle(lArm02Ecto, -1.5707963267948966F, 0.0F, 0.0F);
         this.rShoulderBlade02 = new BoneModelRenderer(this, 26, 34);
         this.rShoulderBlade02.mirror = true;
-        this.rShoulderBlade02.setRotationPoint(0.0F, -0.2F, -1.9F);
+        this.rShoulderBlade02.setPos(0.0F, -0.2F, -1.9F);
         this.rShoulderBlade02.addBox(-0.5F, -1.5F, -2.1F, 1.0F, 4.0F, 8.0F, 0.0F, 0.0F, 0.0F);
         this.setRotateAngle(rShoulderBlade02, -0.3141592653589793F, 0.0F, 0.0F);
         this.rUpperJaw = new BoneModelRenderer(this, 86, 13);
         this.rUpperJaw.mirror = true;
-        this.rUpperJaw.setRotationPoint(-2.0F, -2.0F, -4.8F);
+        this.rUpperJaw.setPos(-2.0F, -2.0F, -4.8F);
         this.rUpperJaw.addBox(-1.0F, -1.5F, -6.0F, 2.0F, 3.0F, 6.0F, 0.0F, 0.0F, 0.0F);
         this.setRotateAngle(rUpperJaw, 0.13962634015954636F, -0.22689280275926282F, 0.0F);
         this.rAntler01 = new BoneModelRenderer(this, 70, 25);
         this.rAntler01.mirror = true;
-        this.rAntler01.setRotationPoint(-1.5F, -4.5F, -1.0F);
+        this.rAntler01.setPos(-1.5F, -4.5F, -1.0F);
         this.rAntler01.addBox(-1.0F, -3.0F, -1.0F, 2.0F, 3.0F, 2.0F, 0.0F, 0.0F, 0.0F);
         this.setRotateAngle(rAntler01, -0.08726646259971647F, 0.0F, -0.5235987755982988F);
         this.neckFlameM = new EctoModelRenderer(this, 41, 108);
-        this.neckFlameM.setRotationPoint(1.0F, 7.6F, 1.3F);
+        this.neckFlameM.setPos(1.0F, 7.6F, 1.3F);
         this.neckFlameM.addBox(-5.0F, 0.0F, 0.0F, 10.0F, 0.0F, 16.0F, 0.0F, 0.0F, 0.0F);
         this.setRotateAngle(neckFlameM, -1.0995574287564276F, 0.0F, 0.0F);
         this.rHip01 = new BoneModelRenderer(this, 30, 13);
-        this.rHip01.setRotationPoint(-0.4F, 1.5F, 5.5F);
+        this.rHip01.setPos(-0.4F, 1.5F, 5.5F);
         this.rHip01.addBox(-1.1F, -1.7F, -1.0F, 1.0F, 2.0F, 6.0F, 0.0F, 0.0F, 0.0F);
         this.setRotateAngle(rHip01, -0.7853981633974483F, -0.45378560551852565F, 0.17453292519943295F);
         this.lHip01 = new BoneModelRenderer(this, 30, 13);
-        this.lHip01.setRotationPoint(0.4F, 1.5F, 5.5F);
+        this.lHip01.setPos(0.4F, 1.5F, 5.5F);
         this.lHip01.addBox(0.1F, -1.7F, -1.0F, 1.0F, 2.0F, 6.0F, 0.0F, 0.0F, 0.0F);
         this.setRotateAngle(lHip01, -0.7853981633974483F, 0.45378560551852565F, -0.17453292519943295F);
         this.lAntler08b = new FlameTipModelRenderer(this, 70, 25);
-        this.lAntler08b.setRotationPoint(0.0F, -2.8F, 0.0F);
+        this.lAntler08b.setPos(0.0F, -2.8F, 0.0F);
         this.lAntler08b.addBox(-0.4F, -2.0F, -0.4F, 0.7F, 2.0F, 0.7F, 0.0F, 0.0F, 0.0F);
         this.setRotateAngle(lAntler08b, 0.0F, 0.0F, -0.5235987755982988F);
         this.lArm01Ecto = new EctoModelRenderer(this, 61, 31);
-        this.lArm01Ecto.setRotationPoint(0.2F, -0.5F, 0.0F);
+        this.lArm01Ecto.setPos(0.2F, -0.5F, 0.0F);
         this.lArm01Ecto.addBox(-1.0F, -2.2F, 0.0F, 2.0F, 3.0F, 11.0F, 0.0F, 0.0F, 0.0F);
         this.setRotateAngle(lArm01Ecto, -1.6755160819145563F, 0.0F, 0.0F);
         this.rArm00 = new BoneModelRenderer(this, 11, 52);
         this.rArm00.mirror = true;
-        this.rArm00.setRotationPoint(1.4F, 0.1F, -1.0F);
+        this.rArm00.setPos(1.4F, 0.1F, -1.0F);
         this.rArm00.addBox(-1.3F, -1.5F, 0.0F, 2.0F, 2.0F, 9.0F, 0.0F, 0.0F, 0.0F);
         this.setRotateAngle(rArm00, -1.1344640137963142F, -0.5585053606381855F, -0.6108652381980153F);
         this.lAntler010b = new FlameTipModelRenderer(this, 70, 25);
-        this.lAntler010b.setRotationPoint(0.0F, -1.7F, 0.0F);
+        this.lAntler010b.setPos(0.0F, -1.7F, 0.0F);
         this.lAntler010b.addBox(-0.3F, -1.5F, -0.4F, 0.6F, 1.5F, 0.6F, 0.0F, 0.0F, 0.0F);
         this.setRotateAngle(lAntler010b, 0.0F, 0.0F, -0.593411945678072F);
         this.spine01b = new BoneModelRenderer(this, 79, 6);
-        this.spine01b.setRotationPoint(0.0F, 0.0F, 1.5F);
+        this.spine01b.setPos(0.0F, 0.0F, 1.5F);
         this.spine01b.addBox(0.0F, -5.0F, -3.5F, 0.0F, 5.0F, 20.0F, 0.0F, 0.0F, 0.0F);
         this.rArm01a = new BoneModelRenderer(this, 21, 51);
         this.rArm01a.mirror = true;
-        this.rArm01a.setRotationPoint(-0.8F, 0.6F, 8.2F);
+        this.rArm01a.setPos(-0.8F, 0.6F, 8.2F);
         this.rArm01a.addBox(-0.5F, -0.6F, -0.5F, 1.0F, 11.0F, 1.0F, 0.0F, 0.0F, 0.0F);
         this.setRotateAngle(rArm01a, 0.6108652381980153F, 0.05235987755982988F, -0.12217304763960307F);
         this.neckFlameR02 = new EctoModelRenderer(this, 68, 94);
-        this.neckFlameR02.setRotationPoint(-1.3F, 4.8F, 0.5F);
+        this.neckFlameR02.setPos(-1.3F, 4.8F, 0.5F);
         this.neckFlameR02.addBox(-4.0F, 0.0F, 0.0F, 8.0F, 0.0F, 13.0F, 0.0F, 0.0F, 0.0F);
         this.setRotateAngle(neckFlameR02, -0.7853981633974483F, 0.22689280275926282F, 0.4363323129985824F);
         this.ribs01 = new BoneModelRenderer(this, 0, 12);
-        this.ribs01.setRotationPoint(0.0F, 0.0F, 2.5F);
+        this.ribs01.setPos(0.0F, 0.0F, 2.5F);
         this.ribs01.addBox(-4.5F, 0.0F, -5.5F, 9.0F, 10.0F, 11.0F, 0.0F, 0.0F, 0.0F);
         this.rLeg00Ecto = new EctoModelRenderer(this, 60, 32);
         this.rLeg00Ecto.mirror = true;
-        this.rLeg00Ecto.setRotationPoint(-0.2F, 0.1F, 0.0F);
+        this.rLeg00Ecto.setPos(-0.2F, 0.1F, 0.0F);
         this.rLeg00Ecto.addBox(-2.5F, -2.7F, -7.6F, 4.0F, 6.0F, 10.0F, 0.0F, 0.0F, 0.0F);
         this.lAntler05 = new BoneModelRenderer(this, 70, 25);
-        this.lAntler05.setRotationPoint(0.0F, -3.8F, 0.0F);
+        this.lAntler05.setPos(0.0F, -3.8F, 0.0F);
         this.lAntler05.addBox(-0.4F, -2.8F, -0.4F, 0.8F, 3.0F, 0.8F, 0.0F, 0.0F, 0.0F);
         this.setRotateAngle(lAntler05, 0.0F, 0.0F, 0.5235987755982988F);
         this.tail03Ecto = new EctoModelRenderer(this, 45, 40);
-        this.tail03Ecto.setRotationPoint(0.0F, 0.0F, 0.0F);
+        this.tail03Ecto.setPos(0.0F, 0.0F, 0.0F);
         this.tail03Ecto.addBox(-1.0F, -1.0F, 0.0F, 2.0F, 2.0F, 4.0F, 0.0F, 0.0F, 0.0F);
         this.rLeg01.addChild(this.rLeg01Ecto);
         this.rbHoofClaw02b_3.addChild(this.rbHoofClaw02b_4);
@@ -865,11 +863,11 @@ public class ModelHirschgeist extends EntityModel<EntityHirschgeist> {
     }
 
     @Override
-    public void render(MatrixStack matrixStackIn, IVertexBuilder bufferIn, int packedLightIn, int packedOverlayIn, float red, float green, float blue, float alpha) {
+    public void renderToBuffer(PoseStack matrixStackIn, VertexConsumer bufferIn, int packedLightIn, int packedOverlayIn, float red, float green, float blue, float alpha) {
         this.spine01.render(matrixStackIn, bufferIn, packedLightIn, packedOverlayIn, red, green, blue, alpha);
     }
 
-    public void renderSpecial(ResourceLocation texture, MatrixStack stack, IRenderTypeBuffer typeBuffer, IVertexBuilder bufferIn, int packedLightIn, int packedOverlayIn, float red, float green, float blue, float alpha) {
+    public void renderSpecial(ResourceLocation texture, PoseStack stack, MultiBufferSource typeBuffer, VertexConsumer bufferIn, int packedLightIn, int packedOverlayIn, float red, float green, float blue, float alpha) {
         this.spine01.renderSpecial(false, texture, stack, typeBuffer, bufferIn, packedLightIn, packedOverlayIn, red, green, blue, alpha);
         if(!isDaytime)
             this.spine01.renderSpecial(true, texture, stack, typeBuffer, bufferIn, packedLightIn, packedOverlayIn, red, green, blue, alpha);
@@ -879,18 +877,18 @@ public class ModelHirschgeist extends EntityModel<EntityHirschgeist> {
     public void setRotationAngles(EntityHirschgeist entityIn, float limbSwing, float limbSwingAmount, float ageInTicks, float netHeadYaw, float headPitch) {
         this.isDaytime = entityIn.isDaytimeClient();
         float factor = 0.8F;
-        this.lArm00.rotateAngleX = MathHelper.cos(limbSwing * 0.6662F) * factor * limbSwingAmount - 1.1344640137963142F;
-        this.rArm00.rotateAngleX = MathHelper.cos(limbSwing * 0.6662F + (float) Math.PI) * factor * limbSwingAmount - 1.1344640137963142F;
-        this.rLeg00.rotateAngleX = MathHelper.cos(limbSwing * 0.6662F) * factor * limbSwingAmount + 1.5707963267948966F;
-        this.lLeg00.rotateAngleX = MathHelper.cos(limbSwing * 0.6662F + (float) Math.PI) * factor * limbSwingAmount + 1.5707963267948966F;
+        this.lArm00.xRot = Mth.cos(limbSwing * 0.6662F) * factor * limbSwingAmount - 1.1344640137963142F;
+        this.rArm00.xRot = Mth.cos(limbSwing * 0.6662F + (float) Math.PI) * factor * limbSwingAmount - 1.1344640137963142F;
+        this.rLeg00.xRot = Mth.cos(limbSwing * 0.6662F) * factor * limbSwingAmount + 1.5707963267948966F;
+        this.lLeg00.xRot = Mth.cos(limbSwing * 0.6662F + (float) Math.PI) * factor * limbSwingAmount + 1.5707963267948966F;
         if(entityIn.getTargetDistance() >= 0 && entityIn.getTargetDistance() < 10D) {
-            this.neck01.rotateAngleX = MathHelper.cos(entityIn.getSwingProgress(Minecraft.getInstance().getRenderPartialTicks()) * ((float) Math.PI / 2F)) - 0.9250245035569946F;
+            this.neck01.xRot = Mth.cos(entityIn.getAttackAnim(Minecraft.getInstance().getFrameTime()) * ((float) Math.PI / 2F)) - 0.9250245035569946F;
         } else {
-            this.neck01.rotateAngleX = -0.9250245035569946F;
+            this.neck01.xRot = -0.9250245035569946F;
         }
     }
 
-    public static class TypeBasedModelRenderer extends ModelRenderer {
+    public static class TypeBasedModelRenderer extends ModelPart {
 
         protected Function<ResourceLocation, RenderType> type;
         protected Model parent;
@@ -901,23 +899,23 @@ public class ModelHirschgeist extends EntityModel<EntityHirschgeist> {
             this.parent = model;
         }
 
-        public void renderSpecial(boolean ectoPass, ResourceLocation texture, MatrixStack stack, IRenderTypeBuffer typeBuffer, IVertexBuilder bufferIn, int packedLightIn, int packedOverlayIn, float red, float green, float blue, float alpha) {
-            if(this.showModel) {
-                if(!this.cubeList.isEmpty() || !this.childModels.isEmpty()) {
-                    stack.push();
-                    this.translateRotate(stack);
-                    IVertexBuilder vertexBuilder = typeBuffer.getBuffer(type.apply(texture));
+        public void renderSpecial(boolean ectoPass, ResourceLocation texture, PoseStack stack, MultiBufferSource typeBuffer, VertexConsumer bufferIn, int packedLightIn, int packedOverlayIn, float red, float green, float blue, float alpha) {
+            if(this.visible) {
+                if(!this.cubes.isEmpty() || !this.children.isEmpty()) {
+                    stack.pushPose();
+                    this.translateAndRotate(stack);
+                    VertexConsumer vertexBuilder = typeBuffer.getBuffer(type.apply(texture));
                     if((this instanceof EctoModelRenderer && ectoPass) || (this instanceof BoneModelRenderer && !ectoPass)) {
-                        this.doRender(stack.getLast(), vertexBuilder, packedLightIn, packedOverlayIn, red, green, blue, alpha);
+                        this.compile(stack.last(), vertexBuilder, packedLightIn, packedOverlayIn, red, green, blue, alpha);
                     }
 
-                    for(ModelRenderer modelrenderer : this.childModels) {
+                    for(ModelPart modelrenderer : this.children) {
                         if(modelrenderer instanceof TypeBasedModelRenderer) {
                             ((TypeBasedModelRenderer) modelrenderer).renderSpecial(ectoPass, texture, stack, typeBuffer, bufferIn, packedLightIn, packedOverlayIn, red, green, blue, alpha);
                         }
                     }
 
-                    stack.pop();
+                    stack.popPose();
                 }
             }
         }
@@ -927,7 +925,7 @@ public class ModelHirschgeist extends EntityModel<EntityHirschgeist> {
     public static class BoneModelRenderer extends TypeBasedModelRenderer {
 
         public BoneModelRenderer(Model model, int texOffX, int texOffY) {
-            super(model, texOffX, texOffY, model::getRenderType);
+            super(model, texOffX, texOffY, model::renderType);
         }
 
     }
@@ -939,31 +937,31 @@ public class ModelHirschgeist extends EntityModel<EntityHirschgeist> {
         }
 
         @Override
-        public void render(MatrixStack stack, IVertexBuilder bufferIn, int packedLightIn, int packedOverlayIn, float red, float green, float blue, float alpha) {
+        public void render(PoseStack stack, VertexConsumer bufferIn, int packedLightIn, int packedOverlayIn, float red, float green, float blue, float alpha) {
             super.render(stack, bufferIn, packedLightIn, packedOverlayIn, red, green, blue, alpha);
-            if(this.showModel) {
-                if(!this.cubeList.isEmpty() || !this.childModels.isEmpty()) {
-                    stack.push();
-                    this.translateRotate(stack);
-                    ModelBox box = this.cubeList.get(0);
-                    stack.translate((box.posX1 + box.posX2) / 16F, (box.posY1 + box.posY2) / 16F, (box.posZ1 + box.posZ2) / 16F);
+            if(this.visible) {
+                if(!this.cubes.isEmpty() || !this.children.isEmpty()) {
+                    stack.pushPose();
+                    this.translateAndRotate(stack);
+                    Cube box = this.cubes.get(0);
+                    stack.translate((box.minX + box.maxX) / 16F, (box.minY + box.maxY) / 16F, (box.minZ + box.maxZ) / 16F);
                     FlameRender.render(stack, 1F);
-                    stack.pop();
+                    stack.popPose();
                 }
             }
         }
 
         @Override
-        public void renderSpecial(boolean ectoPass, ResourceLocation texture, MatrixStack stack, IRenderTypeBuffer typeBuffer, IVertexBuilder bufferIn, int packedLightIn, int packedOverlayIn, float red, float green, float blue, float alpha) {
+        public void renderSpecial(boolean ectoPass, ResourceLocation texture, PoseStack stack, MultiBufferSource typeBuffer, VertexConsumer bufferIn, int packedLightIn, int packedOverlayIn, float red, float green, float blue, float alpha) {
             super.renderSpecial(ectoPass, texture, stack, typeBuffer, bufferIn, packedLightIn, packedOverlayIn, red, green, blue, alpha);
-            if(this.showModel) {
-                if(!this.cubeList.isEmpty() || !this.childModels.isEmpty()) {
-                    stack.push();
-                    this.translateRotate(stack);
-                    ModelBox box = this.cubeList.get(0);
-                    stack.translate((box.posX1 + box.posX2) / 16F, (box.posY1 + box.posY2) / 16F, (box.posZ1 + box.posZ2) / 16F);
+            if(this.visible) {
+                if(!this.cubes.isEmpty() || !this.children.isEmpty()) {
+                    stack.pushPose();
+                    this.translateAndRotate(stack);
+                    Cube box = this.cubes.get(0);
+                    stack.translate((box.minX + box.maxX) / 16F, (box.minY + box.maxY) / 16F, (box.minZ + box.maxZ) / 16F);
                     FlameRender.render(stack, 2F);
-                    stack.pop();
+                    stack.popPose();
                 }
             }
         }
@@ -975,35 +973,35 @@ public class ModelHirschgeist extends EntityModel<EntityHirschgeist> {
         private static final ResourceLocation TEXTURE = new ResourceLocation(WhisperwoodsMod.MODID, "textures/particle/flame.png");
 
         @SuppressWarnings({ "resource", "deprecation" })
-        public static void render(MatrixStack stack, float scale) {
+        public static void render(PoseStack stack, float scale) {
             RenderSystem.enableAlphaTest();
             RenderSystem.disableCull();
             RenderSystem.enableDepthTest();
-            Minecraft.getInstance().getRenderManager().textureManager.bindTexture(TEXTURE);
-            Tessellator tessellator = Tessellator.getInstance();
-            BufferBuilder bufferbuilder = tessellator.getBuffer();
-            Matrix4f d = stack.getLast().getMatrix();
-            float ticks = ((float) Minecraft.getInstance().player.ticksExisted % 30) / 30F;
-            Matrix4f matrix = Matrix4f.makeTranslate(d.m03 + ((float) Math.random() - 0.5F) / 100F, d.m13 + ((float) Math.random() - 0.5F) / 100F, d.m23 + ((float) Math.random() - 0.5F) / 100F);
+            Minecraft.getInstance().getEntityRenderDispatcher().textureManager.bind(TEXTURE);
+            Tesselator tessellator = Tesselator.getInstance();
+            BufferBuilder bufferbuilder = tessellator.getBuilder();
+            Matrix4f d = stack.last().pose();
+            float ticks = ((float) Minecraft.getInstance().player.tickCount % 30) / 30F;
+            Matrix4f matrix = Matrix4f.createTranslateMatrix(d.m03 + ((float) Math.random() - 0.5F) / 100F, d.m13 + ((float) Math.random() - 0.5F) / 100F, d.m23 + ((float) Math.random() - 0.5F) / 100F);
             float extraScale = (1F - ticks) + (float) Math.random() / 10F;
-            matrix.mul(Matrix4f.makeScale(0.1F * scale, 0.1F * scale, 0.1F * scale));
-            bufferbuilder.begin(7, DefaultVertexFormats.POSITION_TEX);
-            bufferbuilder.pos(matrix, -1F, -1F, 0F).tex(1, 1).endVertex();
-            bufferbuilder.pos(matrix, -1F, 1F, 0F).tex(1, 0).endVertex();
-            bufferbuilder.pos(matrix, 1F, 1F, 0F).tex(0, 0).endVertex();
-            bufferbuilder.pos(matrix, 1F, -1F, 0F).tex(0, 1).endVertex();
-            bufferbuilder.finishDrawing();
-            WorldVertexBufferUploader.draw(bufferbuilder);
-            matrix = Matrix4f.makeTranslate(d.m03, d.m13, d.m23 + 0.01F);
-            matrix.mul(Matrix4f.makeScale(0.1F * scale, 0.1F * scale, 0.1F * scale));
-            matrix.mul(Matrix4f.makeScale(extraScale, extraScale, extraScale));
-            bufferbuilder.begin(7, DefaultVertexFormats.POSITION_TEX);
-            bufferbuilder.pos(matrix, -1F, -1F, 0F).tex(1, 1).endVertex();
-            bufferbuilder.pos(matrix, -1F, 1F, 0F).tex(1, 0).endVertex();
-            bufferbuilder.pos(matrix, 1F, 1F, 0F).tex(0, 0).endVertex();
-            bufferbuilder.pos(matrix, 1F, -1F, 0F).tex(0, 1).endVertex();
-            bufferbuilder.finishDrawing();
-            WorldVertexBufferUploader.draw(bufferbuilder);
+            matrix.multiply(Matrix4f.createScaleMatrix(0.1F * scale, 0.1F * scale, 0.1F * scale));
+            bufferbuilder.begin(7, DefaultVertexFormat.POSITION_TEX);
+            bufferbuilder.vertex(matrix, -1F, -1F, 0F).uv(1, 1).endVertex();
+            bufferbuilder.vertex(matrix, -1F, 1F, 0F).uv(1, 0).endVertex();
+            bufferbuilder.vertex(matrix, 1F, 1F, 0F).uv(0, 0).endVertex();
+            bufferbuilder.vertex(matrix, 1F, -1F, 0F).uv(0, 1).endVertex();
+            bufferbuilder.end();
+            BufferUploader.end(bufferbuilder);
+            matrix = Matrix4f.createTranslateMatrix(d.m03, d.m13, d.m23 + 0.01F);
+            matrix.multiply(Matrix4f.createScaleMatrix(0.1F * scale, 0.1F * scale, 0.1F * scale));
+            matrix.multiply(Matrix4f.createScaleMatrix(extraScale, extraScale, extraScale));
+            bufferbuilder.begin(7, DefaultVertexFormat.POSITION_TEX);
+            bufferbuilder.vertex(matrix, -1F, -1F, 0F).uv(1, 1).endVertex();
+            bufferbuilder.vertex(matrix, -1F, 1F, 0F).uv(1, 0).endVertex();
+            bufferbuilder.vertex(matrix, 1F, 1F, 0F).uv(0, 0).endVertex();
+            bufferbuilder.vertex(matrix, 1F, -1F, 0F).uv(0, 1).endVertex();
+            bufferbuilder.end();
+            BufferUploader.end(bufferbuilder);
             RenderSystem.disableDepthTest();
             RenderSystem.enableCull();
             RenderSystem.disableAlphaTest();
@@ -1019,10 +1017,10 @@ public class ModelHirschgeist extends EntityModel<EntityHirschgeist> {
 
     }
 
-    public void setRotateAngle(ModelRenderer modelRenderer, float x, float y, float z) {
-        modelRenderer.rotateAngleX = x;
-        modelRenderer.rotateAngleY = y;
-        modelRenderer.rotateAngleZ = z;
+    public void setRotateAngle(ModelPart modelRenderer, float x, float y, float z) {
+        modelRenderer.xRot = x;
+        modelRenderer.yRot = y;
+        modelRenderer.zRot = z;
     }
 
 }

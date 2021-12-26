@@ -1,17 +1,17 @@
 package dev.itsmeow.whisperwoods.client.renderer.entity.layer;
 
-import com.mojang.blaze3d.matrix.MatrixStack;
+import com.mojang.blaze3d.vertex.PoseStack;
 import dev.itsmeow.whisperwoods.client.init.ClientLifecycleHandler;
-import net.minecraft.client.renderer.IRenderTypeBuffer;
+import net.minecraft.client.model.EntityModel;
+import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.entity.MobRenderer;
-import net.minecraft.client.renderer.entity.layers.LayerRenderer;
-import net.minecraft.client.renderer.entity.model.EntityModel;
+import net.minecraft.client.renderer.entity.layers.RenderLayer;
 import net.minecraft.client.renderer.texture.OverlayTexture;
-import net.minecraft.entity.MobEntity;
-import net.minecraft.util.ResourceLocation;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.entity.Mob;
 
-public class LayerEyes<T extends MobEntity, A extends EntityModel<T>> extends LayerRenderer<T, A> {
+public class LayerEyes<T extends Mob, A extends EntityModel<T>> extends RenderLayer<T, A> {
 
     protected final RenderType GLOW_STATE;
 
@@ -21,9 +21,9 @@ public class LayerEyes<T extends MobEntity, A extends EntityModel<T>> extends La
     }
 
     @Override
-    public void render(MatrixStack matrixStackIn, IRenderTypeBuffer bufferIn, int packedLightIn, T entity, float limbSwing, float limbSwingAmount, float partialTicks, float ageInTicks, float netHeadYaw, float headPitch) {
-        if (!entity.isInvisible() && !entity.isChild()) {
-            this.getEntityModel().render(matrixStackIn, bufferIn.getBuffer(GLOW_STATE), 15728640, OverlayTexture.NO_OVERLAY, 1.0F, 1.0F, 1.0F, 1.0F);
+    public void render(PoseStack matrixStackIn, MultiBufferSource bufferIn, int packedLightIn, T entity, float limbSwing, float limbSwingAmount, float partialTicks, float ageInTicks, float netHeadYaw, float headPitch) {
+        if (!entity.isInvisible() && !entity.isBaby()) {
+            this.getParentModel().renderToBuffer(matrixStackIn, bufferIn.getBuffer(GLOW_STATE), 15728640, OverlayTexture.NO_OVERLAY, 1.0F, 1.0F, 1.0F, 1.0F);
         }
     }
 }

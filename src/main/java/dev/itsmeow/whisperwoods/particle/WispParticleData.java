@@ -8,14 +8,14 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 
 import dev.itsmeow.whisperwoods.init.ModParticles;
-import net.minecraft.network.PacketBuffer;
-import net.minecraft.particles.IParticleData;
-import net.minecraft.particles.ParticleType;
-import net.minecraft.util.registry.Registry;
+import net.minecraft.core.Registry;
+import net.minecraft.core.particles.ParticleOptions;
+import net.minecraft.core.particles.ParticleType;
+import net.minecraft.network.FriendlyByteBuf;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
-public class WispParticleData implements IParticleData {
+public class WispParticleData implements ParticleOptions {
     public static final Codec<WispParticleData> CODEC = RecordCodecBuilder.create((group) -> {
         return group.group(Codec.FLOAT.fieldOf("r").forGetter((in) -> {
             return in.getRed();
@@ -28,8 +28,8 @@ public class WispParticleData implements IParticleData {
         })).apply(group, WispParticleData::new);
     });
     @SuppressWarnings("deprecation")
-    public static final IParticleData.IDeserializer<WispParticleData> DESERIALIZER = new IParticleData.IDeserializer<WispParticleData>() {
-        public WispParticleData deserialize(ParticleType<WispParticleData> particleTypeIn, StringReader reader) throws CommandSyntaxException {
+    public static final ParticleOptions.Deserializer<WispParticleData> DESERIALIZER = new ParticleOptions.Deserializer<WispParticleData>() {
+        public WispParticleData fromCommand(ParticleType<WispParticleData> particleTypeIn, StringReader reader) throws CommandSyntaxException {
             reader.expect(' ');
             float f = (float) reader.readDouble();
             reader.expect(' ');
@@ -41,7 +41,7 @@ public class WispParticleData implements IParticleData {
             return new WispParticleData(f, f1, f2, f3);
         }
 
-        public WispParticleData read(ParticleType<WispParticleData> particleTypeIn, PacketBuffer buffer) {
+        public WispParticleData fromNetwork(ParticleType<WispParticleData> particleTypeIn, FriendlyByteBuf buffer) {
             return new WispParticleData(buffer.readFloat(), buffer.readFloat(), buffer.readFloat(), buffer.readFloat());
         }
     };
@@ -57,7 +57,7 @@ public class WispParticleData implements IParticleData {
         this.scale = scale;
     }
 
-    public void write(PacketBuffer buffer) {
+    public void writeToNetwork(FriendlyByteBuf buffer) {
         buffer.writeFloat(this.red);
         buffer.writeFloat(this.green);
         buffer.writeFloat(this.blue);
@@ -65,7 +65,7 @@ public class WispParticleData implements IParticleData {
     }
 
     @SuppressWarnings("deprecation")
-    public String getParameters() {
+    public String writeToString() {
         return String.format(Locale.ROOT, "%s %.2f %.2f %.2f %.2f", Registry.PARTICLE_TYPE.getKey(this.getType()), this.red, this.green, this.blue, this.scale);
     }
 

@@ -4,9 +4,9 @@ import dev.itsmeow.imdlib.entity.EntityTypeContainer;
 import dev.itsmeow.whisperwoods.config.WhisperwoodsConfig;
 import dev.itsmeow.whisperwoods.init.*;
 import dev.itsmeow.whisperwoods.network.WWNetwork;
-import net.minecraft.item.ItemGroup;
-import net.minecraft.item.ItemStack;
-import net.minecraft.util.NonNullList;
+import net.minecraft.core.NonNullList;
+import net.minecraft.world.item.CreativeModeTab;
+import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.common.Mod;
@@ -38,15 +38,15 @@ public class WhisperwoodsMod {
         LOGGER.info("Spooking you...");
     }
 
-    public static final ItemGroup TAB = new ItemGroup(MODID) {
+    public static final CreativeModeTab TAB = new CreativeModeTab(MODID) {
         @Override
-        public ItemStack createIcon() {
+        public ItemStack makeIcon() {
             return new ItemStack(ModBlocks.GHOST_LIGHT_FIERY_ORANGE.get().asItem());
         }
 
         @Override
-        public void fill(NonNullList<ItemStack> toDisplay) {
-            super.fill(toDisplay);
+        public void fillItemList(NonNullList<ItemStack> toDisplay) {
+            super.fillItemList(toDisplay);
             for(EntityTypeContainer<?> cont : ModEntities.getEntities().values()) {
                 ItemStack stack = new ItemStack(cont.getEggItem());
                 toDisplay.add(stack);

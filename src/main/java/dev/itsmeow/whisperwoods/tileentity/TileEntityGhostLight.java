@@ -1,9 +1,9 @@
 package dev.itsmeow.whisperwoods.tileentity;
 
 import dev.itsmeow.whisperwoods.init.ModTileEntities;
-import net.minecraft.tileentity.TileEntity;
+import net.minecraft.world.level.block.entity.BlockEntity;
 
-public class TileEntityGhostLight extends TileEntity {
+public class TileEntityGhostLight extends BlockEntity {
 
     public long lastSpawn;
 

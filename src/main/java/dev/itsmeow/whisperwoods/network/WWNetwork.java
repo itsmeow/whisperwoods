@@ -6,8 +6,8 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 
 import dev.itsmeow.whisperwoods.WhisperwoodsMod;
-import net.minecraft.network.PacketBuffer;
-import net.minecraft.util.ResourceLocation;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.network.NetworkDirection;
@@ -31,11 +31,11 @@ public class WWNetwork {
         addPkt(WispAttackPacket.class, WispAttackPacket::encode, WispAttackPacket::decode, WispAttackPacket::handle, NetworkDirection.PLAY_TO_CLIENT);
     }
 
-    protected static <MSG> void addPkt(Class<MSG> messageType, BiConsumer<MSG, PacketBuffer> encoder, Function<PacketBuffer, MSG> decoder, BiConsumer<MSG, Supplier<NetworkEvent.Context>> messageConsumer) {
+    protected static <MSG> void addPkt(Class<MSG> messageType, BiConsumer<MSG, FriendlyByteBuf> encoder, Function<FriendlyByteBuf, MSG> decoder, BiConsumer<MSG, Supplier<NetworkEvent.Context>> messageConsumer) {
         HANDLER.registerMessage(packets++, messageType, encoder, decoder, messageConsumer);
     }
 
-    protected static <MSG> void addPkt(Class<MSG> messageType, BiConsumer<MSG, PacketBuffer> encoder, Function<PacketBuffer, MSG> decoder, BiConsumer<MSG, Supplier<NetworkEvent.Context>> messageConsumer, NetworkDirection networkDirection) {
+    protected static <MSG> void addPkt(Class<MSG> messageType, BiConsumer<MSG, FriendlyByteBuf> encoder, Function<FriendlyByteBuf, MSG> decoder, BiConsumer<MSG, Supplier<NetworkEvent.Context>> messageConsumer, NetworkDirection networkDirection) {
         HANDLER.registerMessage(packets++, messageType, encoder, decoder, messageConsumer, Optional.of(networkDirection));
     }
 

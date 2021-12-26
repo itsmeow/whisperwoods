@@ -2,36 +2,40 @@ package dev.itsmeow.whisperwoods.block;
 
 import dev.itsmeow.whisperwoods.tileentity.TileEntityHandOfFate;
 import dev.itsmeow.whisperwoods.tileentity.TileEntityHandOfFate.HOFRecipe;
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockRenderType;
-import net.minecraft.block.BlockState;
-import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.client.resources.I18n;
-import net.minecraft.client.util.ITooltipFlag;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.fluid.FluidState;
-import net.minecraft.fluid.Fluids;
-import net.minecraft.item.BlockItem;
-import net.minecraft.item.BlockItemUseContext;
-import net.minecraft.item.ItemStack;
-import net.minecraft.state.EnumProperty;
-import net.minecraft.state.StateContainer;
-import net.minecraft.state.properties.BlockStateProperties;
-import net.minecraft.tileentity.TileEntity;
+import net.minecraft.ChatFormatting;
+import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.resources.language.I18n;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.Style;
+import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.*;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.BlockRayTraceResult;
-import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.math.shapes.ISelectionContext;
-import net.minecraft.util.math.shapes.VoxelShape;
-import net.minecraft.util.math.shapes.VoxelShapes;
-import net.minecraft.util.text.ITextComponent;
-import net.minecraft.util.text.Style;
-import net.minecraft.util.text.TextFormatting;
-import net.minecraft.util.text.TranslationTextComponent;
-import net.minecraft.world.IBlockReader;
-import net.minecraft.world.IWorldReader;
-import net.minecraft.world.World;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.BlockItem;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.TooltipFlag;
+import net.minecraft.world.item.context.BlockPlaceContext;
+import net.minecraft.world.level.BlockGetter;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.LevelReader;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.RenderShape;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.StateDefinition;
+import net.minecraft.world.level.block.state.properties.BlockStateProperties;
+import net.minecraft.world.level.block.state.properties.EnumProperty;
+import net.minecraft.world.level.material.FluidState;
+import net.minecraft.world.level.material.Fluids;
+import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.shapes.CollisionContext;
+import net.minecraft.world.phys.shapes.Shapes;
+import net.minecraft.world.phys.shapes.VoxelShape;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
@@ -44,86 +48,86 @@ public class BlockHandOfFate extends Block {
     private static final VoxelShape SHAPE;
     static {
         double d = 0.0625D * 3;
-        SHAPE = VoxelShapes.create(d, 0.0D, d, 1D - d, 1.55D, 1D - d);
+        SHAPE = Shapes.box(d, 0.0D, d, 1D - d, 1.55D, 1D - d);
     }
 
     public BlockHandOfFate(Properties builder) {
         super(builder);
-        this.setDefaultState(this.getStateContainer().getBaseState().with(ROTATION, Orientation.NORTH).with(BlockStateProperties.WATERLOGGED, false));
+        this.registerDefaultState(this.getStateDefinition().any().setValue(ROTATION, Orientation.NORTH).setValue(BlockStateProperties.WATERLOGGED, false));
     }
 
     @Override
-    public BlockRenderType getRenderType(BlockState state) {
-        return BlockRenderType.ENTITYBLOCK_ANIMATED;
+    public RenderShape getRenderShape(BlockState state) {
+        return RenderShape.ENTITYBLOCK_ANIMATED;
     }
 
-    public boolean isLit(World world, BlockPos pos) {
-        return world.getBlockState(pos).getBlock() == this && world.getBlockState(pos.up()).getBlock() instanceof BlockGhostLight;
+    public boolean isLit(Level world, BlockPos pos) {
+        return world.getBlockState(pos).getBlock() == this && world.getBlockState(pos.above()).getBlock() instanceof BlockGhostLight;
     }
 
     @SuppressWarnings("deprecation")
     @Override
-    public void onReplaced(BlockState state, World worldIn, BlockPos pos, BlockState newState, boolean isMoving) {
-        if(!state.matchesBlock(newState.getBlock())) {
-            TileEntity te = worldIn.getTileEntity(pos);
+    public void onRemove(BlockState state, Level worldIn, BlockPos pos, BlockState newState, boolean isMoving) {
+        if(!state.is(newState.getBlock())) {
+            BlockEntity te = worldIn.getBlockEntity(pos);
             if(te instanceof TileEntityHandOfFate) {
                 ((TileEntityHandOfFate)te).dropItems(worldIn, pos);
             }
-            super.onReplaced(state, worldIn, pos, newState, isMoving);
+            super.onRemove(state, worldIn, pos, newState, isMoving);
         }
     }
 
     @Override
-    public ActionResultType onBlockActivated(BlockState state, World worldIn, BlockPos pos, PlayerEntity player, Hand hand, BlockRayTraceResult hit) {
-        ItemStack held = player.getHeldItem(hand);
+    public InteractionResult use(BlockState state, Level worldIn, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hit) {
+        ItemStack held = player.getItemInHand(hand);
         boolean lit = isLit(worldIn, pos);
         if(held.getItem() instanceof BlockItem && ((BlockItem)held.getItem()).getBlock() instanceof BlockGhostLight && !lit) {
             BlockItem i = ((BlockItem) held.getItem());
-            if(worldIn.isAirBlock(pos.up())) {
+            if(worldIn.isEmptyBlock(pos.above())) {
                 if(!player.isCreative()) {
                     held.shrink(1);
                 }
-                worldIn.playSound(null, pos.getX(), pos.getY(), pos.getZ(), SoundEvents.BLOCK_END_PORTAL_FRAME_FILL, SoundCategory.BLOCKS, 1F, 1F);
-                worldIn.setBlockState(pos.up(), i.getBlock().getDefaultState());
-                return ActionResultType.CONSUME;
+                worldIn.playSound(null, pos.getX(), pos.getY(), pos.getZ(), SoundEvents.END_PORTAL_FRAME_FILL, SoundSource.BLOCKS, 1F, 1F);
+                worldIn.setBlockAndUpdate(pos.above(), i.getBlock().defaultBlockState());
+                return InteractionResult.CONSUME;
             } else {
-                return ActionResultType.FAIL;
+                return InteractionResult.FAIL;
             }
-        } else if(worldIn.getTileEntity(pos) != null) {
-            TileEntity te = worldIn.getTileEntity(pos);
+        } else if(worldIn.getBlockEntity(pos) != null) {
+            BlockEntity te = worldIn.getBlockEntity(pos);
             if(te instanceof TileEntityHandOfFate) {
                 TileEntityHandOfFate tehof = (TileEntityHandOfFate) te;
                 return tehof.onBlockActivated(state, worldIn, pos, player, hand, hit);
             }
         }
-        return ActionResultType.PASS;
+        return InteractionResult.PASS;
     }
 
     @Override
-    protected void fillStateContainer(StateContainer.Builder<Block, BlockState> builder) {
+    protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
         builder.add(ROTATION, BlockStateProperties.WATERLOGGED);
     }
 
     @SuppressWarnings("deprecation")
     @Override
     public FluidState getFluidState(BlockState state) {
-        return state.get(BlockStateProperties.WATERLOGGED) ? Fluids.WATER.getStillFluidState(false) : super.getFluidState(state);
+        return state.getValue(BlockStateProperties.WATERLOGGED) ? Fluids.WATER.getSource(false) : super.getFluidState(state);
     }
 
     @Override
-    public boolean isValidPosition(BlockState state, IWorldReader worldIn, BlockPos pos) {
-        return Block.hasEnoughSolidSide(worldIn, pos.down(), Direction.UP) && (!worldIn.getBlockState(pos.up()).isSolid() || worldIn.getBlockState(pos.up()).getBlock() instanceof BlockGhostLight);
+    public boolean canSurvive(BlockState state, LevelReader worldIn, BlockPos pos) {
+        return Block.canSupportCenter(worldIn, pos.below(), Direction.UP) && (!worldIn.getBlockState(pos.above()).canOcclude() || worldIn.getBlockState(pos.above()).getBlock() instanceof BlockGhostLight);
     }
 
     @Override
-    public VoxelShape getShape(BlockState state, IBlockReader worldIn, BlockPos pos, ISelectionContext ctx) {
+    public VoxelShape getShape(BlockState state, BlockGetter worldIn, BlockPos pos, CollisionContext ctx) {
         return SHAPE;
     }
 
     @Nullable
     @Override
-    public BlockState getStateForPlacement(BlockItemUseContext context) {
-        return this.getDefaultState().with(ROTATION, Orientation.fromAngle((360F + (context.getPlacementYaw() % 360)) % 360F)).with(BlockStateProperties.WATERLOGGED, context.getWorld().getFluidState(context.getPos()).getFluid() == Fluids.WATER);
+    public BlockState getStateForPlacement(BlockPlaceContext context) {
+        return this.defaultBlockState().setValue(ROTATION, Orientation.fromAngle((360F + (context.getRotation() % 360)) % 360F)).setValue(BlockStateProperties.WATERLOGGED, context.getLevel().getFluidState(context.getClickedPos()).getType() == Fluids.WATER);
     }
 
     @Override
@@ -132,35 +136,35 @@ public class BlockHandOfFate extends Block {
     }
 
     @Override
-    public TileEntity createTileEntity(BlockState state, IBlockReader worldIn) {
+    public BlockEntity createTileEntity(BlockState state, BlockGetter worldIn) {
         return new TileEntityHandOfFate();
     }
 
     @OnlyIn(Dist.CLIENT)
     @Override
-    public void addInformation(ItemStack stack, IBlockReader worldIn, List<ITextComponent> tooltip, ITooltipFlag flagIn) {
-        super.addInformation(stack, worldIn, tooltip, flagIn);
-        Style gIS = Style.EMPTY.applyFormatting(TextFormatting.GRAY).setItalic(true);
+    public void appendHoverText(ItemStack stack, BlockGetter worldIn, List<Component> tooltip, TooltipFlag flagIn) {
+        super.appendHoverText(stack, worldIn, tooltip, flagIn);
+        Style gIS = Style.EMPTY.applyFormat(ChatFormatting.GRAY).withItalic(true);
         String tooltipPrefix = "block.whisperwoods.hand_of_fate.tooltip.";
         String recipePrefix = tooltipPrefix + "recipe.";
         if(Screen.hasShiftDown()) {
-            tooltip.add(new TranslationTextComponent(tooltipPrefix + "recipehint").setStyle(gIS));
+            tooltip.add(new TranslatableComponent(tooltipPrefix + "recipehint").setStyle(gIS));
             for (String recipeKey : TileEntityHandOfFate.RECIPES.keySet()) {
                 HOFRecipe recipe = TileEntityHandOfFate.RECIPES.get(recipeKey);
                 tooltip.add(
-                    new TranslationTextComponent("block.whisperwoods.hand_of_fate.tooltip.recipe_format" + (I18n.hasKey(recipePrefix + recipeKey + ".hint") ? "_hint" : ""),
-                        new TranslationTextComponent(recipePrefix + recipeKey).setStyle(Style.EMPTY.applyFormatting(recipe.getColor()).setBold(recipe.isBold())),
-                        new TranslationTextComponent(recipe.getFirst().getTranslationKey()).mergeStyle(TextFormatting.WHITE),
-                        new TranslationTextComponent(recipePrefix + recipeKey + ".hint").mergeStyle(TextFormatting.GRAY)
-                    ).mergeStyle(TextFormatting.GRAY)
+                    new TranslatableComponent("block.whisperwoods.hand_of_fate.tooltip.recipe_format" + (I18n.exists(recipePrefix + recipeKey + ".hint") ? "_hint" : ""),
+                        new TranslatableComponent(recipePrefix + recipeKey).setStyle(Style.EMPTY.applyFormat(recipe.getColor()).withBold(recipe.isBold())),
+                        new TranslatableComponent(recipe.getFirst().getDescriptionId()).withStyle(ChatFormatting.WHITE),
+                        new TranslatableComponent(recipePrefix + recipeKey + ".hint").withStyle(ChatFormatting.GRAY)
+                    ).withStyle(ChatFormatting.GRAY)
                 );
             }
         } else {
-            tooltip.add(new TranslationTextComponent(tooltipPrefix + "shiftdown").setStyle(gIS));
+            tooltip.add(new TranslatableComponent(tooltipPrefix + "shiftdown").setStyle(gIS));
         }
     }
 
-    public enum Orientation implements IStringSerializable {
+    public enum Orientation implements StringRepresentable {
         SOUTH(Direction.SOUTH),
         SOUTHWEST(Direction.SOUTH, Direction.WEST),
         WEST(Direction.WEST),
@@ -181,15 +185,15 @@ public class BlockHandOfFate extends Block {
         }
 
         public static Orientation fromAngle(double angle) {
-            return byIndex(MathHelper.floor(angle / 45.0D + 0.5D));
+            return byIndex(Mth.floor(angle / 45.0D + 0.5D));
         }
 
         public static Orientation byIndex(int index) {
-            return Orientation.values()[MathHelper.abs(index % 8)];
+            return Orientation.values()[Mth.abs(index % 8)];
         }
 
         @Override
-        public String getString() {
+        public String getSerializedName() {
             return this.name().toLowerCase();
         }
 

@@ -4,32 +4,38 @@ import dev.itsmeow.imdlib.entity.EntityTypeContainer;
 import dev.itsmeow.imdlib.entity.util.EntityTypeContainerContainable;
 import dev.itsmeow.imdlib.item.ItemModEntityContainer;
 import dev.itsmeow.whisperwoods.init.ModEntities;
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.Blocks;
-import net.minecraft.block.TorchBlock;
+import net.minecraft.ChatFormatting;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.entity.*;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.network.datasync.DataParameter;
-import net.minecraft.network.datasync.DataSerializers;
-import net.minecraft.network.datasync.EntityDataManager;
-import net.minecraft.util.DamageSource;
-import net.minecraft.util.Direction;
-import net.minecraft.util.Hand;
-import net.minecraft.util.math.AxisAlignedBB;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.math.vector.Vector3d;
-import net.minecraft.util.text.ITextComponent;
-import net.minecraft.util.text.StringTextComponent;
-import net.minecraft.util.text.Style;
-import net.minecraft.util.text.TextFormatting;
-import net.minecraft.world.LightType;
-import net.minecraft.world.World;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.Style;
+import net.minecraft.network.chat.TextComponent;
+import net.minecraft.network.syncher.EntityDataAccessor;
+import net.minecraft.network.syncher.EntityDataSerializers;
+import net.minecraft.network.syncher.SynchedEntityData;
+import net.minecraft.util.Mth;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.Mob;
+import net.minecraft.world.entity.MobType;
+import net.minecraft.world.entity.ai.targeting.TargetingConditions;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.LightLayer;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.TorchBlock;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.common.util.Constants;
 
 import javax.annotation.Nullable;
@@ -37,110 +43,110 @@ import java.util.List;
 
 public class EntityMoth extends EntityAnimalWithTypesAndSizeContainable {
 
-    private static final DataParameter<Integer> LANDED = EntityDataManager.createKey(EntityMoth.class, DataSerializers.VARINT);
-    private static final EntityPredicate playerPredicate = (new EntityPredicate()).setDistance(4.0D).allowFriendlyFire().allowInvulnerable();
+    private static final EntityDataAccessor<Integer> LANDED = SynchedEntityData.defineId(EntityMoth.class, EntityDataSerializers.INT);
+    private static final TargetingConditions playerPredicate = (new TargetingConditions()).range(4.0D).allowSameTeam().allowInvulnerable();
     private BlockPos targetPosition;
 
-    public EntityMoth(EntityType<? extends EntityAnimalWithTypesAndSizeContainable> type, World worldIn) {
+    public EntityMoth(EntityType<? extends EntityAnimalWithTypesAndSizeContainable> type, Level worldIn) {
         super(type, worldIn);
     }
 
     @Override
-    protected void registerData() {
-        super.registerData();
-        this.dataManager.register(LANDED, 1);
+    protected void defineSynchedData() {
+        super.defineSynchedData();
+        this.entityData.define(LANDED, 1);
     }
 
     @Override
-    public boolean canBePushed() {
+    public boolean isPushable() {
         return false;
     }
 
     @Override
-    protected void collideWithEntity(Entity entityIn) {
+    protected void doPush(Entity entityIn) {
     }
 
     @Override
-    protected void collideWithNearbyEntities() {
+    protected void pushEntities() {
     }
 
     public boolean isLanded() {
-        return this.dataManager.get(LANDED) != 1;
+        return this.entityData.get(LANDED) != 1;
     }
 
     public int getLandedInteger() {
-        return this.dataManager.get(LANDED);
+        return this.entityData.get(LANDED);
     }
 
     public void setLanded(Direction direction) {
         if(direction == Direction.UP) {
             throw new RuntimeException("Invalid landing direction!");
         }
-        this.dataManager.set(LANDED, direction.ordinal());
+        this.entityData.set(LANDED, direction.ordinal());
     }
 
     public void setNotLanded() {
-        this.dataManager.set(LANDED, 1);
+        this.entityData.set(LANDED, 1);
         // Re-center so moth does not suffocate itself
-        this.setPositionAndUpdate(this.getPosition().getX() + 0.5D, this.getPosition().getY() + 0.5D, this.getPosition().getZ() + 0.5D);
+        this.teleportTo(this.blockPosition().getX() + 0.5D, this.blockPosition().getY() + 0.5D, this.blockPosition().getZ() + 0.5D);
     }
 
     @Override
-    public CreatureAttribute getCreatureAttribute() {
-        return CreatureAttribute.ARTHROPOD;
+    public MobType getMobType() {
+        return MobType.ARTHROPOD;
     }
 
     @Override
     public void tick() {
         super.tick();
         if(this.isLanded()) {
-            this.setMotion(Vector3d.ZERO);
-            if(Direction.byIndex(this.getLandedInteger()) != Direction.DOWN) {
-                double x = Math.floor(this.getPosX()) + 0.5D;
-                double z = Math.floor(this.getPosZ()) + 0.5D;
-                BlockPos pos = new BlockPos(x, Math.floor(this.getPosY()) + 0.5D, z);
-                BlockPos offset = pos.offset(Direction.byIndex(this.getLandedInteger()));
+            this.setDeltaMovement(Vec3.ZERO);
+            if(Direction.from3DDataValue(this.getLandedInteger()) != Direction.DOWN) {
+                double x = Math.floor(this.getX()) + 0.5D;
+                double z = Math.floor(this.getZ()) + 0.5D;
+                BlockPos pos = new BlockPos(x, Math.floor(this.getY()) + 0.5D, z);
+                BlockPos offset = pos.relative(Direction.from3DDataValue(this.getLandedInteger()));
                 BlockPos diff = pos.subtract(offset);
-                this.setPositionAndUpdate(x - ((double) diff.getX()) / 2.778D, Math.floor(this.getPosY()) + 0.5D, z - ((double) diff.getZ()) / 2.778D);
-                this.rotationYaw = 0;
-                this.rotationYawHead = 0;
+                this.teleportTo(x - ((double) diff.getX()) / 2.778D, Math.floor(this.getY()) + 0.5D, z - ((double) diff.getZ()) / 2.778D);
+                this.yRot = 0;
+                this.yHeadRot = 0;
             } else {
-                this.setPositionAndUpdate(this.getPosX(), Math.floor(this.getPosY()), this.getPosZ());
+                this.teleportTo(this.getX(), Math.floor(this.getY()), this.getZ());
             }
         } else {
-            this.setMotion(this.getMotion().mul(1.0D, 0.6D, 1.0D));
+            this.setDeltaMovement(this.getDeltaMovement().multiply(1.0D, 0.6D, 1.0D));
         }
 
     }
 
     @Override
-    protected void updateAITasks() {
-        super.updateAITasks();
-        BlockPos blockpos = this.getPosition();
+    protected void customServerAiStep() {
+        super.customServerAiStep();
+        BlockPos blockpos = this.blockPosition();
         if(this.isLanded()) {
-            BlockPos offset = blockpos.offset(Direction.byIndex(this.getLandedInteger()));
-            if(this.world.getBlockState(offset).isNormalCube(this.world, offset)) {
-                if(this.world.getClosestPlayer(playerPredicate, this) != null || this.getRNG().nextInt(this.isAttractedToLight() ? 500 : 1000) == 0) {
+            BlockPos offset = blockpos.relative(Direction.from3DDataValue(this.getLandedInteger()));
+            if(this.level.getBlockState(offset).isRedstoneConductor(this.level, offset)) {
+                if(this.level.getNearestPlayer(playerPredicate, this) != null || this.getRandom().nextInt(this.isAttractedToLight() ? 500 : 1000) == 0) {
                     this.setNotLanded();
                 }
             } else {
                 this.setNotLanded();
             }
         }
-        if(this.targetPosition == null || this.rand.nextInt(30) == 0 || (this.targetPosition.withinDistance(this.getPositionVec(), 1.0D) && !isLightBlock(world.getBlockState(this.targetPosition)))) {
+        if(this.targetPosition == null || this.random.nextInt(30) == 0 || (this.targetPosition.closerThan(this.position(), 1.0D) && !isLightBlock(level.getBlockState(this.targetPosition)))) {
             int i = 12;
             int j = 2;
-            BlockPos.Mutable blockpos$mutableblockpos = new BlockPos.Mutable();
+            BlockPos.MutableBlockPos blockpos$mutableblockpos = new BlockPos.MutableBlockPos();
             BlockPos destinationBlock = null;
             if(this.isAttractedToLight()) {
                 for(int k = 0; k <= j; k = k > 0 ? -k : 1 - k) {
                     for(int l = 0; l < i; ++l) {
                         for(int i1 = 0; i1 <= l; i1 = i1 > 0 ? -i1 : 1 - i1) {
                             for(int j1 = i1 < l && i1 > -l ? l : 0; j1 <= l; j1 = j1 > 0 ? -j1 : 1 - j1) {
-                                blockpos$mutableblockpos.setPos(this.getPosition()).move(i1, k - 1, j1);
-                                BlockState state = world.getBlockState(blockpos$mutableblockpos);
-                                if(isLightBlock(state) && (destinationBlock == null || state.getLightValue() >= world.getBlockState(destinationBlock).getLightValue())) {
-                                    destinationBlock = blockpos$mutableblockpos.toImmutable();
+                                blockpos$mutableblockpos.set(this.blockPosition()).move(i1, k - 1, j1);
+                                BlockState state = level.getBlockState(blockpos$mutableblockpos);
+                                if(isLightBlock(state) && (destinationBlock == null || state.getLightEmission() >= level.getBlockState(destinationBlock).getLightEmission())) {
+                                    destinationBlock = blockpos$mutableblockpos.immutable();
                                 }
                             }
                         }
@@ -153,22 +159,22 @@ public class EntityMoth extends EntityAnimalWithTypesAndSizeContainable {
             } else {
                 boolean found = false;
                 if(this.isAttractedToLight()) {
-                    for(LivingEntity entity : world.getEntitiesWithinAABB(LivingEntity.class, this.getBoundingBox().grow(10))) {
-                        for(Hand hand : Hand.values()) {
-                            Item held = entity.getHeldItem(hand).getItem();
+                    for(LivingEntity entity : level.getEntitiesOfClass(LivingEntity.class, this.getBoundingBox().inflate(10))) {
+                        for(InteractionHand hand : InteractionHand.values()) {
+                            Item held = entity.getItemInHand(hand).getItem();
                             if(held == Items.TORCH || held == Items.LANTERN) {
-                                this.targetPosition = entity.getPosition().add(0, 1.5, 0);
+                                this.targetPosition = entity.blockPosition().offset(0, 1.5, 0);
                                 found = true;
                                 this.setNotLanded();
                             }
                         }
                     }
                 }
-                if(!found && this.world.getClosestPlayer(playerPredicate, this) == null && this.getRNG().nextInt(this.isAttractedToLight() ? 80 : 30) == 0) {
+                if(!found && this.level.getNearestPlayer(playerPredicate, this) == null && this.getRandom().nextInt(this.isAttractedToLight() ? 80 : 30) == 0) {
                     for(Direction direction : Direction.values()) {
                         if(direction != Direction.UP) {
-                            BlockPos offset = blockpos.offset(direction);
-                            if(world.getBlockState(offset).isNormalCube(world, offset)) {
+                            BlockPos offset = blockpos.relative(direction);
+                            if(level.getBlockState(offset).isRedstoneConductor(level, offset)) {
                                 this.setLanded(direction);
                                 this.targetPosition = null;
                                 found = true;
@@ -177,95 +183,95 @@ public class EntityMoth extends EntityAnimalWithTypesAndSizeContainable {
                     }
                 }
                 if(!found) {
-                    this.targetPosition = new BlockPos(this.getPosX() + (double) this.rand.nextInt(5) - (double) this.rand.nextInt(5), this.getPosY() + (double) this.rand.nextInt(4) - 1.0D, this.getPosZ() + (double) this.rand.nextInt(5) - (double) this.rand.nextInt(5));
+                    this.targetPosition = new BlockPos(this.getX() + (double) this.random.nextInt(5) - (double) this.random.nextInt(5), this.getY() + (double) this.random.nextInt(4) - 1.0D, this.getZ() + (double) this.random.nextInt(5) - (double) this.random.nextInt(5));
                 }
             }
         }
         if(!this.isLanded() && targetPosition != null) {
-            double d0 = (double) this.targetPosition.getX() + 0.5D - this.getPosX();
-            double d1 = (double) this.targetPosition.getY() + 0.1D - this.getPosY();
-            double d2 = (double) this.targetPosition.getZ() + 0.5D - this.getPosZ();
-            Vector3d vec3d = this.getMotion();
-            Vector3d vec3d1 = vec3d.add((Math.signum(d0) * 0.5D - vec3d.x) * (double) 0.1F, (Math.signum(d1) * (double) 0.7F - vec3d.y) * (double) 0.1F, (Math.signum(d2) * 0.5D - vec3d.z) * (double) 0.1F);
-            float width = this.getContainer().getEntityType().getSize().width * 0.8F;
-            AxisAlignedBB axisalignedbb = AxisAlignedBB.withSizeAtOrigin(width, 0.1F, width).offset(this.getPosX() + vec3d1.getX(), this.getPosYEye() + vec3d1.getY(), this.getPosZ() + vec3d1.getZ());
-            boolean collides = this.world.func_241457_a_(this, axisalignedbb, (state, pos2) -> state.isSuffocating(this.world, pos2)).findAny().isPresent();
+            double d0 = (double) this.targetPosition.getX() + 0.5D - this.getX();
+            double d1 = (double) this.targetPosition.getY() + 0.1D - this.getY();
+            double d2 = (double) this.targetPosition.getZ() + 0.5D - this.getZ();
+            Vec3 vec3d = this.getDeltaMovement();
+            Vec3 vec3d1 = vec3d.add((Math.signum(d0) * 0.5D - vec3d.x) * (double) 0.1F, (Math.signum(d1) * (double) 0.7F - vec3d.y) * (double) 0.1F, (Math.signum(d2) * 0.5D - vec3d.z) * (double) 0.1F);
+            float width = this.getContainer().getEntityType().getDimensions().width * 0.8F;
+            AABB axisalignedbb = AABB.ofSize(width, 0.1F, width).move(this.getX() + vec3d1.x(), this.getEyeY() + vec3d1.y(), this.getZ() + vec3d1.z());
+            boolean collides = this.level.getBlockCollisions(this, axisalignedbb, (state, pos2) -> state.isSuffocating(this.level, pos2)).findAny().isPresent();
             if(collides) {
-                vec3d1 = vec3d1.mul(0.5, 0.5, 0.5);
+                vec3d1 = vec3d1.multiply(0.5, 0.5, 0.5);
             }
-            this.setMotion(vec3d1);
-            float f = (float) (MathHelper.atan2(vec3d1.z, vec3d1.x) * (double) (180F / (float) Math.PI)) - 90.0F;
-            float f1 = MathHelper.wrapDegrees(f - this.rotationYaw);
-            this.moveForward = 0.5F;
-            this.rotationYaw += f1;
+            this.setDeltaMovement(vec3d1);
+            float f = (float) (Mth.atan2(vec3d1.z, vec3d1.x) * (double) (180F / (float) Math.PI)) - 90.0F;
+            float f1 = Mth.wrapDegrees(f - this.yRot);
+            this.zza = 0.5F;
+            this.yRot += f1;
         }
         int moths_req = getContainer().getCustomConfiguration().getInt("moths_to_destroy_torch");
-        if(moths_req != 0 && world.getBlockState(this.getPosition()).getBlock() instanceof TorchBlock && world.getEntitiesWithinAABB(EntityMoth.class, this.getBoundingBox()).size() >= moths_req && net.minecraftforge.event.ForgeEventFactory.getMobGriefingEvent(this.world, this)) {
-            BlockState state = world.getBlockState(this.getPosition());
-            Block.spawnDrops(state, world, this.getPosition());
-            world.setBlockState(this.getPosition(), Blocks.AIR.getDefaultState());
+        if(moths_req != 0 && level.getBlockState(this.blockPosition()).getBlock() instanceof TorchBlock && level.getEntitiesOfClass(EntityMoth.class, this.getBoundingBox()).size() >= moths_req && net.minecraftforge.event.ForgeEventFactory.getMobGriefingEvent(this.level, this)) {
+            BlockState state = level.getBlockState(this.blockPosition());
+            Block.dropResources(state, level, this.blockPosition());
+            level.setBlockAndUpdate(this.blockPosition(), Blocks.AIR.defaultBlockState());
         }
     }
 
     public boolean isAttractedToLight() {
-        long time = this.world.getDayTime() % 24000L;
-        return world.getLightFor(LightType.SKY, this.getPosition()) < 10 || (time >= 13000L && time <= 23000L);
+        long time = this.level.getDayTime() % 24000L;
+        return level.getBrightness(LightLayer.SKY, this.blockPosition()) < 10 || (time >= 13000L && time <= 23000L);
     }
 
     private static boolean isLightBlock(BlockState blockState) {
-        return blockState.getLightValue() > 0;
+        return blockState.getLightEmission() > 0;
     }
 
     @Override
-    protected boolean canTriggerWalking() {
+    protected boolean isMovementNoisy() {
         return false;
     }
 
     @Override
-    public boolean onLivingFall(float distance, float damageMultiplier) {
+    public boolean causeFallDamage(float distance, float damageMultiplier) {
         return false;
     }
 
     @Override
-    protected void updateFallState(double y, boolean onGroundIn, BlockState state, BlockPos pos) {
+    protected void checkFallDamage(double y, boolean onGroundIn, BlockState state, BlockPos pos) {
     }
 
     @Override
-    public boolean doesEntityNotTriggerPressurePlate() {
+    public boolean isIgnoringBlockTriggers() {
         return true;
     }
 
     @Override
-    public boolean attackEntityFrom(DamageSource source, float amount) {
+    public boolean hurt(DamageSource source, float amount) {
         if(this.isInvulnerableTo(source)) {
             return false;
         } else {
-            if(!this.world.isRemote && this.isLanded()) {
+            if(!this.level.isClientSide && this.isLanded()) {
                 this.setNotLanded();
             }
-            return super.attackEntityFrom(source, amount);
+            return super.hurt(source, amount);
         }
     }
 
     @Override
-    public void readAdditional(CompoundNBT compound) {
-        super.readAdditional(compound);
-        this.dataManager.set(LANDED, compound.getInt("Landed"));
+    public void readAdditionalSaveData(CompoundTag compound) {
+        super.readAdditionalSaveData(compound);
+        this.entityData.set(LANDED, compound.getInt("Landed"));
     }
 
     @Override
-    public void writeAdditional(CompoundNBT compound) {
-        super.writeAdditional(compound);
-        compound.putInt("Landed", this.dataManager.get(LANDED));
+    public void addAdditionalSaveData(CompoundTag compound) {
+        super.addAdditionalSaveData(compound);
+        compound.putInt("Landed", this.entityData.get(LANDED));
     }
 
     @Override
     protected float getRandomizedSize() {
-        return (this.rand.nextInt(30) + 1F) / 100F + 0.15F;
+        return (this.random.nextInt(30) + 1F) / 100F + 0.15F;
     }
 
     @Override
-    public boolean canBeLeashedTo(PlayerEntity player) {
+    public boolean canBeLeashed(Player player) {
         return false;
     }
 
@@ -284,11 +290,11 @@ public class EntityMoth extends EntityAnimalWithTypesAndSizeContainable {
         return ModEntities.MOTH;
     }
 
-    public static void bottleTooltip(EntityTypeContainer<? extends MobEntity> container, ItemStack stack, @Nullable World worldIn, List<ITextComponent> tooltip) {
-        CompoundNBT tag = stack.getTag();
+    public static void bottleTooltip(EntityTypeContainer<? extends Mob> container, ItemStack stack, @Nullable Level worldIn, List<Component> tooltip) {
+        CompoundTag tag = stack.getTag();
         if(tag != null) {
             if(tag.contains("SizeTag", Constants.NBT.TAG_FLOAT)) {
-                tooltip.add(new StringTextComponent("Size: " + tag.getFloat("SizeTag")).setStyle(Style.EMPTY.mergeWithFormatting(TextFormatting.ITALIC, TextFormatting.GRAY)));
+                tooltip.add(new TextComponent("Size: " + tag.getFloat("SizeTag")).setStyle(Style.EMPTY.applyFormats(ChatFormatting.ITALIC, ChatFormatting.GRAY)));
             }
         }
     }

@@ -1,70 +1,70 @@
 package dev.itsmeow.whisperwoods.entity;
 
 import dev.itsmeow.imdlib.entity.interfaces.IContainable;
-import net.minecraft.entity.EntityType;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.util.ActionResultType;
-import net.minecraft.util.Hand;
-import net.minecraft.world.World;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.Level;
 
 public abstract class EntityAnimalWithTypesAndSizeContainable extends EntityAnimalWithTypesAndSize implements IContainable {
 
-    public EntityAnimalWithTypesAndSizeContainable(EntityType<? extends EntityAnimalWithTypesAndSizeContainable> entityType, World worldIn) {
+    public EntityAnimalWithTypesAndSizeContainable(EntityType<? extends EntityAnimalWithTypesAndSizeContainable> entityType, Level worldIn) {
         super(entityType, worldIn);
     }
 
     @Override
-    protected void registerData() {
-        super.registerData();
+    protected void defineSynchedData() {
+        super.defineSynchedData();
         this.registerFromContainerKey();
     }
 
     @Override
-    public void writeAdditional(CompoundNBT compound) {
-        super.writeAdditional(compound);
+    public void addAdditionalSaveData(CompoundTag compound) {
+        super.addAdditionalSaveData(compound);
         this.writeFromContainerToEntity(compound);
     }
 
     @Override
-    public void readAdditional(CompoundNBT compound) {
-        super.readAdditional(compound);
+    public void readAdditionalSaveData(CompoundTag compound) {
+        super.readAdditionalSaveData(compound);
         this.readFromContainerToEntity(compound);
     }
 
     @Override
-    public boolean canDespawn(double distanceToClosestPlayer) {
+    public boolean removeWhenFarAway(double distanceToClosestPlayer) {
         return !this.isFromContainer() && despawn(distanceToClosestPlayer);
     }
 
     @Override
-    public boolean preventDespawn() {
+    public boolean requiresCustomPersistence() {
         return this.isFromContainer();
     }
 
     @Override
     public void setContainerData(ItemStack bucket) {
         IContainable.super.setContainerData(bucket);
-        CompoundNBT tag = bucket.getTag();
+        CompoundTag tag = bucket.getTag();
         if(bucket.getTag() == null) {
-            tag = new CompoundNBT();
+            tag = new CompoundTag();
         }
         tag.putString("BucketVariantTag", this.getVariantNameOrEmpty());
-        tag.putFloat("SizeTag", this.dataManager.get(SIZE));
+        tag.putFloat("SizeTag", this.entityData.get(SIZE));
         bucket.setTag(tag);
     }
 
     @Override
-    public ActionResultType getEntityInteractionResult(PlayerEntity player, Hand hand) {
+    public InteractionResult mobInteract(Player player, InteractionHand hand) {
         if(this.processContainerInteract(player, hand)) {
-            return ActionResultType.SUCCESS;
+            return InteractionResult.SUCCESS;
         }
-        return super.getEntityInteractionResult(player, hand);
+        return super.mobInteract(player, hand);
     }
 
     @Override
-    public void readFromContainerTag(CompoundNBT tag) {
+    public void readFromContainerTag(CompoundTag tag) {
         if(tag.contains("BucketVariantTag")) {
             this.setType(tag.getString("BucketVariantTag"));
         }

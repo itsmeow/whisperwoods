@@ -6,37 +6,52 @@ import dev.itsmeow.whisperwoods.WhisperwoodsMod;
 import dev.itsmeow.whisperwoods.init.ModEntities;
 import dev.itsmeow.whisperwoods.init.ModSounds;
 import dev.itsmeow.whisperwoods.util.IOverrideCollisions;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.TorchBlock;
 import net.minecraft.client.Minecraft;
-import net.minecraft.enchantment.EnchantmentHelper;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.entity.*;
-import net.minecraft.entity.ai.RandomPositionGenerator;
-import net.minecraft.entity.ai.attributes.Attributes;
-import net.minecraft.entity.ai.goal.Goal;
-import net.minecraft.entity.ai.goal.NearestAttackableTargetGoal;
-import net.minecraft.entity.ai.goal.SwimGoal;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.player.ServerPlayerEntity;
-import net.minecraft.item.BlockItem;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.network.datasync.DataParameter;
-import net.minecraft.network.datasync.DataSerializers;
-import net.minecraft.network.datasync.EntityDataManager;
+import net.minecraft.network.syncher.EntityDataAccessor;
+import net.minecraft.network.syncher.EntityDataSerializers;
+import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.pathfinding.*;
-import net.minecraft.potion.EffectInstance;
-import net.minecraft.potion.Effects;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.util.*;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.math.vector.Vector3d;
-import net.minecraft.world.IBlockReader;
-import net.minecraft.world.LightType;
-import net.minecraft.world.World;
-import net.minecraft.world.biome.Biome;
-import net.minecraft.world.biome.Biomes;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.world.damagesource.EntityDamageSource;
+import net.minecraft.world.effect.MobEffectInstance;
+import net.minecraft.world.effect.MobEffects;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.Mob;
+import net.minecraft.world.entity.MobSpawnType;
+import net.minecraft.world.entity.ai.attributes.Attributes;
+import net.minecraft.world.entity.ai.goal.FloatGoal;
+import net.minecraft.world.entity.ai.goal.Goal;
+import net.minecraft.world.entity.ai.goal.target.NearestAttackableTargetGoal;
+import net.minecraft.world.entity.ai.navigation.GroundPathNavigation;
+import net.minecraft.world.entity.ai.navigation.PathNavigation;
+import net.minecraft.world.entity.ai.util.RandomPos;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.BlockItem;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.enchantment.EnchantmentHelper;
+import net.minecraft.world.level.BlockGetter;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.LightLayer;
+import net.minecraft.world.level.biome.Biome;
+import net.minecraft.world.level.biome.Biomes;
+import net.minecraft.world.level.block.TorchBlock;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.pathfinder.BlockPathTypes;
+import net.minecraft.world.level.pathfinder.PathFinder;
+import net.minecraft.world.level.pathfinder.WalkNodeEvaluator;
+import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.common.BiomeDictionary;
 import net.minecraftforge.fml.loading.FMLEnvironment;
@@ -49,97 +64,97 @@ import java.util.function.Supplier;
 
 public class EntityHidebehind extends EntityCreatureWithSelectiveTypes implements IOverrideCollisions<EntityCreatureWithTypes> {
 
-    public final DamageSource HIDEBEHIND = new EntityDamageSource("hidebehind", this).setDamageIsAbsolute().setDamageBypassesArmor();
-    protected static final DataParameter<Integer> HIDING = EntityDataManager.createKey(EntityHidebehind.class, DataSerializers.VARINT);
-    protected static final DataParameter<Boolean> OPEN = EntityDataManager.createKey(EntityHidebehind.class, DataSerializers.BOOLEAN);
-    protected static final DataParameter<Integer> ATTACK_SEQUENCE_TICKS = EntityDataManager.createKey(EntityHidebehind.class, DataSerializers.VARINT);
-    protected static final DataParameter<Optional<UUID>> TARGET_UUID = EntityDataManager.createKey(EntityHidebehind.class, DataSerializers.OPTIONAL_UNIQUE_ID);
+    public final DamageSource HIDEBEHIND = new EntityDamageSource("hidebehind", this).bypassMagic().bypassArmor();
+    protected static final EntityDataAccessor<Integer> HIDING = SynchedEntityData.defineId(EntityHidebehind.class, EntityDataSerializers.INT);
+    protected static final EntityDataAccessor<Boolean> OPEN = SynchedEntityData.defineId(EntityHidebehind.class, EntityDataSerializers.BOOLEAN);
+    protected static final EntityDataAccessor<Integer> ATTACK_SEQUENCE_TICKS = SynchedEntityData.defineId(EntityHidebehind.class, EntityDataSerializers.INT);
+    protected static final EntityDataAccessor<Optional<UUID>> TARGET_UUID = SynchedEntityData.defineId(EntityHidebehind.class, EntityDataSerializers.OPTIONAL_UUID);
 
-    public EntityHidebehind(EntityType<? extends EntityHidebehind> type, World world) {
+    public EntityHidebehind(EntityType<? extends EntityHidebehind> type, Level world) {
         super(type, world);
-        this.stepHeight = 2F;
+        this.maxUpStep = 2F;
     }
 
     @Override
     protected void registerGoals() {
-        this.goalSelector.addGoal(0, new SwimGoal(this));
+        this.goalSelector.addGoal(0, new FloatGoal(this));
         this.goalSelector.addGoal(1, new HideFromTargetGoal(this));
         this.goalSelector.addGoal(3, new StalkTargetGoal(this, 0.5D, 35F));
-        this.targetSelector.addGoal(0, new NearestAttackableTargetGoal<>(this, PlayerEntity.class, 0, false, false, this::isEntityAttackable));
+        this.targetSelector.addGoal(0, new NearestAttackableTargetGoal<>(this, Player.class, 0, false, false, this::isEntityAttackable));
     }
 
     public boolean hasTargetUUID() {
-        return this.getDataManager().get(TARGET_UUID).isPresent();
+        return this.getEntityData().get(TARGET_UUID).isPresent();
     }
 
-    public boolean isSequenceTarget(PlayerEntity player) {
-        Optional<UUID> opt = this.getDataManager().get(TARGET_UUID);
+    public boolean isSequenceTarget(Player player) {
+        Optional<UUID> opt = this.getEntityData().get(TARGET_UUID);
         return player != null && player.getGameProfile().getId() != null && opt.isPresent() && player.getGameProfile().getId().equals(opt.get());
     }
 
-    public void setSequenceTarget(PlayerEntity player) {
-        this.getDataManager().set(TARGET_UUID, player == null || player.getGameProfile().getId() == null ? Optional.empty() : Optional.of(player.getGameProfile().getId()));
+    public void setSequenceTarget(Player player) {
+        this.getEntityData().set(TARGET_UUID, player == null || player.getGameProfile().getId() == null ? Optional.empty() : Optional.of(player.getGameProfile().getId()));
     }
 
     public int attackSequenceTicks() {
-        return this.dataManager.get(ATTACK_SEQUENCE_TICKS);
+        return this.entityData.get(ATTACK_SEQUENCE_TICKS);
     }
 
     public void attackSequenceTicksDecrement() {
-        this.dataManager.set(ATTACK_SEQUENCE_TICKS, attackSequenceTicks() - 1);
+        this.entityData.set(ATTACK_SEQUENCE_TICKS, attackSequenceTicks() - 1);
     }
 
     public void setAttackSequenceTicks(int value) {
-        this.dataManager.set(ATTACK_SEQUENCE_TICKS, value);
+        this.entityData.set(ATTACK_SEQUENCE_TICKS, value);
         if(value == 0) {
             this.setSequenceTarget(null);
         }
     }
 
     @Override
-    public boolean attackEntityFrom(DamageSource source, float amount) {
-        if(source.getTrueSource() == this.getAttackTarget() && this.attackSequenceTicks() > 0) {
+    public boolean hurt(DamageSource source, float amount) {
+        if(source.getEntity() == this.getTarget() && this.attackSequenceTicks() > 0) {
             this.setAttackSequenceTicks(0);
         }
-        if (!world.isRemote()) {
-            boolean isImmediate = source.getImmediateSource() instanceof PlayerEntity;
-            PlayerEntity player = isImmediate ? (PlayerEntity) source.getImmediateSource() : (source.getTrueSource() instanceof PlayerEntity ? (PlayerEntity) source.getTrueSource() : null);
+        if (!level.isClientSide()) {
+            boolean isImmediate = source.getDirectEntity() instanceof Player;
+            Player player = isImmediate ? (Player) source.getDirectEntity() : (source.getEntity() instanceof Player ? (Player) source.getEntity() : null);
             if (player != null) {
                 int hiding = this.getHidingInt();
                 boolean attackable = this.isEntityAttackable(player);
                 if (!attackable || hiding > 0) {
                     // retaliate attacks if you can't chase due to light
                     if (!player.isCreative()) {
-                        player.addPotionEffect(new EffectInstance(Effects.BLINDNESS, 15 * (hiding == 1 ? 5 : 20), 0));
-                        if (player.getDistance(this) < 3)
-                            player.attackEntityFrom(HIDEBEHIND, 1F);
+                        player.addEffect(new MobEffectInstance(MobEffects.BLINDNESS, 15 * (hiding == 1 ? 5 : 20), 0));
+                        if (player.distanceTo(this) < 3)
+                            player.hurt(HIDEBEHIND, 1F);
                     }
                     HideFromTargetGoal.doTreeTick(this);
-                    return super.attackEntityFrom(source, amount * (hiding == 1 ? 0.5F : 0.25F));
+                    return super.hurt(source, amount * (hiding == 1 ? 0.5F : 0.25F));
                 }
             }
         }
-        return super.attackEntityFrom(source, amount);
+        return super.hurt(source, amount);
     }
 
     @Override
     public void tick() {
         super.tick();
-        if(this.getAttackTarget() != null && !this.getAttackTarget().isAlive()) {
-            this.setAttackTarget(null);
+        if(this.getTarget() != null && !this.getTarget().isAlive()) {
+            this.setTarget(null);
         }
         if(this.isInWater()) {
             int i = 12;
             int j = 2;
-            BlockPos.Mutable bp = new BlockPos.Mutable();
+            BlockPos.MutableBlockPos bp = new BlockPos.MutableBlockPos();
             BlockPos destinationBlock = null;
             for(int k = 0; k <= j; k = k > 0 ? -k : 1 - k) {
                 for(int l = 0; l < i; ++l) {
                     for(int i1 = 0; i1 <= l; i1 = i1 > 0 ? -i1 : 1 - i1) {
                         for(int j1 = i1 < l && i1 > -l ? l : 0; j1 <= l; j1 = j1 > 0 ? -j1 : 1 - j1) {
-                            bp.setPos(this.getPosition()).move(i1, k - 1, j1);
-                            if(this.world.getBlockState(bp).getBlock().isIn(BlockTags.LOGS)) {
-                                destinationBlock = bp.toImmutable();
+                            bp.set(this.blockPosition()).move(i1, k - 1, j1);
+                            if(this.level.getBlockState(bp).getBlock().is(BlockTags.LOGS)) {
+                                destinationBlock = bp.immutable();
                             }
                         }
                     }
@@ -149,19 +164,19 @@ public class EntityHidebehind extends EntityCreatureWithSelectiveTypes implement
             if(destinationBlock != null) {
                 for(Direction dir : Direction.values()) {
                     if(!fixed) {
-                        if(this.world.isAirBlock(destinationBlock.offset(dir)) || this.world.getBlockState(destinationBlock.offset(dir)).getBlock().isIn(BlockTags.LEAVES)) {
-                            destinationBlock = destinationBlock.offset(dir);
+                        if(this.level.isEmptyBlock(destinationBlock.relative(dir)) || this.level.getBlockState(destinationBlock.relative(dir)).getBlock().is(BlockTags.LEAVES)) {
+                            destinationBlock = destinationBlock.relative(dir);
                             fixed = true;
                         }
                     }
                 }
             }
             if(fixed) {
-                this.setPositionAndUpdate(destinationBlock.getX(), destinationBlock.getY(), destinationBlock.getZ());
+                this.teleportTo(destinationBlock.getX(), destinationBlock.getY(), destinationBlock.getZ());
             }
         }
-        if(!world.isRemote()) {
-            if (world.isDaytime() && world.getLightFor(LightType.SKY, this.getPosition()) > 10) {
+        if(!level.isClientSide()) {
+            if (level.isDay() && level.getBrightness(LightLayer.SKY, this.blockPosition()) > 10) {
                 this.setHiding(2);
             } else if (this.getHidingInt() == 2) {
                 this.setHiding(1);
@@ -171,12 +186,12 @@ public class EntityHidebehind extends EntityCreatureWithSelectiveTypes implement
             }
         }
         float atkTicks = attackSequenceTicks();
-        if(this.getAttackTarget() != null && this.getAttackTarget().getDistanceSq(this) < 5D && atkTicks == 0 && !this.getHiding() && this.isEntityAttackable(this.getAttackTarget())) {
-            if(this.getAttackTarget() instanceof PlayerEntity) {
-                PlayerEntity player = (PlayerEntity) this.getAttackTarget();
-                if(!this.world.isRemote && this.getRNG().nextInt(20) == 0) {
+        if(this.getTarget() != null && this.getTarget().distanceToSqr(this) < 5D && atkTicks == 0 && !this.getHiding() && this.isEntityAttackable(this.getTarget())) {
+            if(this.getTarget() instanceof Player) {
+                Player player = (Player) this.getTarget();
+                if(!this.level.isClientSide && this.getRandom().nextInt(20) == 0) {
                     if(player.getHealth() > this.getAttribute(Attributes.ATTACK_DAMAGE).getValue()) {
-                        this.attackEntityAsMob(player);
+                        this.doHurtTarget(player);
                     } else {
                         this.setAttackSequenceTicks(40);
                         this.setSequenceTarget(player);
@@ -189,36 +204,36 @@ public class EntityHidebehind extends EntityCreatureWithSelectiveTypes implement
             if(!this.getOpen()) {
                 this.setOpen(true);
             }
-            PlayerEntity target = null;
-            if(this.getAttackTarget() instanceof ServerPlayerEntity) {
-                target = (ServerPlayerEntity) this.getAttackTarget();
+            Player target = null;
+            if(this.getTarget() instanceof ServerPlayer) {
+                target = (ServerPlayer) this.getTarget();
             } else if(FMLEnvironment.dist == Dist.CLIENT) {
-                Supplier<Supplier<PlayerEntity>> s = () -> ClientSafeLogic::getTargetClient;
+                Supplier<Supplier<Player>> s = () -> ClientSafeLogic::getTargetClient;
                 target = s.get().get();
             }
             if(this.isSequenceTarget(target)) {
-                target.setMotion(0, 0, 0);
-                double d0 = this.getPosX() - target.getPosX();
-                double d1 = this.getPosZ() - target.getPosZ();
-                float angle = (float) (MathHelper.atan2(d1, d0) * (double) (180F / (float) Math.PI)) - 90.0F;
-                target.setPositionAndRotation(target.getPosX(), target.getPosY(), target.getPosZ(), angle, 0);
-                double e0 = target.getPosX() - this.getPosX();
-                double e1 = target.getPosZ() - this.getPosZ();
-                float angle1 = (float) (MathHelper.atan2(e1, e0) * (double) (180F / (float) Math.PI)) - 90.0F;
-                this.setPositionAndRotation(this.getPosX(), this.getPosY(), this.getPosZ(), angle1, 0);
-                this.rotationYaw = angle1;
+                target.setDeltaMovement(0, 0, 0);
+                double d0 = this.getX() - target.getX();
+                double d1 = this.getZ() - target.getZ();
+                float angle = (float) (Mth.atan2(d1, d0) * (double) (180F / (float) Math.PI)) - 90.0F;
+                target.absMoveTo(target.getX(), target.getY(), target.getZ(), angle, 0);
+                double e0 = target.getX() - this.getX();
+                double e1 = target.getZ() - this.getZ();
+                float angle1 = (float) (Mth.atan2(e1, e0) * (double) (180F / (float) Math.PI)) - 90.0F;
+                this.absMoveTo(this.getX(), this.getY(), this.getZ(), angle1, 0);
+                this.yRot = angle1;
                 if (this.attackSequenceTicks() == 20) {
                     target.playSound(ModSounds.HIDEBEHIND_SOUND.get(), 2F, 1F);
                 }
-                this.getLookController().setLookPositionWithEntity(target, 360F, 360F);
+                this.getLookControl().setLookAt(target, 360F, 360F);
             }
             this.attackSequenceTicksDecrement();
-            if(atkTicks - 1 == 0 && !world.isRemote()) {
+            if(atkTicks - 1 == 0 && !level.isClientSide()) {
                 this.setOpen(false);
-                if(this.getAttackTarget() != null) {
-                    this.attackEntityAsMob(target);
-                    this.setAttackTarget(null);
-                    this.getDataManager().set(TARGET_UUID, Optional.empty());
+                if(this.getTarget() != null) {
+                    this.doHurtTarget(target);
+                    this.setTarget(null);
+                    this.getEntityData().set(TARGET_UUID, Optional.empty());
                 }
             }
         }
@@ -228,15 +243,15 @@ public class EntityHidebehind extends EntityCreatureWithSelectiveTypes implement
     }
 
     public static class ClientSafeLogic {
-        public static PlayerEntity getTargetClient() {
+        public static Player getTargetClient() {
             return Minecraft.getInstance().player;
         }
     }
 
     public boolean isEntityAttackable(LivingEntity target) {
-        Item mainItem = target.getHeldItem(Hand.MAIN_HAND).getItem();
-        Item offItem = target.getHeldItem(Hand.OFF_HAND).getItem();
-        return world.getLight(target.getPosition()) < 8 && !(mainItem instanceof BlockItem && ((BlockItem)mainItem).getBlock() instanceof TorchBlock) && !(offItem instanceof BlockItem && ((BlockItem)offItem).getBlock() instanceof TorchBlock);
+        Item mainItem = target.getItemInHand(InteractionHand.MAIN_HAND).getItem();
+        Item offItem = target.getItemInHand(InteractionHand.OFF_HAND).getItem();
+        return level.getMaxLocalRawBrightness(target.blockPosition()) < 8 && !(mainItem instanceof BlockItem && ((BlockItem)mainItem).getBlock() instanceof TorchBlock) && !(offItem instanceof BlockItem && ((BlockItem)offItem).getBlock() instanceof TorchBlock);
     }
 
     @Override
@@ -245,7 +260,7 @@ public class EntityHidebehind extends EntityCreatureWithSelectiveTypes implement
     }
 
     @Override
-    public boolean canBePushed() {
+    public boolean isPushable() {
         return false;
     }
 
@@ -254,23 +269,23 @@ public class EntityHidebehind extends EntityCreatureWithSelectiveTypes implement
     }
 
     public int getHidingInt() {
-        return this.getDataManager().get(HIDING);
+        return this.getEntityData().get(HIDING);
     }
 
     public void setHiding(boolean hiding) {
-        this.getDataManager().set(HIDING, hiding ? 1 : 0);
+        this.getEntityData().set(HIDING, hiding ? 1 : 0);
     }
 
     public void setHiding(int hiding) {
-        this.getDataManager().set(HIDING, hiding);
+        this.getEntityData().set(HIDING, hiding);
     }
 
     public boolean getOpen() {
-        return this.getDataManager().get(OPEN);
+        return this.getEntityData().get(OPEN);
     }
 
     public void setOpen(boolean open) {
-        this.getDataManager().set(OPEN, open);
+        this.getEntityData().set(OPEN, open);
     }
 
     public boolean isBeingViewed() {
@@ -282,11 +297,11 @@ public class EntityHidebehind extends EntityCreatureWithSelectiveTypes implement
      *         HB, 180 if opposite). If there is no target, returns -1000
      */
     public double getTargetViewingAngle() {
-        LivingEntity target = this.getAttackTarget();
+        LivingEntity target = this.getTarget();
         if(target == null) {
             return -1000;
         }
-        return MathHelper.wrapDegrees(getRequiredViewingAngle() - MathHelper.wrapDegrees(getAttackTarget().rotationYaw));
+        return Mth.wrapDegrees(getRequiredViewingAngle() - Mth.wrapDegrees(getTarget().yRot));
     }
 
     /**
@@ -294,71 +309,71 @@ public class EntityHidebehind extends EntityCreatureWithSelectiveTypes implement
      *         If there is no target, returns -1000
      */
     public double getRequiredViewingAngle() {
-        LivingEntity target = this.getAttackTarget();
+        LivingEntity target = this.getTarget();
         if(target == null) {
             return -1000;
         }
-        return MathHelper.wrapDegrees(90D + Math.toDegrees(Math.atan2(target.getPosZ() - this.getPosZ(), target.getPosX() - this.getPosX())));
+        return Mth.wrapDegrees(90D + Math.toDegrees(Math.atan2(target.getZ() - this.getZ(), target.getX() - this.getX())));
     }
 
     @Override
-    public boolean attackEntityAsMob(Entity entity) {
+    public boolean doHurtTarget(Entity entity) {
         float f = (float) this.getAttribute(Attributes.ATTACK_DAMAGE).getValue();
         float f1 = (float) this.getAttribute(Attributes.ATTACK_KNOCKBACK).getValue();
         if(entity instanceof LivingEntity) {
-            f += EnchantmentHelper.getModifierForCreature(this.getHeldItemMainhand(), ((LivingEntity) entity).getCreatureAttribute());
-            f1 += (float) EnchantmentHelper.getKnockbackModifier(this);
+            f += EnchantmentHelper.getDamageBonus(this.getMainHandItem(), ((LivingEntity) entity).getMobType());
+            f1 += (float) EnchantmentHelper.getKnockbackBonus(this);
         }
 
-        int i = EnchantmentHelper.getFireAspectModifier(this);
+        int i = EnchantmentHelper.getFireAspect(this);
         if(i > 0) {
-            entity.setFire(i * 4);
+            entity.setSecondsOnFire(i * 4);
         }
 
-        boolean flag = entity.attackEntityFrom(HIDEBEHIND, f);
+        boolean flag = entity.hurt(HIDEBEHIND, f);
         if(flag) {
             if(f1 > 0.0F && entity instanceof LivingEntity) {
-                ((LivingEntity) entity).applyKnockback(f1 * 0.5F, MathHelper.sin(this.rotationYaw * ((float) Math.PI / 180F)), -MathHelper.cos(this.rotationYaw * ((float) Math.PI / 180F)));
-                this.setMotion(this.getMotion().mul(0.6D, 1.0D, 0.6D));
+                ((LivingEntity) entity).knockback(f1 * 0.5F, Mth.sin(this.yRot * ((float) Math.PI / 180F)), -Mth.cos(this.yRot * ((float) Math.PI / 180F)));
+                this.setDeltaMovement(this.getDeltaMovement().multiply(0.6D, 1.0D, 0.6D));
             }
 
-            if(entity instanceof PlayerEntity) {
-                PlayerEntity playerentity = (PlayerEntity) entity;
-                ItemStack itemstack = this.getHeldItemMainhand();
-                ItemStack itemstack1 = playerentity.isHandActive() ? playerentity.getActiveItemStack() : ItemStack.EMPTY;
+            if(entity instanceof Player) {
+                Player playerentity = (Player) entity;
+                ItemStack itemstack = this.getMainHandItem();
+                ItemStack itemstack1 = playerentity.isUsingItem() ? playerentity.getUseItem() : ItemStack.EMPTY;
                 if(!itemstack.isEmpty() && !itemstack1.isEmpty() && itemstack.canDisableShield(itemstack1, playerentity, this) && itemstack1.isShield(playerentity)) {
-                    float f2 = 0.25F + (float) EnchantmentHelper.getEfficiencyModifier(this) * 0.05F;
-                    if(this.rand.nextFloat() < f2) {
-                        playerentity.getCooldownTracker().setCooldown(itemstack.getItem(), 100);
-                        this.world.setEntityState(playerentity, (byte) 30);
+                    float f2 = 0.25F + (float) EnchantmentHelper.getBlockEfficiency(this) * 0.05F;
+                    if(this.random.nextFloat() < f2) {
+                        playerentity.getCooldowns().addCooldown(itemstack.getItem(), 100);
+                        this.level.broadcastEntityEvent(playerentity, (byte) 30);
                     }
                 }
             }
 
-            this.applyEnchantments(this, entity);
+            this.doEnchantDamageEffects(this, entity);
         }
 
         return flag;
     }
 
     @Override
-    public boolean isEntityInsideOpaqueBlock() {
+    public boolean isInWall() {
         return insideOpaque();
     }
 
     @Override
-    public Vector3d getAllowedMovement(Vector3d vec) {
+    public Vec3 collide(Vec3 vec) {
         return allowedMove(vec);
     }
 
     @Override
     public boolean canPassThrough(BlockState state) {
-        return state.getBlock().isIn(BlockTags.LEAVES);
+        return state.getBlock().is(BlockTags.LEAVES);
     }
 
     @Override
     public boolean preventSuffocation(BlockState state) {
-        return state.getBlock().isIn(BlockTags.LOGS) || canPassThrough(state);
+        return state.getBlock().is(BlockTags.LOGS) || canPassThrough(state);
     }
 
     public static class HideFromTargetGoal extends Goal {
@@ -366,30 +381,30 @@ public class EntityHidebehind extends EntityCreatureWithSelectiveTypes implement
 
         public HideFromTargetGoal(EntityHidebehind hb) {
             this.hidebehind = hb;
-            this.setMutexFlags(EnumSet.of(Goal.Flag.MOVE));
+            this.setFlags(EnumSet.of(Goal.Flag.MOVE));
         }
 
         @Override
-        public boolean shouldExecute() {
-            return hidebehind.getAttackTarget() != null && (hidebehind.isBeingViewed() || !hidebehind.isEntityAttackable(hidebehind.getAttackTarget())) && hidebehind.attackSequenceTicks() == 0;
+        public boolean canUse() {
+            return hidebehind.getTarget() != null && (hidebehind.isBeingViewed() || !hidebehind.isEntityAttackable(hidebehind.getTarget())) && hidebehind.attackSequenceTicks() == 0;
         }
 
         @Override
-        public boolean shouldContinueExecuting() {
-            return this.shouldExecute();
+        public boolean canContinueToUse() {
+            return this.canUse();
         }
 
         @Override
-        public void resetTask() {
+        public void stop() {
             if(hidebehind.getHidingInt() == 1)
                 hidebehind.setHiding(false);
         }
 
         @Override
-        public void startExecuting() {
+        public void start() {
             if(!hidebehind.getHiding())
                 hidebehind.setHiding(true);
-            this.hidebehind.getNavigator().clearPath();
+            this.hidebehind.getNavigation().stop();
         }
 
         @Override
@@ -398,30 +413,30 @@ public class EntityHidebehind extends EntityCreatureWithSelectiveTypes implement
         }
 
         public static void doTreeTick(EntityHidebehind hidebehind) {
-            hidebehind.getNavigator().clearPath();
+            hidebehind.getNavigation().stop();
             boolean nearTree = false;
             for(Direction dir : Direction.values()) {
                 if(!nearTree) {
-                    if(hidebehind.world.getBlockState(hidebehind.getPosition().offset(dir)).getBlock().isIn(BlockTags.LOGS)) {
+                    if(hidebehind.level.getBlockState(hidebehind.blockPosition().relative(dir)).getBlock().is(BlockTags.LOGS)) {
                         nearTree = true;
                     }
-                    if(hidebehind.world.getBlockState(hidebehind.getPosition().up(3).offset(dir)).getBlock().isIn(BlockTags.LEAVES)) {
+                    if(hidebehind.level.getBlockState(hidebehind.blockPosition().above(3).relative(dir)).getBlock().is(BlockTags.LEAVES)) {
                         nearTree = true;
                     }
                 }
             }
-            if(!nearTree && hidebehind.getRNG().nextInt(5) == 0) {
+            if(!nearTree && hidebehind.getRandom().nextInt(5) == 0) {
                 int i = 12;
                 int j = 2;
-                BlockPos.Mutable blockpos$mutableblockpos = new BlockPos.Mutable();
+                BlockPos.MutableBlockPos blockpos$mutableblockpos = new BlockPos.MutableBlockPos();
                 BlockPos destinationBlock = null;
                 for(int k = 0; k <= j; k = k > 0 ? -k : 1 - k) {
                     for(int l = 0; l < i; ++l) {
                         for(int i1 = 0; i1 <= l; i1 = i1 > 0 ? -i1 : 1 - i1) {
                             for(int j1 = i1 < l && i1 > -l ? l : 0; j1 <= l; j1 = j1 > 0 ? -j1 : 1 - j1) {
-                                blockpos$mutableblockpos.setPos(hidebehind.getPosition()).move(i1, k - 1, j1);
-                                if(hidebehind.world.getBlockState(blockpos$mutableblockpos).getBlock().isIn(BlockTags.LOGS)) {
-                                    destinationBlock = blockpos$mutableblockpos.toImmutable();
+                                blockpos$mutableblockpos.set(hidebehind.blockPosition()).move(i1, k - 1, j1);
+                                if(hidebehind.level.getBlockState(blockpos$mutableblockpos).getBlock().is(BlockTags.LOGS)) {
+                                    destinationBlock = blockpos$mutableblockpos.immutable();
                                 }
                             }
                         }
@@ -431,56 +446,56 @@ public class EntityHidebehind extends EntityCreatureWithSelectiveTypes implement
                 if(destinationBlock != null) {
                     for(Direction dir : Direction.values()) {
                         if(!fixed) {
-                            if(hidebehind.world.isAirBlock(destinationBlock.offset(dir)) || hidebehind.world.getBlockState(destinationBlock.offset(dir)).getBlock().isIn(BlockTags.LEAVES)) {
-                                destinationBlock = destinationBlock.offset(dir);
+                            if(hidebehind.level.isEmptyBlock(destinationBlock.relative(dir)) || hidebehind.level.getBlockState(destinationBlock.relative(dir)).getBlock().is(BlockTags.LEAVES)) {
+                                destinationBlock = destinationBlock.relative(dir);
                                 fixed = true;
                             }
                         }
                     }
                 }
                 if(fixed) {
-                    hidebehind.setPositionAndUpdate(destinationBlock.getX(), destinationBlock.getY(), destinationBlock.getZ());
+                    hidebehind.teleportTo(destinationBlock.getX(), destinationBlock.getY(), destinationBlock.getZ());
                 }
             }
         }
     }
 
     @Override
-    protected void registerData() {
-        super.registerData();
-        this.dataManager.register(HIDING, 0);
-        this.dataManager.register(OPEN, false);
-        this.dataManager.register(ATTACK_SEQUENCE_TICKS, 0);
-        this.dataManager.register(TARGET_UUID, Optional.empty());
+    protected void defineSynchedData() {
+        super.defineSynchedData();
+        this.entityData.define(HIDING, 0);
+        this.entityData.define(OPEN, false);
+        this.entityData.define(ATTACK_SEQUENCE_TICKS, 0);
+        this.entityData.define(TARGET_UUID, Optional.empty());
     }
 
     @Override
-    public boolean canDespawn(double range) {
-        return world.isDaytime() && super.canDespawn(range);
+    public boolean removeWhenFarAway(double range) {
+        return level.isDay() && super.removeWhenFarAway(range);
     }
 
     @Override
-    protected PathNavigator createNavigator(World world) {
+    protected PathNavigation createNavigation(Level world) {
         return new HidebehindGroundNavigator(this, world);
     }
 
-    public static class HidebehindGroundNavigator extends GroundPathNavigator {
+    public static class HidebehindGroundNavigator extends GroundPathNavigation {
 
-        public HidebehindGroundNavigator(MobEntity entityliving, World world) {
+        public HidebehindGroundNavigator(Mob entityliving, Level world) {
             super(entityliving, world);
         }
 
         @Override
-        protected PathFinder getPathFinder(int i1) {
-            this.nodeProcessor = new HidebehindNodeProcessor();
-            this.nodeProcessor.setCanEnterDoors(true);
-            return new PathFinder(this.nodeProcessor, i1);
+        protected PathFinder createPathFinder(int i1) {
+            this.nodeEvaluator = new HidebehindNodeProcessor();
+            this.nodeEvaluator.setCanPassDoors(true);
+            return new PathFinder(this.nodeEvaluator, i1);
         }
 
-        public static class HidebehindNodeProcessor extends WalkNodeProcessor {
+        public static class HidebehindNodeProcessor extends WalkNodeEvaluator {
             @Override
-            protected PathNodeType refineNodeType(IBlockReader reader, boolean b1, boolean b2, BlockPos pos, PathNodeType typeIn) {
-                return typeIn == PathNodeType.LEAVES ? PathNodeType.OPEN : super.refineNodeType(reader, b1, b2, pos, typeIn);
+            protected BlockPathTypes evaluateBlockPathType(BlockGetter reader, boolean b1, boolean b2, BlockPos pos, BlockPathTypes typeIn) {
+                return typeIn == BlockPathTypes.LEAVES ? BlockPathTypes.OPEN : super.evaluateBlockPathType(reader, b1, b2, pos, typeIn);
             }
         }
 
@@ -496,35 +511,35 @@ public class EntityHidebehind extends EntityCreatureWithSelectiveTypes implement
             this.hidebehind = creature;
             this.speed = speedIn;
             this.maxTargetDistance = targetMaxDistance;
-            this.setMutexFlags(EnumSet.of(Goal.Flag.MOVE, Goal.Flag.LOOK));
+            this.setFlags(EnumSet.of(Goal.Flag.MOVE, Goal.Flag.LOOK));
         }
 
         @Override
-        public boolean shouldExecute() {
-            this.target = this.hidebehind.getAttackTarget();
-            if(this.target == null || this.target.getDistanceSq(this.hidebehind) > (double) (this.maxTargetDistance * this.maxTargetDistance)) {
+        public boolean canUse() {
+            this.target = this.hidebehind.getTarget();
+            if(this.target == null || this.target.distanceToSqr(this.hidebehind) > (double) (this.maxTargetDistance * this.maxTargetDistance)) {
                 return false;
             } else {
-                Vector3d vec3d = RandomPositionGenerator.findRandomTargetBlockTowards(this.hidebehind, 16, 7, new Vector3d(this.target.getPosX(), this.target.getPosY(), this.target.getPosZ()));
+                Vec3 vec3d = RandomPos.getPosTowards(this.hidebehind, 16, 7, new Vec3(this.target.getX(), this.target.getY(), this.target.getZ()));
                 return vec3d != null && hidebehind.isEntityAttackable(target) && hidebehind.attackSequenceTicks() <= 0 && !hidebehind.getHiding();
             }
         }
 
         @Override
-        public boolean shouldContinueExecuting() {
-            return !hidebehind.getHiding() && !this.hidebehind.getNavigator().noPath() && this.target.isAlive() && this.target.getDistanceSq(this.hidebehind) < (double) (this.maxTargetDistance * this.maxTargetDistance) && hidebehind.attackSequenceTicks() == 0 && hidebehind.isEntityAttackable(target);
+        public boolean canContinueToUse() {
+            return !hidebehind.getHiding() && !this.hidebehind.getNavigation().isDone() && this.target.isAlive() && this.target.distanceToSqr(this.hidebehind) < (double) (this.maxTargetDistance * this.maxTargetDistance) && hidebehind.attackSequenceTicks() == 0 && hidebehind.isEntityAttackable(target);
         }
 
         @Override
-        public void resetTask() {
+        public void stop() {
             this.target = null;
-            this.hidebehind.getNavigator().clearPath();
+            this.hidebehind.getNavigation().stop();
         }
 
         @Override
-        public void startExecuting() {
-            this.hidebehind.lookController.setLookPositionWithEntity(this.target, 1000, 1000);
-            this.hidebehind.getNavigator().tryMoveToEntityLiving(this.hidebehind.getAttackTarget(), this.speed);
+        public void start() {
+            this.hidebehind.lookControl.setLookAt(this.target, 1000, 1000);
+            this.hidebehind.getNavigation().moveTo(this.hidebehind.getTarget(), this.speed);
         }
     }
 
@@ -534,7 +549,7 @@ public class EntityHidebehind extends EntityCreatureWithSelectiveTypes implement
     }
 
     @Override
-    public String[] getTypesFor(RegistryKey<Biome> biomeKey, Biome biome, Set<BiomeDictionary.Type> types, SpawnReason reason) {
+    public String[] getTypesFor(ResourceKey<Biome> biomeKey, Biome biome, Set<BiomeDictionary.Type> types, MobSpawnType reason) {
         if(biomeKey == Biomes.GIANT_SPRUCE_TAIGA || biomeKey == Biomes.GIANT_SPRUCE_TAIGA_HILLS || biomeKey == Biomes.GIANT_TREE_TAIGA || biomeKey == Biomes.GIANT_TREE_TAIGA_HILLS) {
             return new String[] { "mega_taiga", "mega_taiga", "mega_taiga", "darkforest" };
         }

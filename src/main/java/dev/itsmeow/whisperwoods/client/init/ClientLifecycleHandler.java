@@ -1,6 +1,7 @@
 package dev.itsmeow.whisperwoods.client.init;
 
-import com.mojang.blaze3d.matrix.MatrixStack;
+import com.mojang.blaze3d.vertex.DefaultVertexFormat;
+import com.mojang.blaze3d.vertex.PoseStack;
 import dev.itsmeow.imdlib.client.IMDLibClient;
 import dev.itsmeow.imdlib.client.render.RenderFactory;
 import dev.itsmeow.whisperwoods.WhisperwoodsMod;
@@ -18,18 +19,17 @@ import dev.itsmeow.whisperwoods.client.renderer.tile.RenderTileGhostLight;
 import dev.itsmeow.whisperwoods.client.renderer.tile.RenderTileHandOfFate;
 import dev.itsmeow.whisperwoods.entity.EntityHidebehind;
 import dev.itsmeow.whisperwoods.init.*;
-import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.IRenderTypeBuffer;
-import net.minecraft.client.renderer.RenderState;
+import net.minecraft.client.model.EntityModel;
+import net.minecraft.client.renderer.ItemBlockRenderTypes;
+import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.RenderStateShard;
 import net.minecraft.client.renderer.RenderType;
-import net.minecraft.client.renderer.RenderTypeLookup;
-import net.minecraft.client.renderer.entity.layers.LayerRenderer;
-import net.minecraft.client.renderer.entity.model.EntityModel;
+import net.minecraft.client.renderer.entity.layers.RenderLayer;
 import net.minecraft.client.renderer.texture.OverlayTexture;
-import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
-import net.minecraft.entity.Pose;
-import net.minecraft.util.ResourceLocation;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.entity.Pose;
+import net.minecraft.world.level.block.Block;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.ParticleFactoryRegisterEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -49,8 +49,8 @@ public class ClientLifecycleHandler {
         }
 
         public static RenderType getEyesEntityCutoutNoCullDepthMaskOff(ResourceLocation locationIn) {
-            RenderState.TextureState renderstate$texturestate = new RenderState.TextureState(locationIn, false, false);
-            return makeType("eyes_entity_cutout_no_cull_depth_mask_off", DefaultVertexFormats.ENTITY, 7, 256, false, true, RenderType.State.getBuilder().texture(renderstate$texturestate).cull(CULL_DISABLED).transparency(ADDITIVE_TRANSPARENCY).writeMask(COLOR_WRITE).fog(BLACK_FOG).diffuseLighting(DIFFUSE_LIGHTING_ENABLED).alpha(DEFAULT_ALPHA).lightmap(LIGHTMAP_DISABLED).overlay(OVERLAY_ENABLED).build(false));
+            RenderStateShard.TextureStateShard renderstate$texturestate = new RenderStateShard.TextureStateShard(locationIn, false, false);
+            return create("eyes_entity_cutout_no_cull_depth_mask_off", DefaultVertexFormat.NEW_ENTITY, 7, 256, false, true, RenderType.CompositeState.builder().setTextureState(renderstate$texturestate).setCullState(NO_CULL).setTransparencyState(ADDITIVE_TRANSPARENCY).setWriteMaskState(COLOR_WRITE).setFogState(BLACK_FOG).setDiffuseLightingState(DIFFUSE_LIGHTING).setAlphaState(DEFAULT_ALPHA).setLightmapState(NO_LIGHTMAP).setOverlayState(OVERLAY).createCompositeState(false));
         }
     }
 
@@ -59,21 +59,21 @@ public class ClientLifecycleHandler {
         R.addRender(ModEntities.MOTH.getEntityType(), 0.1F, r -> r
         .tVariant()
         .mSingle(new ModelMoth())
-        .simpleScale(e -> e.getSize(Pose.STANDING).width));
+        .simpleScale(e -> e.getDimensions(Pose.STANDING).width));
 
         R.addRender(ModEntities.HIDEBEHIND.getEntityType(), 0.75F, r -> r
         .tVariant()
         .mSingle(new ModelHidebehind())
-        .renderLayer((e, a, b, c, t) -> RenderType.getEntityTranslucent(t, true))
-        .layer(mgr -> new LayerRenderer<EntityHidebehind, EntityModel<EntityHidebehind>>(mgr) {
+        .renderLayer((e, a, b, c, t) -> RenderType.entityTranslucent(t, true))
+        .layer(mgr -> new RenderLayer<EntityHidebehind, EntityModel<EntityHidebehind>>(mgr) {
             @Override
-            public void render(MatrixStack matrixStackIn, IRenderTypeBuffer bufferIn, int packedLightIn, EntityHidebehind entity, float limbSwing, float limbSwingAmount, float partialTicks, float ageInTicks, float netHeadYaw, float headPitch) {
+            public void render(PoseStack matrixStackIn, MultiBufferSource bufferIn, int packedLightIn, EntityHidebehind entity, float limbSwing, float limbSwingAmount, float partialTicks, float ageInTicks, float netHeadYaw, float headPitch) {
                 if(!entity.isInvisible()) {
-                    matrixStackIn.push();
-                    this.getEntityModel().setLivingAnimations(entity, limbSwing, limbSwingAmount, partialTicks);
-                    this.getEntityModel().setRotationAngles(entity, limbSwing, limbSwingAmount, ageInTicks, netHeadYaw, headPitch);
-                    this.getEntityModel().render(matrixStackIn, bufferIn.getBuffer(entity.getOpen() ? RenderTypes.getEyesEntityCutoutNoCullDepthMaskOff(ModResources.HIDEBEHIND_OPEN_GLOW) : RenderTypes.getEyesEntityCutoutNoCullDepthMaskOff(ModResources.HIDEBEHIND_GLOW)), 15728640, OverlayTexture.NO_OVERLAY, 1.0F, 1.0F, 1.0F, 1.0F);
-                    matrixStackIn.pop();
+                    matrixStackIn.pushPose();
+                    this.getParentModel().prepareMobModel(entity, limbSwing, limbSwingAmount, partialTicks);
+                    this.getParentModel().setupAnim(entity, limbSwing, limbSwingAmount, ageInTicks, netHeadYaw, headPitch);
+                    this.getParentModel().renderToBuffer(matrixStackIn, bufferIn.getBuffer(entity.getOpen() ? RenderTypes.getEyesEntityCutoutNoCullDepthMaskOff(ModResources.HIDEBEHIND_OPEN_GLOW) : RenderTypes.getEyesEntityCutoutNoCullDepthMaskOff(ModResources.HIDEBEHIND_GLOW)), 15728640, OverlayTexture.NO_OVERLAY, 1.0F, 1.0F, 1.0F, 1.0F);
+                    matrixStackIn.popPose();
                 }
             }
         }));
@@ -90,7 +90,7 @@ public class ClientLifecycleHandler {
         ModBlocks.getBlocks().forEach(blockEntry -> {
             Block block = blockEntry.get();
             if(block instanceof BlockWispLantern) {
-                RenderTypeLookup.setRenderLayer(block, t -> t == RenderType.getSolid() || t == RenderType.getTranslucent());
+                ItemBlockRenderTypes.setRenderLayer(block, t -> t == RenderType.solid() || t == RenderType.translucent());
             }
         });
         LogManager.getLogger().info("Increasing wispiness of wisps...");
@@ -99,8 +99,8 @@ public class ClientLifecycleHandler {
     @SuppressWarnings("resource")
     @SubscribeEvent
     public static void registerParticleFactory(ParticleFactoryRegisterEvent event) {
-        Minecraft.getInstance().particles.registerFactory(ModParticles.WISP.get(), WispParticle.WispFactory::new);
-        Minecraft.getInstance().particles.registerFactory(ModParticles.FLAME.get(), FlameParticle.FlameFactory::new);
+        Minecraft.getInstance().particleEngine.register(ModParticles.WISP.get(), WispParticle.WispFactory::new);
+        Minecraft.getInstance().particleEngine.register(ModParticles.FLAME.get(), FlameParticle.FlameFactory::new);
     }
 
 }

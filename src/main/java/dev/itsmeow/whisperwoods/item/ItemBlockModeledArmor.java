@@ -1,33 +1,33 @@
 package dev.itsmeow.whisperwoods.item;
 
-import net.minecraft.block.Block;
-import net.minecraft.client.renderer.entity.model.BipedModel;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.inventory.EquipmentSlotType;
-import net.minecraft.item.ArmorItem;
-import net.minecraft.item.IArmorMaterial;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
+import net.minecraft.client.model.HumanoidModel;
+import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.item.ArmorItem;
+import net.minecraft.world.item.ArmorMaterial;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.block.Block;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
 public abstract class ItemBlockModeledArmor extends ItemBlockArmor {
 
-    public ItemBlockModeledArmor(Block block, IArmorMaterial material, EquipmentSlotType slot, Item.Properties properties) {
+    public ItemBlockModeledArmor(Block block, ArmorMaterial material, EquipmentSlot slot, Item.Properties properties) {
         super(block, material, slot, properties);
     }
 
     @Override
     @OnlyIn(Dist.CLIENT)
-    public <A extends BipedModel<?>> A getArmorModel(LivingEntity entityLiving, ItemStack itemStack, EquipmentSlotType armorSlot, A defaultModel) {
+    public <A extends HumanoidModel<?>> A getArmorModel(LivingEntity entityLiving, ItemStack itemStack, EquipmentSlot armorSlot, A defaultModel) {
         if(itemStack != null) {
             if(itemStack.getItem() instanceof ArmorItem && defaultModel != null && armorSlot != null) {
                 A armorModel = this.getBaseModelInstance();
                 armorModel = displays(armorModel, armorSlot);
 
-                armorModel.isSneak = defaultModel.isSneak;
-                armorModel.isSitting = defaultModel.isSitting;
-                armorModel.isChild = defaultModel.isChild;
+                armorModel.crouching = defaultModel.crouching;
+                armorModel.riding = defaultModel.riding;
+                armorModel.young = defaultModel.young;
                 armorModel.rightArmPose = defaultModel.rightArmPose;
                 armorModel.leftArmPose = defaultModel.leftArmPose;
 
@@ -38,9 +38,9 @@ public abstract class ItemBlockModeledArmor extends ItemBlockArmor {
     }
 
     @OnlyIn(Dist.CLIENT)
-    protected abstract <A extends BipedModel<?>> A getBaseModelInstance();
+    protected abstract <A extends HumanoidModel<?>> A getBaseModelInstance();
 
     @OnlyIn(Dist.CLIENT)
-    protected abstract <A extends BipedModel<?>> A displays(A armorModel, EquipmentSlotType slot);
+    protected abstract <A extends HumanoidModel<?>> A displays(A armorModel, EquipmentSlot slot);
 
 }

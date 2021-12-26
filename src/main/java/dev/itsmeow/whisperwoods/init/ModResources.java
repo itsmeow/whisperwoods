@@ -1,7 +1,7 @@
 package dev.itsmeow.whisperwoods.init;
 
 import dev.itsmeow.whisperwoods.WhisperwoodsMod;
-import net.minecraft.util.ResourceLocation;
+import net.minecraft.resources.ResourceLocation;
 
 public class ModResources {
 

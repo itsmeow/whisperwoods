@@ -3,106 +3,127 @@ package dev.itsmeow.whisperwoods.entity;
 import dev.itsmeow.imdlib.entity.EntityTypeContainer;
 import dev.itsmeow.whisperwoods.init.ModEntities;
 import dev.itsmeow.whisperwoods.util.IOverrideCollisions;
-import net.minecraft.block.BlockState;
+import net.minecraft.Util;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.entity.*;
 import net.minecraft.entity.ai.goal.*;
-import net.minecraft.entity.monster.IMob;
-import net.minecraft.entity.monster.MonsterEntity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.player.ServerPlayerEntity;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.network.datasync.DataParameter;
-import net.minecraft.network.datasync.DataSerializers;
-import net.minecraft.network.datasync.EntityDataManager;
-import net.minecraft.particles.ParticleTypes;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.network.syncher.EntityDataAccessor;
+import net.minecraft.network.syncher.EntityDataSerializers;
+import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.pathfinding.*;
-import net.minecraft.potion.EffectInstance;
-import net.minecraft.potion.Effects;
+import net.minecraft.server.level.ServerBossEvent;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.sounds.SoundEvent;
+import net.minecraft.sounds.SoundEvents;
 import net.minecraft.tags.BlockTags;
-import net.minecraft.util.DamageSource;
-import net.minecraft.util.SoundEvent;
-import net.minecraft.util.SoundEvents;
-import net.minecraft.util.Util;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.vector.Vector3d;
-import net.minecraft.util.text.ITextComponent;
-import net.minecraft.util.text.TranslationTextComponent;
 import net.minecraft.world.*;
-import net.minecraft.world.server.ServerBossInfo;
-import net.minecraft.world.server.ServerWorld;
+import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.world.effect.MobEffectInstance;
+import net.minecraft.world.effect.MobEffects;
+import net.minecraft.world.entity.AreaEffectCloud;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.MobSpawnType;
+import net.minecraft.world.entity.SpawnGroupData;
+import net.minecraft.world.entity.ai.goal.FloatGoal;
+import net.minecraft.world.entity.ai.goal.Goal;
+import net.minecraft.world.entity.ai.goal.LookAtPlayerGoal;
+import net.minecraft.world.entity.ai.goal.MeleeAttackGoal;
+import net.minecraft.world.entity.ai.goal.target.HurtByTargetGoal;
+import net.minecraft.world.entity.ai.goal.target.NearestAttackableTargetGoal;
+import net.minecraft.world.entity.ai.navigation.GroundPathNavigation;
+import net.minecraft.world.entity.ai.navigation.PathNavigation;
+import net.minecraft.world.entity.monster.Enemy;
+import net.minecraft.world.entity.monster.Monster;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.level.BlockGetter;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.ServerLevelAccessor;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.pathfinder.BlockPathTypes;
+import net.minecraft.world.level.pathfinder.PathComputationType;
+import net.minecraft.world.level.pathfinder.PathFinder;
+import net.minecraft.world.level.pathfinder.WalkNodeEvaluator;
+import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
 import javax.annotation.Nullable;
 import java.util.EnumSet;
 
-public class EntityHirschgeist extends MonsterEntity implements IMob, IOverrideCollisions<EntityHirschgeist> {
+public class EntityHirschgeist extends Monster implements Enemy, IOverrideCollisions<EntityHirschgeist> {
 
     protected int flameIndex = 0;
-    public static final DataParameter<Float> DISTANCE_TO_TARGET = EntityDataManager.createKey(EntityHirschgeist.class, DataSerializers.FLOAT);
-    public static final DataParameter<Boolean> DAYTIME = EntityDataManager.createKey(EntityHirschgeist.class, DataSerializers.BOOLEAN);
-    private final ServerBossInfo bossInfo = (ServerBossInfo) (new ServerBossInfo(this.getDisplayName(), BossInfo.Color.BLUE, BossInfo.Overlay.PROGRESS)).setDarkenSky(false);
+    public static final EntityDataAccessor<Float> DISTANCE_TO_TARGET = SynchedEntityData.defineId(EntityHirschgeist.class, EntityDataSerializers.FLOAT);
+    public static final EntityDataAccessor<Boolean> DAYTIME = SynchedEntityData.defineId(EntityHirschgeist.class, EntityDataSerializers.BOOLEAN);
+    private final ServerBossEvent bossInfo = (ServerBossEvent) (new ServerBossEvent(this.getDisplayName(), BossEvent.BossBarColor.BLUE, BossEvent.BossBarOverlay.PROGRESS)).setDarkenScreen(false);
     private boolean wasSummoned = false;
 
-    public EntityHirschgeist(EntityType<? extends EntityHirschgeist> entityType, World worldIn) {
+    public EntityHirschgeist(EntityType<? extends EntityHirschgeist> entityType, Level worldIn) {
         super(entityType, worldIn);
-        this.experienceValue = 150;
+        this.xpReward = 150;
     }
 
     @Override
     public void registerGoals() {
-        this.goalSelector.addGoal(1, new SwimGoal(this));
+        this.goalSelector.addGoal(1, new FloatGoal(this));
         this.goalSelector.addGoal(2, new MeleeAttackGoal(this, 0.7D, true) {
 
             @Override
-            public boolean shouldExecute() {
-                return !EntityHirschgeist.this.isDaytime() && super.shouldExecute();
+            public boolean canUse() {
+                return !EntityHirschgeist.this.isDaytime() && super.canUse();
             }
 
             @Override
-            public boolean shouldContinueExecuting() {
-                return !EntityHirschgeist.this.isDaytime() && super.shouldContinueExecuting();
+            public boolean canContinueToUse() {
+                return !EntityHirschgeist.this.isDaytime() && super.canContinueToUse();
             }
 
         });
         this.goalSelector.addGoal(2, new FlameAttackGoal(this));
         this.goalSelector.addGoal(3, new SummonWispsGoal(this));
-        this.goalSelector.addGoal(3, new LookAtGoal(this, PlayerEntity.class, 20F));
-        this.targetSelector.addGoal(1, new NearestAttackableTargetGoal<>(this, PlayerEntity.class, false));
+        this.goalSelector.addGoal(3, new LookAtPlayerGoal(this, Player.class, 20F));
+        this.targetSelector.addGoal(1, new NearestAttackableTargetGoal<>(this, Player.class, false));
         this.targetSelector.addGoal(2, new HurtByTargetGoal(this));
     }
 
     @Nullable
     @Override
-    public ILivingEntityData onInitialSpawn(IServerWorld worldIn, DifficultyInstance difficultyIn, SpawnReason reason, @Nullable ILivingEntityData spawnDataIn, @Nullable CompoundNBT dataTag) {
-        if(reason == SpawnReason.EVENT || reason == SpawnReason.MOB_SUMMONED) {
+    public SpawnGroupData finalizeSpawn(ServerLevelAccessor worldIn, DifficultyInstance difficultyIn, MobSpawnType reason, @Nullable SpawnGroupData spawnDataIn, @Nullable CompoundTag dataTag) {
+        if(reason == MobSpawnType.EVENT || reason == MobSpawnType.MOB_SUMMONED) {
             this.setWasSummoned();
         }
-        return super.onInitialSpawn(worldIn, difficultyIn, reason, spawnDataIn, dataTag);
+        return super.finalizeSpawn(worldIn, difficultyIn, reason, spawnDataIn, dataTag);
     }
 
     @Override
-    protected PathNavigator createNavigator(World worldIn) {
-        return new GroundPathNavigator(this, worldIn) {
+    protected PathNavigation createNavigation(Level worldIn) {
+        return new GroundPathNavigation(this, worldIn) {
             @Override
-            protected PathFinder getPathFinder(int i1) {
-                this.nodeProcessor = new WalkNodeProcessor() {
+            protected PathFinder createPathFinder(int i1) {
+                this.nodeEvaluator = new WalkNodeEvaluator() {
                     @Override
-                    protected PathNodeType refineNodeType(IBlockReader reader, boolean b1, boolean b2, BlockPos pos, PathNodeType typeIn) {
-                        return typeIn == PathNodeType.LEAVES || reader.getBlockState(pos).getBlock().isIn(BlockTags.LOGS) || reader.getBlockState(pos).getBlock().isIn(BlockTags.LEAVES) ? PathNodeType.OPEN : super.refineNodeType(reader, b1, b2, pos, typeIn);
+                    protected BlockPathTypes evaluateBlockPathType(BlockGetter reader, boolean b1, boolean b2, BlockPos pos, BlockPathTypes typeIn) {
+                        return typeIn == BlockPathTypes.LEAVES || reader.getBlockState(pos).getBlock().is(BlockTags.LOGS) || reader.getBlockState(pos).getBlock().is(BlockTags.LEAVES) ? BlockPathTypes.OPEN : super.evaluateBlockPathType(reader, b1, b2, pos, typeIn);
                     }
                 };
-                this.nodeProcessor.setCanEnterDoors(true);
-                return new PathFinder(this.nodeProcessor, i1);
+                this.nodeEvaluator.setCanPassDoors(true);
+                return new PathFinder(this.nodeEvaluator, i1);
             }
 
             @Override
-            public boolean isPositionClear(int x, int y, int z, int sizeX, int sizeY, int sizeZ, Vector3d vec, double p_179692_8_, double p_179692_10_) {
-                for (BlockPos blockpos : BlockPos.getAllInBoxMutable(new BlockPos(x, y, z), new BlockPos(x + sizeX - 1, y + sizeY - 1, z + sizeZ - 1))) {
+            public boolean canWalkAbove(int x, int y, int z, int sizeX, int sizeY, int sizeZ, Vec3 vec, double p_179692_8_, double p_179692_10_) {
+                for (BlockPos blockpos : BlockPos.betweenClosed(new BlockPos(x, y, z), new BlockPos(x + sizeX - 1, y + sizeY - 1, z + sizeZ - 1))) {
                     double d0 = (double) blockpos.getX() + 0.5D - vec.x;
                     double d1 = (double) blockpos.getZ() + 0.5D - vec.z;
-                    BlockState state = this.world.getBlockState(blockpos);
-                    if (!(d0 * p_179692_8_ + d1 * p_179692_10_ < 0.0D) && !(state.allowsMovement(this.world, blockpos, PathType.LAND) || state.getBlock().isIn(BlockTags.LEAVES) && state.getBlock().isIn(BlockTags.LOGS))) {
+                    BlockState state = this.level.getBlockState(blockpos);
+                    if (!(d0 * p_179692_8_ + d1 * p_179692_10_ < 0.0D) && !(state.isPathfindable(this.level, blockpos, PathComputationType.LAND) || state.getBlock().is(BlockTags.LEAVES) && state.getBlock().is(BlockTags.LOGS))) {
                         return false;
                     }
                 }
@@ -113,15 +134,15 @@ public class EntityHirschgeist extends MonsterEntity implements IMob, IOverrideC
     }
 
     @Override
-    protected void registerData() {
-        super.registerData();
-        this.getDataManager().register(DISTANCE_TO_TARGET, -1F);
-        this.getDataManager().register(DAYTIME, true);
+    protected void defineSynchedData() {
+        super.defineSynchedData();
+        this.getEntityData().define(DISTANCE_TO_TARGET, -1F);
+        this.getEntityData().define(DAYTIME, true);
     }
 
     @Override
-    public void readAdditional(CompoundNBT compound) {
-        super.readAdditional(compound);
+    public void readAdditionalSaveData(CompoundTag compound) {
+        super.readAdditionalSaveData(compound);
         if (this.hasCustomName()) {
             this.bossInfo.setName(this.getDisplayName());
         }
@@ -131,44 +152,44 @@ public class EntityHirschgeist extends MonsterEntity implements IMob, IOverrideC
     }
 
     @Override
-    public void writeAdditional(CompoundNBT compound) {
-        super.writeAdditional(compound);
+    public void addAdditionalSaveData(CompoundTag compound) {
+        super.addAdditionalSaveData(compound);
         compound.putBoolean("summoned", this.wasSummoned());
     }
 
     @Override
-    public void setCustomName(@Nullable ITextComponent name) {
+    public void setCustomName(@Nullable Component name) {
         super.setCustomName(name);
         this.bossInfo.setName(this.getDisplayName());
     }
 
     @Override
-    public void addTrackingPlayer(ServerPlayerEntity player) {
-        super.addTrackingPlayer(player);
+    public void startSeenByPlayer(ServerPlayer player) {
+        super.startSeenByPlayer(player);
         this.bossInfo.addPlayer(player);
     }
 
     @Override
-    public void removeTrackingPlayer(ServerPlayerEntity player) {
-        super.removeTrackingPlayer(player);
+    public void stopSeenByPlayer(ServerPlayer player) {
+        super.stopSeenByPlayer(player);
         this.bossInfo.removePlayer(player);
     }
 
     public float getTargetDistance() {
-        return this.getDataManager().get(DISTANCE_TO_TARGET);
+        return this.getEntityData().get(DISTANCE_TO_TARGET);
     }
 
     @Override
-    public int getArmSwingAnimationEnd() {
+    public int getCurrentSwingDuration() {
         return 10;
     }
 
     @Override
-    public boolean attackEntityAsMob(Entity entityIn) {
-        if (super.attackEntityAsMob(entityIn)) {
+    public boolean doHurtTarget(Entity entityIn) {
+        if (super.doHurtTarget(entityIn)) {
             if (entityIn instanceof LivingEntity) {
-                ((LivingEntity) entityIn).applyKnockback(2F, this.getPosX() - entityIn.getPosX(), this.getPosZ() - entityIn.getPosZ());
-                entityIn.setFire(2 + this.getRNG().nextInt(2));
+                ((LivingEntity) entityIn).knockback(2F, this.getX() - entityIn.getX(), this.getZ() - entityIn.getZ());
+                entityIn.setSecondsOnFire(2 + this.getRandom().nextInt(2));
             }
             return true;
         }
@@ -183,7 +204,7 @@ public class EntityHirschgeist extends MonsterEntity implements IMob, IOverrideC
     @Override
     public void tick() {
         super.tick();
-        if (this.ticksExisted % 2 == 0) {
+        if (this.tickCount % 2 == 0) {
             if (flameIndex >= 7) {
                 flameIndex = 0;
             } else {
@@ -191,18 +212,18 @@ public class EntityHirschgeist extends MonsterEntity implements IMob, IOverrideC
             }
         }
         this.bossInfo.setPercent(this.getHealth() / this.getMaxHealth());
-        if (!world.isRemote) {
-            this.getDataManager().set(DISTANCE_TO_TARGET, this.getAttackTarget() == null ? -1F : this.getAttackTarget().getDistance(this));
-            this.getDataManager().set(DAYTIME, this.isDaytime());
+        if (!level.isClientSide) {
+            this.getEntityData().set(DISTANCE_TO_TARGET, this.getTarget() == null ? -1F : this.getTarget().distanceTo(this));
+            this.getEntityData().set(DAYTIME, this.isDaytime());
         }
     }
 
     public boolean isDaytime() {
-        return this.world.isDaytime();
+        return this.level.isDay();
     }
 
     public boolean isDaytimeClient() {
-        return this.getDataManager().get(DAYTIME);
+        return this.getEntityData().get(DAYTIME);
     }
 
     @Override
@@ -217,57 +238,57 @@ public class EntityHirschgeist extends MonsterEntity implements IMob, IOverrideC
 
     @Override
     public boolean isInvulnerableTo(DamageSource source) {
-        return (this.isDaytime() && source != DamageSource.OUT_OF_WORLD && !source.isCreativePlayer()) || source.getTrueSource() instanceof EntityHirschgeist || source == DamageSource.MAGIC || source == DamageSource.IN_FIRE || source == DamageSource.ON_FIRE || source == DamageSource.LAVA;
+        return (this.isDaytime() && source != DamageSource.OUT_OF_WORLD && !source.isCreativePlayer()) || source.getEntity() instanceof EntityHirschgeist || source == DamageSource.MAGIC || source == DamageSource.IN_FIRE || source == DamageSource.ON_FIRE || source == DamageSource.LAVA;
     }
 
     @Override
-    public boolean attackEntityFrom(DamageSource source, float amount) {
-        if (this.isDaytime() && !this.world.isRemote && !source.isCreativePlayer()) {
-            if (source.getTrueSource() instanceof PlayerEntity) {
-                PlayerEntity player = (PlayerEntity) source.getTrueSource();
-                player.sendMessage(new TranslationTextComponent("entity.whisperwoods.hirschgeist.message.invulnerable"), Util.DUMMY_UUID);
+    public boolean hurt(DamageSource source, float amount) {
+        if (this.isDaytime() && !this.level.isClientSide && !source.isCreativePlayer()) {
+            if (source.getEntity() instanceof Player) {
+                Player player = (Player) source.getEntity();
+                player.sendMessage(new TranslatableComponent("entity.whisperwoods.hirschgeist.message.invulnerable"), Util.NIL_UUID);
             }
         }
-        return super.attackEntityFrom(source, amount);
+        return super.hurt(source, amount);
     }
 
     @Override
-    public void setAttackTarget(LivingEntity entityIn) {
-        super.setAttackTarget(this.isDaytime() ? null : entityIn);
+    public void setTarget(LivingEntity entityIn) {
+        super.setTarget(this.isDaytime() ? null : entityIn);
     }
 
     @Override
     protected SoundEvent getAmbientSound() {
-        return this.getRNG().nextBoolean() ? SoundEvents.ENTITY_SKELETON_HORSE_AMBIENT : SoundEvents.ENTITY_RAVAGER_ROAR;
+        return this.getRandom().nextBoolean() ? SoundEvents.SKELETON_HORSE_AMBIENT : SoundEvents.RAVAGER_ROAR;
     }
 
     @Override
-    protected float getSoundPitch() {
+    protected float getVoicePitch() {
         return 0.3F; // Lower pitch of skeleton horse sound
     }
 
     @Override
     protected void playStepSound(BlockPos pos, BlockState state) {
-        this.playSound(SoundEvents.ENTITY_SHEEP_STEP, 0.5F, 0.6F);
+        this.playSound(SoundEvents.SHEEP_STEP, 0.5F, 0.6F);
     }
 
     @Override
-    public boolean isEntityInsideOpaqueBlock() {
+    public boolean isInWall() {
         return insideOpaque();
     }
 
     @Override
-    public Vector3d getAllowedMovement(Vector3d vec) {
+    public Vec3 collide(Vec3 vec) {
         return this.allowedMove(vec);
     }
 
     @Override
     public boolean canPassThrough(BlockState state) {
-        return state.getBlock().isIn(BlockTags.LEAVES) || state.getBlock().isIn(BlockTags.LOGS);
+        return state.getBlock().is(BlockTags.LEAVES) || state.getBlock().is(BlockTags.LOGS);
     }
 
     @Override
-    public boolean canDespawn(double distanceToClosestPlayer) {
+    public boolean removeWhenFarAway(double distanceToClosestPlayer) {
         return despawn(distanceToClosestPlayer) && !this.wasSummoned();
     }
 
@@ -292,68 +313,68 @@ public class EntityHirschgeist extends MonsterEntity implements IMob, IOverrideC
     public static class FlameAttackGoal extends Goal {
         private int flameTicks;
         private final EntityHirschgeist attacker;
-        private final World world;
+        private final Level world;
 
         public FlameAttackGoal(EntityHirschgeist creature) {
             this.attacker = creature;
-            this.world = creature.world;
-            this.setMutexFlags(EnumSet.of(Goal.Flag.LOOK));
+            this.world = creature.level;
+            this.setFlags(EnumSet.of(Goal.Flag.LOOK));
         }
 
         @Override
-        public boolean shouldExecute() {
-            return this.attacker.getAttackTarget() != null && !this.attacker.isDaytime() && this.attacker.getAttackTarget().isAlive();
+        public boolean canUse() {
+            return this.attacker.getTarget() != null && !this.attacker.isDaytime() && this.attacker.getTarget().isAlive();
         }
 
         @Override
-        public boolean shouldContinueExecuting() {
-            return this.flameTicks <= 200 && this.attacker.getAttackTarget() != null;
+        public boolean canContinueToUse() {
+            return this.flameTicks <= 200 && this.attacker.getTarget() != null;
         }
 
         @Override
         public void tick() {
             ++this.flameTicks;
-            LivingEntity target = this.attacker.getAttackTarget();
-            if (this.flameTicks == 10 && target != null && target.getDistanceSq(this.attacker) <= 100) {
-                AreaEffectCloudEntity areaEffectCloud = new AreaEffectCloudEntity(target.world, target.getPosX(), target.getPosY(), target.getPosZ());
+            LivingEntity target = this.attacker.getTarget();
+            if (this.flameTicks == 10 && target != null && target.distanceToSqr(this.attacker) <= 100) {
+                AreaEffectCloud areaEffectCloud = new AreaEffectCloud(target.level, target.getX(), target.getY(), target.getZ());
                 areaEffectCloud.setOwner(this.attacker);
                 areaEffectCloud.setRadius(3.0F);
                 areaEffectCloud.setDuration(2000);
-                areaEffectCloud.setParticleData(ParticleTypes.FLAME);
-                areaEffectCloud.addEffect(new EffectInstance(Effects.INSTANT_DAMAGE));
-                this.attacker.world.addEntity(areaEffectCloud);
+                areaEffectCloud.setParticle(ParticleTypes.FLAME);
+                areaEffectCloud.addEffect(new MobEffectInstance(MobEffects.HARM));
+                this.attacker.level.addFreshEntity(areaEffectCloud);
             }
 
-            if (this.world.isRemote) {
+            if (this.world.isClientSide) {
                 this.doClientRenderEffects();
             }
         }
 
         public void doClientRenderEffects() {
-            if (this.flameTicks % 2 == 0 && this.flameTicks < 10 && this.attacker.getAttackTarget() != null) {
-                LivingEntity target = this.attacker.getAttackTarget();
-                Vector3d vec3d = this.attacker.getLook(1.0F).normalize();
-                vec3d.rotateYaw(-((float) Math.PI / 4F));
-                double d0 = target.getPosX();
-                double d1 = target.getPosY();
-                double d2 = target.getPosZ();
+            if (this.flameTicks % 2 == 0 && this.flameTicks < 10 && this.attacker.getTarget() != null) {
+                LivingEntity target = this.attacker.getTarget();
+                Vec3 vec3d = this.attacker.getViewVector(1.0F).normalize();
+                vec3d.yRot(-((float) Math.PI / 4F));
+                double d0 = target.getX();
+                double d1 = target.getY();
+                double d2 = target.getZ();
 
                 for (int i = 0; i < 8; ++i) {
-                    double d3 = d0 + this.attacker.getRNG().nextGaussian() / 2.0D;
-                    double d4 = d1 + this.attacker.getRNG().nextGaussian() / 2.0D;
-                    double d5 = d2 + this.attacker.getRNG().nextGaussian() / 2.0D;
+                    double d3 = d0 + this.attacker.getRandom().nextGaussian() / 2.0D;
+                    double d4 = d1 + this.attacker.getRandom().nextGaussian() / 2.0D;
+                    double d5 = d2 + this.attacker.getRandom().nextGaussian() / 2.0D;
 
                     for (int j = 0; j < 6; ++j) {
-                        this.attacker.world.addParticle(ParticleTypes.FLAME, d3, d4, d5, -vec3d.x * 0.07999999821186066D * j, -vec3d.y * 0.6000000238418579D, -vec3d.z * 0.07999999821186066D * j);
+                        this.attacker.level.addParticle(ParticleTypes.FLAME, d3, d4, d5, -vec3d.x * 0.07999999821186066D * j, -vec3d.y * 0.6000000238418579D, -vec3d.z * 0.07999999821186066D * j);
                     }
 
-                    vec3d.rotateYaw(0.19634955F);
+                    vec3d.yRot(0.19634955F);
                 }
             }
         }
 
         @Override
-        public void startExecuting() {
+        public void start() {
             this.flameTicks = 0;
         }
 
@@ -367,26 +388,26 @@ public class EntityHirschgeist extends MonsterEntity implements IMob, IOverrideC
         }
 
         @Override
-        public boolean shouldExecute() {
-            return this.parent.getAttackTarget() != null && this.parent.getRNG().nextInt(500) == 0 && this.parent.world.getEntitiesWithinAABB(EntityWisp.class, this.parent.getBoundingBox().grow(10D), wisp -> wisp.isHirschgeistSummon()).size() == 0;
+        public boolean canUse() {
+            return this.parent.getTarget() != null && this.parent.getRandom().nextInt(500) == 0 && this.parent.level.getEntitiesOfClass(EntityWisp.class, this.parent.getBoundingBox().inflate(10D), wisp -> wisp.isHirschgeistSummon()).size() == 0;
         }
 
         @Override
-        public void startExecuting() {
-            if(parent.world instanceof ServerWorld) {
+        public void start() {
+            if(parent.level instanceof ServerLevel) {
                 for(int i = 0; i < 3; i++) {
-                    EntityWisp wisp = ModEntities.WISP.getEntityType().create((ServerWorld) parent.world, null, null, null, parent.getPosition().add(parent.getRNG().nextInt(8) - 4 + 0.5D, parent.getRNG().nextInt(4) + 1 + 0.5D, parent.getRNG().nextInt(8) - 4 + 0.5D), SpawnReason.REINFORCEMENT, false, false);
+                    EntityWisp wisp = ModEntities.WISP.getEntityType().create((ServerLevel) parent.level, null, null, null, parent.blockPosition().offset(parent.getRandom().nextInt(8) - 4 + 0.5D, parent.getRandom().nextInt(4) + 1 + 0.5D, parent.getRandom().nextInt(8) - 4 + 0.5D), MobSpawnType.REINFORCEMENT, false, false);
                     wisp.setHirschgeistSummon(true);
-                    if (parent.getAttackTarget() != null) {
-                        wisp.setAttackTarget(parent.getAttackTarget());
+                    if (parent.getTarget() != null) {
+                        wisp.setTarget(parent.getTarget());
                     }
-                    parent.world.addEntity(wisp);
+                    parent.level.addFreshEntity(wisp);
                 }
             }
         }
 
         @Override
-        public boolean shouldContinueExecuting() {
+        public boolean canContinueToUse() {
             return false;
         }
     }

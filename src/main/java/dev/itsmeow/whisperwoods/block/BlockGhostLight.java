@@ -2,51 +2,51 @@ package dev.itsmeow.whisperwoods.block;
 
 import dev.itsmeow.whisperwoods.tileentity.TileEntityGhostLight;
 import dev.itsmeow.whisperwoods.util.IHaveColor;
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockRenderType;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.SoundType;
-import net.minecraft.block.material.Material;
-import net.minecraft.pathfinding.PathType;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.shapes.ISelectionContext;
-import net.minecraft.util.math.shapes.VoxelShape;
-import net.minecraft.util.math.shapes.VoxelShapes;
-import net.minecraft.world.IBlockReader;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.BlockGetter;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.RenderShape;
+import net.minecraft.world.level.block.SoundType;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.material.Material;
+import net.minecraft.world.level.pathfinder.PathComputationType;
+import net.minecraft.world.phys.shapes.CollisionContext;
+import net.minecraft.world.phys.shapes.Shapes;
+import net.minecraft.world.phys.shapes.VoxelShape;
 
 public class BlockGhostLight extends Block implements IHaveColor {
 
     private static VoxelShape SHAPE;
     static {
         double d = 0.0625D * 5;
-        SHAPE = VoxelShapes.create(d, 0.0D, d, 1D - d, 1D - d, 1D - d);
+        SHAPE = Shapes.box(d, 0.0D, d, 1D - d, 1D - d, 1D - d);
     }
 
     private int color = 0;
 
     public BlockGhostLight(int color) {
-        super(Properties.create(Material.MISCELLANEOUS).sound(SoundType.LANTERN).setLightLevel(state -> 12));
+        super(Properties.of(Material.DECORATION).sound(SoundType.LANTERN).lightLevel(state -> 12));
         this.color = color;
     }
 
     @Override
-    public VoxelShape getShape(BlockState state, IBlockReader worldIn, BlockPos pos, ISelectionContext ctx) {
+    public VoxelShape getShape(BlockState state, BlockGetter worldIn, BlockPos pos, CollisionContext ctx) {
         return SHAPE;
     }
 
     @Override
-    public VoxelShape getCollisionShape(BlockState state, IBlockReader worldIn, BlockPos pos, ISelectionContext context) {
-        return VoxelShapes.empty();
+    public VoxelShape getCollisionShape(BlockState state, BlockGetter worldIn, BlockPos pos, CollisionContext context) {
+        return Shapes.empty();
     }
 
-    public boolean allowsMovement(BlockState state, IBlockReader worldIn, BlockPos pos, PathType type) {
+    public boolean isPathfindable(BlockState state, BlockGetter worldIn, BlockPos pos, PathComputationType type) {
         return true;
     }
 
     @Override
-    public BlockRenderType getRenderType(BlockState state) {
-        return BlockRenderType.INVISIBLE;
+    public RenderShape getRenderShape(BlockState state) {
+        return RenderShape.INVISIBLE;
     }
 
     @Override
@@ -55,7 +55,7 @@ public class BlockGhostLight extends Block implements IHaveColor {
     }
 
     @Override
-    public TileEntity createTileEntity(BlockState state, IBlockReader worldIn) {
+    public BlockEntity createTileEntity(BlockState state, BlockGetter worldIn) {
         return new TileEntityGhostLight();
     }
 

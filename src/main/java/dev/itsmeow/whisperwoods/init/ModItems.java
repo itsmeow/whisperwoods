@@ -5,9 +5,9 @@ import java.util.function.Supplier;
 
 import dev.itsmeow.whisperwoods.WhisperwoodsMod;
 import dev.itsmeow.whisperwoods.item.ItemBlockHirschgeistSkull;
-import net.minecraft.block.Block;
-import net.minecraft.item.BlockItem;
-import net.minecraft.item.Item;
+import net.minecraft.world.item.BlockItem;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.level.block.Block;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.fml.RegistryObject;
 import net.minecraftforge.registries.DeferredRegister;
@@ -35,7 +35,7 @@ public class ModItems {
     }
 
     private static RegistryObject<Item> rIB(RegistryObject<Block> parent) {
-        return ITEMS.register(parent.getId().getPath(), () -> new BlockItem(parent.get(), new Item.Properties().group(WhisperwoodsMod.TAB)));
+        return ITEMS.register(parent.getId().getPath(), () -> new BlockItem(parent.get(), new Item.Properties().tab(WhisperwoodsMod.TAB)));
     }
 
     public static void subscribe(IEventBus modEventBus) {
