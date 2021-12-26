@@ -13,3 +13,4 @@ accessible field com/mojang/math/Matrix4f m23 F
 accessible field net/minecraft/server/level/ChunkMap entityMap Lit/unimi/dsi/fastutil/ints/Int2ObjectMap;
 accessible field net/minecraft/server/level/ChunkMap$TrackedEntity seenBy Ljava/util/Set;
 accessible field net/minecraft/world/entity/ai/navigation/PathNavigation nodeEvaluator Lnet/minecraft/world/level/pathfinder/NodeEvaluator;
+accessible class net/minecraft/client/particle/ParticleEngine$SpriteParticleRegistration

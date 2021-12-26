@@ -6,7 +6,8 @@
   "mixins": [
     "EntityMixin",
     "LivingEntityMixin",
-    "GroundPathNavigationMixin"
+    "GroundPathNavigationMixin",
+    "ParticleEngineMixin"
   ],
   "client": [],
   "injectors": {

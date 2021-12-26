@@ -6,6 +6,7 @@ import dev.itsmeow.whisperwoods.init.ModItems;
 import dev.itsmeow.whisperwoods.item.ItemBlockHirschgeistSkull;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.rendering.v1.ArmorRenderingRegistry;
+import net.fabricmc.fabric.api.event.client.ClientSpriteRegistryCallback;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.HumanoidModel;
 import net.minecraft.core.Direction;
@@ -13,12 +14,18 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Pose;
+import net.minecraft.world.inventory.InventoryMenu;
 
 public class WhisperwoodsClientFabric implements ClientModInitializer {
     @Override
     public void onInitializeClient() {
         ClientLifecycleHandler.clientInit();
-
+        ClientSpriteRegistryCallback.event(InventoryMenu.BLOCK_ATLAS).register(((atlasTexture, registry) -> {
+            registry.register(new ResourceLocation(WhisperwoodsMod.MODID, "particle/flame"));
+            for(int i = 0; i < 6; i++) {
+                registry.register(new ResourceLocation(WhisperwoodsMod.MODID, "particle/wisp_" + i));
+            }
+        }));
         ItemBlockHirschgeistSkull armor = ModItems.HIRSCHGEIST_SKULL.get();
         ArmorRenderingRegistry.registerModel((entity, stack, slot, defaultModel) -> {
             HumanoidModel<LivingEntity> model = armor.getArmorModel(entity, stack, slot, defaultModel);

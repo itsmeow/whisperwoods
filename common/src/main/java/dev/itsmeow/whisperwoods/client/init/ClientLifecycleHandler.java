@@ -19,17 +19,22 @@ import dev.itsmeow.whisperwoods.client.renderer.tile.RenderTileHandOfFate;
 import dev.itsmeow.whisperwoods.entity.EntityHidebehind;
 import dev.itsmeow.whisperwoods.init.*;
 import me.shedaniel.architectury.registry.BlockEntityRenderers;
-import me.shedaniel.architectury.registry.ParticleProviderRegistry;
 import me.shedaniel.architectury.registry.RenderTypes;
 import net.minecraft.client.model.EntityModel;
+import net.minecraft.client.particle.ParticleProvider;
+import net.minecraft.client.particle.SpriteSet;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderStateShard;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.entity.layers.RenderLayer;
 import net.minecraft.client.renderer.texture.OverlayTexture;
+import net.minecraft.core.particles.ParticleType;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.Pose;
 import org.apache.logging.log4j.LogManager;
+
+import java.util.function.BiConsumer;
+import java.util.function.Function;
 
 public class ClientLifecycleHandler {
 
@@ -68,12 +73,14 @@ public class ClientLifecycleHandler {
         BlockEntityRenderers.registerRenderer(ModBlockEntities.HAND_OF_FATE.get(), RenderTileHandOfFate::new);
 
         RenderTypes.register(RenderType.translucent(), ModBlocks.WISP_LANTERN_BLUE.get(), ModBlocks.WISP_LANTERN_GREEN.get(), ModBlocks.WISP_LANTERN_ORANGE.get(), ModBlocks.WISP_LANTERN_PURPLE.get(), ModBlocks.WISP_LANTERN_YELLOW.get());
-        ParticleProviderRegistry.register(ModParticles.WISP.get(), WispParticle.WispFactory::new);
-        ParticleProviderRegistry.register(ModParticles.FLAME.get(), FlameParticle.FlameFactory::new);
 
         LogManager.getLogger().info("Increasing wispiness of wisps...");
     }
 
+    public static void registerParticles(BiConsumer<ParticleType<?>, Function<SpriteSet, ParticleProvider<?>>> register) {
+        register.accept(ModParticles.WISP.get(), WispParticle.WispFactory::new);
+        register.accept(ModParticles.FLAME.get(), FlameParticle.FlameFactory::new);
+    }
 
     public static class RenderTypeAddition extends RenderType {
         public RenderTypeAddition() {
