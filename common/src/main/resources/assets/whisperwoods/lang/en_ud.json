@@ -1,0 +1,46 @@
+{
+    "itemGroup.whisperwoods.main": "spooʍɹǝdsᴉɥM",
+
+    "death.attack.hidebehind": "spooʍ ǝɥʇ uᴉ pǝɹɐǝddɐsᴉp %1$s",
+    "death.attack.wisp": "ʇɥƃᴉu ǝɥʇ oʇ ʇsol sɐʍ %1$s",
+
+    "entity.whisperwoods.moth": "ɥʇoW",
+    "entity.whisperwoods.moth.type.garden_tiger": "ɹǝƃᴉ┴ uǝpɹɐפ",
+    "entity.whisperwoods.moth.type.luna": "ɐun˥",
+    "entity.whisperwoods.moth.type.creeper_sphinx": "xuᴉɥdS ɹǝdǝǝɹƆ",
+    "entity.whisperwoods.moth.type.grey_spotted_hawk": "ʞʍɐH pǝʇʇodS ʎǝɹפ",
+    "entity.whisperwoods.moth.type.brown_spotted_hawk": "ʞʍɐH pǝʇʇodS uʍoɹq",
+    "entity.whisperwoods.moth.type.black_white_deaths_head": "pɐǝH s,ɥʇɐǝp ǝʇᴉɥM/ʞɔɐlq",
+    "entity.whisperwoods.moth.type.brown_grey_deaths_head": "pɐǝH s,ɥʇɐǝp ʎǝɹפ/uʍoɹq",
+    "entity.whisperwoods.moth.type.brown_orange_deaths_head": "pɐǝH s,ɥʇɐǝp ǝƃuɐɹO/uʍoɹq",
+    "entity.whisperwoods.hidebehind": "puᴉɥǝqǝpᴉH",
+    "entity.whisperwoods.wisp": "dsᴉM",
+    "entity.whisperwoods.hirschgeist": "ʇsᴉǝƃɥɔsɹᴉH",
+    "entity.whisperwoods.hirschgeist.message.invulnerable": "˙ɹǝʇɐl ʇᴉ ƃuᴉʇɥƃᴉɟ ʎɹ┴ ˙ǝɯᴉʇʎɐp ǝɥʇ ƃuᴉɹnp lɐʇɹoɯɯᴉ sᴉ ʇsᴉǝƃɥɔsɹᴉH ǝɥ┴",
+    "entity.whisperwoods.zotzpyre": "ǝɹʎdzʇoZ",
+
+    "block.whisperwoods.ghost_light_electric_blue": "ʇɥƃᴉ˥ ʇsoɥפ ǝnlq ɔᴉɹʇɔǝlƎ",
+    "block.whisperwoods.ghost_light_fiery_orange": "ʇɥƃᴉ˥ ʇsoɥפ ǝƃuɐɹO ʎɹǝᴉℲ",
+    "block.whisperwoods.ghost_light_gold": "ʇɥƃᴉ˥ ʇsoɥפ uǝploפ",
+    "block.whisperwoods.ghost_light_toxic_green": "ʇɥƃᴉ˥ ʇsoɥפ uǝǝɹפ ɔᴉxo┴",
+    "block.whisperwoods.ghost_light_magic_purple": "ʇɥƃᴉ˥ ʇsoɥפ ǝldɹnԀ ɔᴉƃɐW",
+    "block.whisperwoods.hirschgeist_skull": "llnʞS ʇsᴉǝƃɥɔsɹᴉH",
+    "block.whisperwoods.wisp_lantern_blue": "uɹǝʇuɐ˥ dsᴉM ǝnlq ɔᴉɹʇɔǝlƎ",
+    "block.whisperwoods.wisp_lantern_orange": "uɹǝʇuɐ˥ dsᴉM ǝƃuɐɹO ʎɹǝᴉℲ",
+    "block.whisperwoods.wisp_lantern_yellow": "uɹǝʇuɐ˥ dsᴉM uǝploפ",
+    "block.whisperwoods.wisp_lantern_green": "uɹǝʇuɐ˥ dsᴉM uǝǝɹפ ɔᴉxo┴",
+    "block.whisperwoods.wisp_lantern_purple": "uɹǝʇuɐ˥ dsᴉM ǝldɹnԀ ɔᴉƃɐW",
+    "block.whisperwoods.hand_of_fate": "ǝʇɐℲ ɟo puɐH",
+    "block.whisperwoods.hand_of_fate.tooltip.shiftdown": "sǝdᴉɔǝɹ ʍoɥs oʇ ┴ℲIHS ploH",
+    "block.whisperwoods.hand_of_fate.tooltip.recipehint": "˙ƃuᴉʍolloɟ ǝɥʇ ɟo ǝuo ɥʇᴉʍ puɐH ǝɥʇ ʞɔᴉlɔ-ʇɥƃᴉɹ",
+    "block.whisperwoods.hand_of_fate.tooltip.recipe_format": "%2$s :%1$s",
+    "block.whisperwoods.hand_of_fate.tooltip.recipe_format_hint": "(%3$s) %2$s :%1$s",
+    "block.whisperwoods.hand_of_fate.tooltip.recipe.wisp": "ƃuᴉuoɯɯnS dsᴉM",
+    "block.whisperwoods.hand_of_fate.tooltip.recipe.wisp.hint": "ɹoloɔ ƃuᴉɥɔʇɐɯ ɟo sdsᴉʍ ǝʇɐǝɹɔ llᴉʍ ʇᴉ 'pǝʇɹǝsuᴉ ʇɥƃᴉ˥ ʇsoɥפ ɐ ɥʇᴉʍ pǝsn uǝɥʍ",
+    "block.whisperwoods.hand_of_fate.tooltip.recipe.hirschgeist": "ƃuᴉuoɯɯnS ʇsᴉǝƃɥɔsɹᴉH",
+    "block.whisperwoods.hand_of_fate.tooltip.recipe.hirschgeist.hint": "pǝʇɹǝsuᴉ ǝq oʇ ʇɥƃᴉ˥ ʇsoɥפ ʎuɐ sǝɹᴉnbǝɹ",
+
+    "item.whisperwoods.bottled_moth": "ɥʇoW pǝlʇʇoq",
+
+    "misc.whisperwoods.eggorder": "%s uʍɐdS"
+}

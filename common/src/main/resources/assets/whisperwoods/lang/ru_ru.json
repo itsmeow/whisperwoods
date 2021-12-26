@@ -1,0 +1,46 @@
+{
+    "itemGroup.whisperwoods.main": "Whisperwoods",
+
+    "death.attack.hidebehind": "%1$s пропал в лесной чаще",
+    "death.attack.wisp": "%1$s потерялся в ночи",
+
+    "entity.whisperwoods.moth": "Мотылек",
+    "entity.whisperwoods.moth.type.garden_tiger": "Садовый Тигр",
+    "entity.whisperwoods.moth.type.luna": "Луна",
+    "entity.whisperwoods.moth.type.creeper_sphinx": "Ползучий Сфинкс",
+    "entity.whisperwoods.moth.type.grey_spotted_hawk": "Серый Пятнистый Ястреб",
+    "entity.whisperwoods.moth.type.brown_spotted_hawk": "Бурый Пятнистый Ястреб",
+    "entity.whisperwoods.moth.type.black_white_deaths_head": "Черно-Белая Мертвая Голова",
+    "entity.whisperwoods.moth.type.brown_grey_deaths_head": "Буро-Серая Мертвая Голова",
+    "entity.whisperwoods.moth.type.brown_orange_deaths_head": "Буро-Оранжевая Мертвая Голова",
+    "entity.whisperwoods.hidebehind": "Скрытень",
+    "entity.whisperwoods.wisp": "Блуждающий Огонь",
+    "entity.whisperwoods.hirschgeist": "Хиршгейст",
+    "entity.whisperwoods.hirschgeist.message.invulnerable": "Днем Хиршгейст бессмертен. Попробуй побороться с ним позже.",
+    "entity.whisperwoods.zotzpyre": "Зотцпир",
+
+    "block.whisperwoods.ghost_light_electric_blue": "Электро-Голубой Призрачный Огонь",
+    "block.whisperwoods.ghost_light_fiery_orange": "Апельсиновый Призрачный Огонь",
+    "block.whisperwoods.ghost_light_gold": "Золотой Призрачный Огонь",
+    "block.whisperwoods.ghost_light_toxic_green": "Ядовито-Зеленый Призрачный Огонь",
+    "block.whisperwoods.ghost_light_magic_purple": "Волшебно-Пурпурный Призрачный Огонь",
+    "block.whisperwoods.hirschgeist_skull": "Череп Хиршгейста",
+    "block.whisperwoods.wisp_lantern_blue": "Электро-Голубой Призрачный Фонарь",
+    "block.whisperwoods.wisp_lantern_orange": "Апельсиновый Призрачный Фонарь",
+    "block.whisperwoods.wisp_lantern_yellow": "Золотой Призрачный Фонарь",
+    "block.whisperwoods.wisp_lantern_green": "Ядовито-Зеленый Призрачный Фонарь",
+    "block.whisperwoods.wisp_lantern_purple": "Волшебно-Пурпурный Фонарь",
+    "block.whisperwoods.hand_of_fate": "Рука Судьбы",
+    "block.whisperwoods.hand_of_fate.tooltip.shiftdown": "Зажмите SHIFT, чтобы показать рецепты",
+    "block.whisperwoods.hand_of_fate.tooltip.recipehint": "Нажмите ПКМ по Руке, держа что-то из следующего.",
+    "block.whisperwoods.hand_of_fate.tooltip.recipe_format": "%1$s: %2$s",
+    "block.whisperwoods.hand_of_fate.tooltip.recipe_format_hint": "%1$s: %2$s (%3$s)",
+    "block.whisperwoods.hand_of_fate.tooltip.recipe.wisp": "Призыв Блуждающего Огня",
+    "block.whisperwoods.hand_of_fate.tooltip.recipe.wisp.hint": "при использовании с помещенным Призрачным Огнем, создаст Блуждающий Огонь соответствующего цвета",
+    "block.whisperwoods.hand_of_fate.tooltip.recipe.hirschgeist": "Призыв Хиршгейста",
+    "block.whisperwoods.hand_of_fate.tooltip.recipe.hirschgeist.hint": "требуеться поместить любой Призрачный Огонь",
+
+    "item.whisperwoods.bottled_moth": "Пойманный Мотылек",
+
+    "misc.whisperwoods.eggorder": "Яйцо призывания %s"
+}

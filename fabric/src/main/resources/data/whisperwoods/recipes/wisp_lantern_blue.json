@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "nnn",
+    "nln",
+    "nnn"
+  ],
+  "key": {
+    "l": {
+      "item": "whisperwoods:ghost_light_electric_blue"
+    },
+    "n": {
+      "tag": "c:iron_nuggets"
+    }
+  },
+  "result": {
+    "item": "whisperwoods:wisp_lantern_blue"
+  }
+}

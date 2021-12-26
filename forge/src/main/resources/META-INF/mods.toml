@@ -1,0 +1,26 @@
+modLoader="javafml"
+loaderVersion="[36,)"
+issueTrackerURL="https://github.com/itsmeow/whisperwoods/issues"
+displayURL="https://www.curseforge.com/minecraft/mc-mods/whisperwoods"
+logoFile="icon.png"
+credits="Cybercat5555: Design, Modeling, Texturing, Ideas; its_meow: Programming, AI, Functionality"
+authors="cybercat5555, itsmeowdev"
+license="CC BY-NC-SA 4.0 https://creativecommons.org/licenses/by-nc-sa/4.0/legalcode"
+[[mods]]
+  modId="whisperwoods"
+  version="${version}"
+  displayName="Whisperwoods"
+  description='''
+Spooky forest stuff for spooky jam'''
+[[dependencies.whisperwoods]]
+  modId="forge"
+  mandatory=true
+  versionRange="[36.2.0,)"
+  ordering="NONE"
+  side="BOTH"
+[[dependencies.whisperwoods]]
+  modId="architectury"
+  mandatory=true
+  versionRange="[1.26.0,)"
+  ordering="NONE"
+  side="BOTH"

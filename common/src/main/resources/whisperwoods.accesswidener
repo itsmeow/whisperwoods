@@ -1,0 +1,15 @@
+accessWidener v1 named
+accessible field net/minecraft/world/entity/AgableMob$AgableMobGroupData babySpawnChance F
+mutable field net/minecraft/world/entity/AgableMob$AgableMobGroupData babySpawnChance F
+accessible method net/minecraft/core/particles/SimpleParticleType <init> (Z)V
+accessible method net/minecraft/world/damagesource/DamageSource bypassArmor ()Lnet/minecraft/world/damagesource/DamageSource;
+accessible method net/minecraft/world/damagesource/DamageSource bypassMagic ()Lnet/minecraft/world/damagesource/DamageSource;
+accessible field net/minecraft/client/model/geom/ModelPart cubes Lit/unimi/dsi/fastutil/objects/ObjectList;
+accessible field net/minecraft/client/model/geom/ModelPart children Lit/unimi/dsi/fastutil/objects/ObjectList;
+accessible method net/minecraft/client/model/geom/ModelPart compile (Lcom/mojang/blaze3d/vertex/PoseStack$Pose;Lcom/mojang/blaze3d/vertex/VertexConsumer;IIFFFF)V
+accessible field com/mojang/math/Matrix4f m03 F
+accessible field com/mojang/math/Matrix4f m13 F
+accessible field com/mojang/math/Matrix4f m23 F
+accessible field net/minecraft/server/level/ChunkMap entityMap Lit/unimi/dsi/fastutil/ints/Int2ObjectMap;
+accessible field net/minecraft/server/level/ChunkMap$TrackedEntity seenBy Ljava/util/Set;
+accessible field net/minecraft/world/entity/ai/navigation/PathNavigation nodeEvaluator Lnet/minecraft/world/level/pathfinder/NodeEvaluator;

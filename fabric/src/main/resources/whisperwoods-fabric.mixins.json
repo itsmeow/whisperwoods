@@ -1,0 +1,13 @@
+{
+  "required": true,
+  "package": "dev.itsmeow.whisperwoods.mixin",
+  "compatibilityLevel": "JAVA_8",
+  "minVersion": "0.8",
+  "mixins": [],
+  "client": [
+    "ProjectileUtilMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}
