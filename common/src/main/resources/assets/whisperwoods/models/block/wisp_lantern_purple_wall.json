@@ -37,97 +37,1299 @@
     }
   },
   "textures": {
-    "particle": "whisperwoods:blocks/wisp_lantern"
+    "particle": "whisperwoods:blocks/wisp_lantern",
+    "lens": "whisperwoods:blocks/wisp_lantern_lens_purple"
   },
-  "loader": "forge:multi-layer",
-  "layers": {
-    "solid": {
-      "parent": "whisperwoods:block/wisp_lantern_wall"
-    },
-    "translucent": {
-      "parent": "minecraft:block/block",
-      "textures": {
-        "lens": "whisperwoods:blocks/wisp_lantern_lens_purple"
+  "elements": [
+    {
+      "name": "lens",
+      "from": [
+        5,
+        2,
+        7.8
+      ],
+      "to": [
+        11,
+        8,
+        8.8
+      ],
+      "rotation": {
+        "origin": [
+          0,
+          8,
+          0
+        ],
+        "axis": "z",
+        "angle": 0.0
       },
-      "elements": [
-        {
-          "from": [
-            5,
-            2,
-            7.8
-          ],
-          "to": [
-            11,
-            8,
-            8.8
-          ],
-          "rotation": {
-            "origin": [
-              0,
-              8,
-              0
-            ],
-            "axis": "z",
-            "angle": 0.0
-          },
-          "faces": {
-            "down": {
-              "texture": "#lens",
-              "uv": [
-                6.5,
-                12.0,
-                3.5,
-                12.5
-              ]
-            },
-            "up": {
-              "texture": "#lens",
-              "uv": [
-                3.5,
-                12.5,
-                0.5,
-                12.0
-              ]
-            },
-            "north": {
-              "texture": "#lens",
-              "uv": [
-                0.5,
-                12.5,
-                3.5,
-                15.5
-              ]
-            },
-            "south": {
-              "texture": "#lens",
-              "uv": [
-                4.0,
-                12.5,
-                7.0,
-                15.5
-              ]
-            },
-            "west": {
-              "texture": "#lens",
-              "uv": [
-                3.5,
-                12.5,
-                4.0,
-                15.5
-              ]
-            },
-            "east": {
-              "texture": "#lens",
-              "uv": [
-                0.0,
-                12.5,
-                0.5,
-                15.5
-              ]
-            }
-          }
+      "faces": {
+        "down": {
+          "texture": "#lens",
+          "uv": [
+            6.5,
+            12.0,
+            3.5,
+            12.5
+          ]
+        },
+        "up": {
+          "texture": "#lens",
+          "uv": [
+            3.5,
+            12.5,
+            0.5,
+            12.0
+          ]
+        },
+        "north": {
+          "texture": "#lens",
+          "uv": [
+            0.5,
+            12.5,
+            3.5,
+            15.5
+          ]
+        },
+        "south": {
+          "texture": "#lens",
+          "uv": [
+            4.0,
+            12.5,
+            7.0,
+            15.5
+          ]
+        },
+        "west": {
+          "texture": "#lens",
+          "uv": [
+            3.5,
+            12.5,
+            4.0,
+            15.5
+          ]
+        },
+        "east": {
+          "texture": "#lens",
+          "uv": [
+            0.0,
+            12.5,
+            0.5,
+            15.5
+          ]
         }
-      ]
+      }
+    },
+    {
+      "name": "fireboxE",
+      "from": [
+        10,
+        1,
+        9.3
+      ],
+      "to": [
+        11,
+        9,
+        14.3
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            2.5,
+            7.5,
+            3,
+            11.5
+          ],
+          "texture": "#particle"
+        },
+        "east": {
+          "uv": [
+            6,
+            7.5,
+            8.5,
+            11.5
+          ],
+          "texture": "#particle"
+        },
+        "south": {
+          "uv": [
+            0,
+            7.5,
+            0.5,
+            11.5
+          ],
+          "texture": "#particle"
+        },
+        "west": {
+          "uv": [
+            8.5,
+            0,
+            11,
+            4
+          ],
+          "texture": "#particle"
+        },
+        "up": {
+          "uv": [
+            0,
+            7.5,
+            0.5,
+            10
+          ],
+          "texture": "#particle"
+        },
+        "down": {
+          "uv": [
+            0,
+            7.5,
+            0.5,
+            10
+          ],
+          "texture": "#particle"
+        }
+      }
+    },
+    {
+      "name": "fireboxW",
+      "from": [
+        5,
+        1,
+        9.3
+      ],
+      "to": [
+        6,
+        9,
+        14.3
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            2.5,
+            7.5,
+            3,
+            11.5
+          ],
+          "texture": "#particle"
+        },
+        "east": {
+          "uv": [
+            9,
+            0,
+            11.5,
+            4
+          ],
+          "texture": "#particle"
+        },
+        "south": {
+          "uv": [
+            0,
+            7.5,
+            0.5,
+            11.5
+          ],
+          "texture": "#particle"
+        },
+        "west": {
+          "uv": [
+            0.5,
+            7.5,
+            3,
+            11.5
+          ],
+          "texture": "#particle"
+        },
+        "up": {
+          "uv": [
+            0,
+            7.5,
+            0.5,
+            10
+          ],
+          "texture": "#particle"
+        },
+        "down": {
+          "uv": [
+            0,
+            7.5,
+            0.5,
+            10
+          ],
+          "texture": "#particle"
+        }
+      }
+    },
+    {
+      "name": "fireboxS",
+      "from": [
+        5,
+        1,
+        14.3
+      ],
+      "to": [
+        11,
+        9,
+        15.3
+      ],
+      "rotation": {
+        "angle": 0,
+        "axis": "z",
+        "origin": [
+          0,
+          9,
+          0
+        ]
+      },
+      "faces": {
+        "north": {
+          "uv": [
+            8.5,
+            0,
+            11.5,
+            4
+          ],
+          "texture": "#particle"
+        },
+        "east": {
+          "uv": [
+            8.5,
+            7.5,
+            9,
+            11.5
+          ],
+          "texture": "#particle"
+        },
+        "south": {
+          "uv": [
+            9,
+            7.5,
+            12,
+            11.5
+          ],
+          "texture": "#particle"
+        },
+        "west": {
+          "uv": [
+            0,
+            7.5,
+            0.5,
+            11.5
+          ],
+          "texture": "#particle"
+        },
+        "up": {
+          "uv": [
+            6,
+            7.5,
+            3,
+            4.5
+          ],
+          "texture": "#particle"
+        },
+        "down": {
+          "uv": [
+            9,
+            4.5,
+            6,
+            7.5
+          ],
+          "texture": "#particle"
+        }
+      }
+    },
+    {
+      "name": "lensFrameT",
+      "from": [
+        5,
+        8,
+        8.3
+      ],
+      "to": [
+        11,
+        9,
+        9.3
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            3,
+            7.5,
+            6,
+            8
+          ],
+          "texture": "#particle"
+        },
+        "east": {
+          "uv": [
+            3,
+            7.5,
+            3.5,
+            8
+          ],
+          "texture": "#particle"
+        },
+        "south": {
+          "uv": [
+            3,
+            7.5,
+            6,
+            8
+          ],
+          "texture": "#particle"
+        },
+        "west": {
+          "uv": [
+            3,
+            7.5,
+            3.5,
+            8
+          ],
+          "texture": "#particle"
+        },
+        "up": {
+          "uv": [
+            3,
+            7.5,
+            6,
+            8
+          ],
+          "texture": "#particle"
+        },
+        "down": {
+          "uv": [
+            3,
+            7.5,
+            6,
+            8
+          ],
+          "texture": "#particle"
+        }
+      }
+    },
+    {
+      "name": "lensFrameB",
+      "from": [
+        5,
+        1,
+        8.3
+      ],
+      "to": [
+        11,
+        2,
+        9.3
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            3,
+            7.5,
+            6,
+            8
+          ],
+          "texture": "#particle"
+        },
+        "east": {
+          "uv": [
+            3,
+            7.5,
+            3.5,
+            8
+          ],
+          "texture": "#particle"
+        },
+        "south": {
+          "uv": [
+            3,
+            7.5,
+            6,
+            8
+          ],
+          "texture": "#particle"
+        },
+        "west": {
+          "uv": [
+            3,
+            7.5,
+            3.5,
+            8
+          ],
+          "texture": "#particle"
+        },
+        "up": {
+          "uv": [
+            3,
+            7.5,
+            6,
+            8
+          ],
+          "texture": "#particle"
+        },
+        "down": {
+          "uv": [
+            3,
+            7.5,
+            6,
+            8
+          ],
+          "texture": "#particle"
+        }
+      }
+    },
+    {
+      "name": "frameRB",
+      "from": [
+        10.8,
+        1,
+        14.8
+      ],
+      "to": [
+        11.8,
+        9,
+        15.8
+      ],
+      "rotation": {
+        "angle": 0,
+        "axis": "z",
+        "origin": [
+          0,
+          9,
+          0
+        ]
+      },
+      "faces": {
+        "north": {
+          "uv": [
+            13.5,
+            7,
+            14,
+            11
+          ],
+          "texture": "#particle"
+        },
+        "east": {
+          "uv": [
+            13,
+            7,
+            13.5,
+            11
+          ],
+          "texture": "#particle"
+        },
+        "south": {
+          "uv": [
+            14.5,
+            7,
+            15,
+            11
+          ],
+          "texture": "#particle"
+        },
+        "west": {
+          "uv": [
+            14,
+            7,
+            14.5,
+            11
+          ],
+          "texture": "#particle"
+        },
+        "up": {
+          "uv": [
+            14,
+            7,
+            13.5,
+            6.5
+          ],
+          "texture": "#particle"
+        },
+        "down": {
+          "uv": [
+            14.5,
+            6.5,
+            14,
+            7
+          ],
+          "texture": "#particle"
+        }
+      }
+    },
+    {
+      "name": "lHandle",
+      "from": [
+        3,
+        19,
+        12
+      ],
+      "to": [
+        4,
+        26,
+        13
+      ],
+      "rotation": {
+        "angle": 45,
+        "axis": "x",
+        "origin": [
+          0,
+          15,
+          0
+        ]
+      },
+      "faces": {
+        "north": {
+          "uv": [
+            13.5,
+            7,
+            14,
+            10.5
+          ],
+          "texture": "#particle"
+        },
+        "east": {
+          "uv": [
+            13,
+            7,
+            13.5,
+            10.5
+          ],
+          "texture": "#particle"
+        },
+        "south": {
+          "uv": [
+            14.5,
+            7,
+            15,
+            10.5
+          ],
+          "texture": "#particle"
+        },
+        "west": {
+          "uv": [
+            14,
+            7,
+            14.5,
+            10.5
+          ],
+          "texture": "#particle"
+        },
+        "up": {
+          "uv": [
+            14,
+            7,
+            13.5,
+            6.5
+          ],
+          "texture": "#particle"
+        },
+        "down": {
+          "uv": [
+            14.5,
+            6.5,
+            14,
+            7
+          ],
+          "texture": "#particle"
+        }
+      }
+    },
+    {
+      "name": "tHandle",
+      "from": [
+        4,
+        26,
+        12.7
+      ],
+      "to": [
+        12,
+        27,
+        13.7
+      ],
+      "rotation": {
+        "angle": 45,
+        "axis": "x",
+        "origin": [
+          0,
+          16,
+          0
+        ]
+      },
+      "faces": {
+        "north": {
+          "uv": [
+            7.5,
+            12.5,
+            11.5,
+            13
+          ],
+          "texture": "#particle"
+        },
+        "east": {
+          "uv": [
+            7,
+            12.5,
+            7.5,
+            13
+          ],
+          "texture": "#particle"
+        },
+        "south": {
+          "uv": [
+            12,
+            12.5,
+            16,
+            13
+          ],
+          "texture": "#particle"
+        },
+        "west": {
+          "uv": [
+            11.5,
+            12.5,
+            12,
+            13
+          ],
+          "texture": "#particle"
+        },
+        "up": {
+          "uv": [
+            11.5,
+            12.5,
+            7.5,
+            12
+          ],
+          "texture": "#particle"
+        },
+        "down": {
+          "uv": [
+            15.5,
+            12,
+            11.5,
+            12.5
+          ],
+          "texture": "#particle"
+        }
+      }
+    },
+    {
+      "name": "topplate",
+      "from": [
+        4,
+        9,
+        8
+      ],
+      "to": [
+        12,
+        10,
+        16
+      ],
+      "rotation": {
+        "angle": 0,
+        "axis": "z",
+        "origin": [
+          0,
+          10,
+          0
+        ]
+      },
+      "faces": {
+        "north": {
+          "uv": [
+            4,
+            4,
+            8,
+            4.5
+          ],
+          "texture": "#particle"
+        },
+        "east": {
+          "uv": [
+            0,
+            4,
+            4,
+            4.5
+          ],
+          "texture": "#particle"
+        },
+        "south": {
+          "uv": [
+            12,
+            4,
+            16,
+            4.5
+          ],
+          "texture": "#particle"
+        },
+        "west": {
+          "uv": [
+            8,
+            4,
+            12,
+            4.5
+          ],
+          "texture": "#particle"
+        },
+        "up": {
+          "uv": [
+            8,
+            4,
+            4,
+            0
+          ],
+          "texture": "#particle"
+        },
+        "down": {
+          "uv": [
+            12,
+            0,
+            8,
+            4
+          ],
+          "texture": "#particle"
+        }
+      }
+    },
+    {
+      "name": "frameRF",
+      "from": [
+        10.8,
+        1,
+        8.2
+      ],
+      "to": [
+        11.8,
+        9,
+        9.2
+      ],
+      "rotation": {
+        "angle": 0,
+        "axis": "z",
+        "origin": [
+          0,
+          9,
+          0
+        ]
+      },
+      "faces": {
+        "north": {
+          "uv": [
+            13.5,
+            7,
+            14,
+            11
+          ],
+          "texture": "#particle"
+        },
+        "east": {
+          "uv": [
+            13,
+            7,
+            13.5,
+            11
+          ],
+          "texture": "#particle"
+        },
+        "south": {
+          "uv": [
+            14.5,
+            7,
+            15,
+            11
+          ],
+          "texture": "#particle"
+        },
+        "west": {
+          "uv": [
+            14,
+            7,
+            14.5,
+            11
+          ],
+          "texture": "#particle"
+        },
+        "up": {
+          "uv": [
+            14,
+            7,
+            13.5,
+            6.5
+          ],
+          "texture": "#particle"
+        },
+        "down": {
+          "uv": [
+            14.5,
+            6.5,
+            14,
+            7
+          ],
+          "texture": "#particle"
+        }
+      }
+    },
+    {
+      "name": "ventbase",
+      "from": [
+        4.5,
+        10,
+        8.5
+      ],
+      "to": [
+        11.5,
+        11,
+        15.5
+      ],
+      "rotation": {
+        "angle": 0,
+        "axis": "z",
+        "origin": [
+          0,
+          11,
+          0
+        ]
+      },
+      "faces": {
+        "north": {
+          "uv": [
+            4.5,
+            4,
+            8,
+            4.5
+          ],
+          "texture": "#particle"
+        },
+        "east": {
+          "uv": [
+            1,
+            4,
+            4.5,
+            4.5
+          ],
+          "texture": "#particle"
+        },
+        "south": {
+          "uv": [
+            11.5,
+            4,
+            15,
+            4.5
+          ],
+          "texture": "#particle"
+        },
+        "west": {
+          "uv": [
+            8,
+            4,
+            11.5,
+            4.5
+          ],
+          "texture": "#particle"
+        },
+        "up": {
+          "uv": [
+            8,
+            4,
+            4.5,
+            0.5
+          ],
+          "texture": "#particle"
+        },
+        "down": {
+          "uv": [
+            11.5,
+            0.5,
+            8,
+            4
+          ],
+          "texture": "#particle"
+        }
+      }
+    },
+    {
+      "name": "frameLF",
+      "from": [
+        4.2,
+        1,
+        8.2
+      ],
+      "to": [
+        5.2,
+        9,
+        9.2
+      ],
+      "rotation": {
+        "angle": 0,
+        "axis": "z",
+        "origin": [
+          0,
+          9,
+          0
+        ]
+      },
+      "faces": {
+        "north": {
+          "uv": [
+            13.5,
+            7,
+            14,
+            11
+          ],
+          "texture": "#particle"
+        },
+        "east": {
+          "uv": [
+            13,
+            7,
+            13.5,
+            11
+          ],
+          "texture": "#particle"
+        },
+        "south": {
+          "uv": [
+            14.5,
+            7,
+            15,
+            11
+          ],
+          "texture": "#particle"
+        },
+        "west": {
+          "uv": [
+            14,
+            7,
+            14.5,
+            11
+          ],
+          "texture": "#particle"
+        },
+        "up": {
+          "uv": [
+            14,
+            7,
+            13.5,
+            6.5
+          ],
+          "texture": "#particle"
+        },
+        "down": {
+          "uv": [
+            14.5,
+            6.5,
+            14,
+            7
+          ],
+          "texture": "#particle"
+        }
+      }
+    },
+    {
+      "name": "vent",
+      "from": [
+        6,
+        11,
+        10
+      ],
+      "to": [
+        10,
+        13,
+        14
+      ],
+      "rotation": {
+        "angle": 0,
+        "axis": "z",
+        "origin": [
+          0,
+          13,
+          0
+        ]
+      },
+      "faces": {
+        "north": {
+          "uv": [
+            9.5,
+            15,
+            11.5,
+            16
+          ],
+          "texture": "#particle"
+        },
+        "east": {
+          "uv": [
+            7.5,
+            15,
+            9.5,
+            16
+          ],
+          "texture": "#particle"
+        },
+        "south": {
+          "uv": [
+            13.5,
+            15,
+            15.5,
+            16
+          ],
+          "texture": "#particle"
+        },
+        "west": {
+          "uv": [
+            11.5,
+            15,
+            13.5,
+            16
+          ],
+          "texture": "#particle"
+        },
+        "up": {
+          "uv": [
+            11.5,
+            15,
+            9.5,
+            13
+          ],
+          "texture": "#particle"
+        },
+        "down": {
+          "uv": [
+            13.5,
+            13,
+            11.5,
+            15
+          ],
+          "texture": "#particle"
+        }
+      }
+    },
+    {
+      "name": "frameLB",
+      "from": [
+        4.2,
+        1,
+        14.8
+      ],
+      "to": [
+        5.2,
+        9,
+        15.8
+      ],
+      "rotation": {
+        "angle": 0,
+        "axis": "z",
+        "origin": [
+          0,
+          9,
+          0
+        ]
+      },
+      "faces": {
+        "north": {
+          "uv": [
+            13.5,
+            7,
+            14,
+            11
+          ],
+          "texture": "#particle"
+        },
+        "east": {
+          "uv": [
+            13,
+            7,
+            13.5,
+            11
+          ],
+          "texture": "#particle"
+        },
+        "south": {
+          "uv": [
+            14.5,
+            7,
+            15,
+            11
+          ],
+          "texture": "#particle"
+        },
+        "west": {
+          "uv": [
+            14,
+            7,
+            14.5,
+            11
+          ],
+          "texture": "#particle"
+        },
+        "up": {
+          "uv": [
+            14,
+            7,
+            13.5,
+            6.5
+          ],
+          "texture": "#particle"
+        },
+        "down": {
+          "uv": [
+            14.5,
+            6.5,
+            14,
+            7
+          ],
+          "texture": "#particle"
+        }
+      }
+    },
+    {
+      "name": "baseplate",
+      "from": [
+        4,
+        0,
+        8
+      ],
+      "to": [
+        12,
+        1,
+        16
+      ],
+      "rotation": {
+        "angle": 0,
+        "axis": "z",
+        "origin": [
+          0,
+          1,
+          0
+        ]
+      },
+      "faces": {
+        "north": {
+          "uv": [
+            4,
+            4,
+            8,
+            4.5
+          ],
+          "texture": "#particle"
+        },
+        "east": {
+          "uv": [
+            0,
+            4,
+            4,
+            4.5
+          ],
+          "texture": "#particle"
+        },
+        "south": {
+          "uv": [
+            12,
+            4,
+            16,
+            4.5
+          ],
+          "texture": "#particle"
+        },
+        "west": {
+          "uv": [
+            8,
+            4,
+            12,
+            4.5
+          ],
+          "texture": "#particle"
+        },
+        "up": {
+          "uv": [
+            8,
+            4,
+            4,
+            0
+          ],
+          "texture": "#particle"
+        },
+        "down": {
+          "uv": [
+            12,
+            0,
+            8,
+            4
+          ],
+          "texture": "#particle"
+        }
+      }
+    },
+    {
+      "name": "rHandle",
+      "from": [
+        12,
+        19,
+        12
+      ],
+      "to": [
+        13,
+        26,
+        13
+      ],
+      "rotation": {
+        "angle": 45,
+        "axis": "x",
+        "origin": [
+          0,
+          15,
+          0
+        ]
+      },
+      "faces": {
+        "north": {
+          "uv": [
+            13.5,
+            7,
+            14,
+            10.5
+          ],
+          "texture": "#particle"
+        },
+        "east": {
+          "uv": [
+            13,
+            7,
+            13.5,
+            10.5
+          ],
+          "texture": "#particle"
+        },
+        "south": {
+          "uv": [
+            14.5,
+            7,
+            15,
+            10.5
+          ],
+          "texture": "#particle"
+        },
+        "west": {
+          "uv": [
+            14,
+            7,
+            14.5,
+            10.5
+          ],
+          "texture": "#particle"
+        },
+        "up": {
+          "uv": [
+            14,
+            7,
+            13.5,
+            6.5
+          ],
+          "texture": "#particle"
+        },
+        "down": {
+          "uv": [
+            14.5,
+            6.5,
+            14,
+            7
+          ],
+          "texture": "#particle"
+        }
+      }
     }
-  }
+  ]
 }

@@ -62,8 +62,8 @@ import java.util.stream.Collectors;
 public class HandOfFateBlockEntity extends BlockEntity implements TickableBlockEntity, BlockEntityExtension {
 
     public static final ImmutableBiMap<String, HOFRecipe> RECIPES = ImmutableBiMap.of(
-    "hirschgeist", new HOFRecipe(ChatFormatting.AQUA, true, Items.BONE, Items.DIAMOND, Items.SOUL_SAND),
-    "wisp", new HOFRecipe(ChatFormatting.GOLD, false, Items.BLAZE_POWDER, Items.GLOWSTONE_DUST, Items.SOUL_SAND));
+            "hirschgeist", new HOFRecipe(ChatFormatting.AQUA, true, Items.BONE, Items.DIAMOND, Items.SOUL_SAND),
+            "wisp", new HOFRecipe(ChatFormatting.GOLD, false, Items.BLAZE_POWDER, Items.GLOWSTONE_DUST, Items.SOUL_SAND));
     private final CurrentRecipeContainer recipeContainer = new CurrentRecipeContainer();
     private Item toDisplay = null;
     private boolean displayDirty = true;
@@ -74,24 +74,23 @@ public class HandOfFateBlockEntity extends BlockEntity implements TickableBlockE
     }
 
     public Item getDisplayItem() {
-        if(displayDirty) {
+        if (displayDirty) {
             this.toDisplay = this.getRecipeContainer().getDisplayItem();
             this.displayDirty = false;
         }
         return this.toDisplay;
     }
 
-    public void notifyUpdate() {
-        if(this.hasLevel() && worldPosition != null) {
-            level.sendBlockUpdated(this.getBlockPos(), this.getBlockState(), this.getBlockState(), 3);
-            if (!level.isClientSide())
-                this.syncData();
-        }
+    @Override
+    public void setChanged() {
+        super.setChanged();
+        if (this.hasLevel() && !this.level.isClientSide())
+            this.syncData();
     }
 
     public boolean isLit() {
         Block b = this.getBlockState().getBlock();
-        if(b instanceof HandOfFateBlock && this.hasLevel()) {
+        if (b instanceof HandOfFateBlock && this.hasLevel()) {
             HandOfFateBlock block = (HandOfFateBlock) b;
             return block.isLit(this.getLevel(), this.getBlockPos());
         }
@@ -107,44 +106,44 @@ public class HandOfFateBlockEntity extends BlockEntity implements TickableBlockE
     }
 
     protected void playSound(SoundEvent sound, float vol, float pitch) {
-        if(this.hasLevel()) {
+        if (this.hasLevel()) {
             this.getLevel().playSound(null, this.getBlockPos().getX(), this.getBlockPos().getY(), this.getBlockPos().getZ(), sound, SoundSource.BLOCKS, vol, pitch);
         }
     }
 
     protected void sendToTrackers(HOFEffectPacket pkt) {
-        if(this.hasLevel()) {
+        if (this.hasLevel()) {
             WWNetwork.HANDLER.sendToPlayers(((ServerChunkCache) this.getLevel().getChunkSource()).chunkMap.getPlayers(new ChunkPos(worldPosition), false).collect(Collectors.toSet()), pkt);
         }
     }
 
     @Override
     public void tick() {
-        if(this.hasLevel() && this.worldPosition != null && this.level.getGameTime() % 5 == 0 && !level.isClientSide) {
+        if (this.hasLevel() && this.worldPosition != null && this.level.getGameTime() % 5 == 0 && !level.isClientSide) {
             BlockState state = this.getBlockState();
             List<ItemEntity> items = this.level.getEntitiesOfClass(ItemEntity.class, state.getBlockSupportShape(level, worldPosition).bounds().move(worldPosition).inflate(0.25D));
-            for(ItemEntity item : items) {
-                if(item.isAlive()) {
+            for (ItemEntity item : items) {
+                if (item.isAlive()) {
                     ItemStack stack = item.getItem();
-                    if(stack.getCount() > 0) {
+                    if (stack.getCount() > 0) {
                         InteractionResult r = this.reactToItem(stack, state, level, worldPosition);
-                        if(r == InteractionResult.CONSUME) {
+                        if (r == InteractionResult.CONSUME) {
                             item.getItem().shrink(1);
                             this.playSound(SoundEvents.END_PORTAL_FRAME_FILL, 1F, 1F);
                             this.displayDirty = true;
-                            if(item.getItem().getCount() == 0) {
+                            if (item.getItem().getCount() == 0) {
                                 item.remove();
                             }
-                            this.notifyUpdate();
+                            this.setChanged();
                             break;
-                        } else if(stack.getItem() instanceof BlockItem && level.isEmptyBlock(this.worldPosition.above())) {
+                        } else if (stack.getItem() instanceof BlockItem && level.isEmptyBlock(this.worldPosition.above())) {
                             BlockItem i = (BlockItem) stack.getItem();
-                            if(i.getBlock() instanceof GhostLightBlock) {
+                            if (i.getBlock() instanceof GhostLightBlock) {
                                 item.getItem().shrink(1);
                                 this.playSound(SoundEvents.END_PORTAL_FRAME_FILL, 1F, 1F);
                                 level.setBlockAndUpdate(worldPosition.above(), i.getBlock().defaultBlockState());
                             }
-                            if(item.getItem().getCount() == 0) {
+                            if (item.getItem().getCount() == 0) {
                                 item.remove();
                             }
                             break;
@@ -157,32 +156,31 @@ public class HandOfFateBlockEntity extends BlockEntity implements TickableBlockE
 
     public InteractionResult onBlockActivated(BlockState state, Level worldIn, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hit) {
         InteractionResult r = this.reactToItem(player.getItemInHand(hand), state, worldIn, pos);
-        if(r == InteractionResult.CONSUME) {
-            if(!player.isCreative()) {
+        if (r == InteractionResult.CONSUME) {
+            if (!player.isCreative()) {
                 player.getItemInHand(hand).shrink(1);
             }
             this.playSound(SoundEvents.END_PORTAL_FRAME_FILL, 1F, 1F);
             this.displayDirty = true;
-            if (!worldIn.isClientSide())
-                this.syncData();
+            this.setChanged();
         }
         return r;
     }
 
     public InteractionResult reactToItem(ItemStack stack, BlockState state, Level worldIn, BlockPos pos) {
         boolean lit = this.isLit() || this.hasBlaze();
-        if(lit || stack.getItem() == Items.BLAZE_POWDER) {
-            if(!this.getRecipeContainer().hasRecipe()) {
-                for(HOFRecipe recipe : RECIPES.values()) {
-                    if(recipe.isFirst(stack.getItem())) {
+        if (lit || stack.getItem() == Items.BLAZE_POWDER) {
+            if (!this.getRecipeContainer().hasRecipe()) {
+                for (HOFRecipe recipe : RECIPES.values()) {
+                    if (recipe.isFirst(stack.getItem())) {
                         this.getRecipeContainer().setRecipe(recipe);
-                        if(this.getRecipeContainer().checkedAdd(stack.getItem())) {
+                        if (this.getRecipeContainer().checkedAdd(stack.getItem())) {
                             return InteractionResult.CONSUME;
                         }
                     }
                 }
-            } else if(this.getRecipeContainer().checkedAdd(stack.getItem())) {
-                if(this.getRecipeContainer().isRecipeComplete()) {
+            } else if (this.getRecipeContainer().checkedAdd(stack.getItem())) {
+                if (this.getRecipeContainer().isRecipeComplete()) {
                     this.onRecipeComplete(this.getRecipeContainer().getCurrentRecipe(), state, worldIn, pos);
                 }
                 return InteractionResult.CONSUME;
@@ -192,48 +190,48 @@ public class HandOfFateBlockEntity extends BlockEntity implements TickableBlockE
     }
 
     public void onRecipeComplete(HOFRecipe recipe, BlockState state, Level worldIn, BlockPos pos) {
-        if(worldIn instanceof ServerLevel && !worldIn.isClientSide) {
+        if (worldIn instanceof ServerLevel && !worldIn.isClientSide) {
             ServerLevel world = (ServerLevel) worldIn;
-            switch(recipe.getName()) {
-            case "hirschgeist":
-                HOFEffectPacket hgpk = new HOFEffectPacket(HOFEffectType.HIRSCHGEIST, new Vector3f(pos.getX() + 0.5F, pos.getY() + 1F, pos.getZ() + 0.5F), WispColors.BLUE.getColor());
-                this.sendToTrackers(hgpk);
-                this.playSound(SoundEvents.EVOKER_CAST_SPELL, 1F, 1F);
-                this.playSound(SoundEvents.BELL_RESONATE, 1F, 1F);
-                TaskQueue.QUEUE_SERVER.schedule(50, () -> ModEntities.HIRSCHGEIST.getEntityType().spawn((ServerLevel) worldIn, null, null, pos.above(), MobSpawnType.EVENT, false, false));
-                break;
-            case "wisp":
-                EntityWisp wisp = ModEntities.WISP.getEntityType().create(world);
-                WispColor wColor;
-                Block above = world.getBlockState(pos.above()).getBlock();
-                if(above instanceof GhostLightBlock) {
-                    wColor = WispColors.byColor(((GhostLightBlock) above).getColor());
-                } else {
-                    wColor = WispColors.values()[wisp.getRandom().nextInt(WispColors.values().length)];
-                }
-                wisp.setPos((double)pos.getX() + 0.5D, (double)pos.getY() + 1D, (double)pos.getZ() + 0.5D);
-                double d0 = 1.0D + Shapes.collide(Direction.Axis.Y, wisp.getBoundingBox(), world.getCollisions(null, new AABB(pos), e -> true), -1.0D);
-                wisp.moveTo((double) pos.getX() + 0.5D, (double) pos.getY() + d0, (double) pos.getZ() + 0.5D, Mth.wrapDegrees(world.random.nextFloat() * 360.0F), 0.0F);
-                wisp.yHeadRot = wisp.yRot;
-                wisp.yBodyRot = wisp.yRot;
-                wisp.isHostile = wisp.getNewHostileChance();
-                wisp.getEntityData().set(EntityWisp.COLOR_VARIANT, wColor.ordinal() + 1);
-                worldIn.addFreshEntity(wisp);
+            switch (recipe.getName()) {
+                case "hirschgeist":
+                    HOFEffectPacket hgpk = new HOFEffectPacket(HOFEffectType.HIRSCHGEIST, new Vector3f(pos.getX() + 0.5F, pos.getY() + 1F, pos.getZ() + 0.5F), WispColors.BLUE.getColor());
+                    this.sendToTrackers(hgpk);
+                    this.playSound(SoundEvents.EVOKER_CAST_SPELL, 1F, 1F);
+                    this.playSound(SoundEvents.BELL_RESONATE, 1F, 1F);
+                    TaskQueue.QUEUE_SERVER.schedule(50, () -> ModEntities.HIRSCHGEIST.getEntityType().spawn((ServerLevel) worldIn, null, null, pos.above(), MobSpawnType.EVENT, false, false));
+                    break;
+                case "wisp":
+                    EntityWisp wisp = ModEntities.WISP.getEntityType().create(world);
+                    WispColor wColor;
+                    Block above = world.getBlockState(pos.above()).getBlock();
+                    if (above instanceof GhostLightBlock) {
+                        wColor = WispColors.byColor(((GhostLightBlock) above).getColor());
+                    } else {
+                        wColor = WispColors.values()[wisp.getRandom().nextInt(WispColors.values().length)];
+                    }
+                    wisp.setPos((double) pos.getX() + 0.5D, (double) pos.getY() + 1D, (double) pos.getZ() + 0.5D);
+                    double d0 = 1.0D + Shapes.collide(Direction.Axis.Y, wisp.getBoundingBox(), world.getCollisions(null, new AABB(pos), e -> true), -1.0D);
+                    wisp.moveTo((double) pos.getX() + 0.5D, (double) pos.getY() + d0, (double) pos.getZ() + 0.5D, Mth.wrapDegrees(world.random.nextFloat() * 360.0F), 0.0F);
+                    wisp.yHeadRot = wisp.yRot;
+                    wisp.yBodyRot = wisp.yRot;
+                    wisp.isHostile = wisp.getNewHostileChance();
+                    wisp.getEntityData().set(EntityWisp.COLOR_VARIANT, wColor.ordinal() + 1);
+                    worldIn.addFreshEntity(wisp);
 
-                int color = wisp.getWispColor().getColor();
-                HOFEffectPacket packet = new HOFEffectPacket(HOFEffectType.CIRCLE, new Vector3f(pos.getX() + 0.5F, pos.getY() + 1F, pos.getZ() + 0.5F), color);
-                this.sendToTrackers(packet);
-                if(wisp.isHostile) {
-                    HOFEffectPacket packet2 = new HOFEffectPacket(HOFEffectType.CIRCLE, new Vector3f(pos.getX() + 0.5F, pos.getY() + 1F, pos.getZ() + 0.5F), 0xFF0000);
-                    this.sendToTrackers(packet2);
+                    int color = wisp.getWispColor().getColor();
+                    HOFEffectPacket packet = new HOFEffectPacket(HOFEffectType.CIRCLE, new Vector3f(pos.getX() + 0.5F, pos.getY() + 1F, pos.getZ() + 0.5F), color);
+                    this.sendToTrackers(packet);
+                    if (wisp.isHostile) {
+                        HOFEffectPacket packet2 = new HOFEffectPacket(HOFEffectType.CIRCLE, new Vector3f(pos.getX() + 0.5F, pos.getY() + 1F, pos.getZ() + 0.5F), 0xFF0000);
+                        this.sendToTrackers(packet2);
 
-                }
-                this.playSound(wisp.isHostile ? SoundEvents.ELDER_GUARDIAN_CURSE : SoundEvents.EVOKER_CAST_SPELL, 1F, 1F);
-                break;
-            default:
-                break;
+                    }
+                    this.playSound(wisp.isHostile ? SoundEvents.ELDER_GUARDIAN_CURSE : SoundEvents.EVOKER_CAST_SPELL, 1F, 1F);
+                    break;
+                default:
+                    break;
             }
-            this.notifyUpdate();
+            this.setChanged();
         }
         this.getRecipeContainer().setRecipe(null);
     }
@@ -277,11 +275,11 @@ public class HandOfFateBlockEntity extends BlockEntity implements TickableBlockE
     }
 
     public void dropItems(Level worldIn, BlockPos pos) {
-        if(worldIn != null && this.getRecipeContainer().hasRecipe() && this.getRecipeContainer().data != null) {
+        if (worldIn != null && this.getRecipeContainer().hasRecipe() && this.getRecipeContainer().data != null) {
             this.getRecipeContainer().data.getItemData().forEach((i, v) -> {
-                if(v) {
+                if (v) {
                     Item toDrop = Registries.get(WhisperwoodsMod.MODID).get(Registry.ITEM_REGISTRY).get(new ResourceLocation(i));
-                    if(toDrop != null) {
+                    if (toDrop != null) {
                         Containers.dropItemStack(worldIn, pos.getX(), pos.getY(), pos.getZ(), new ItemStack(toDrop));
                     }
                 }
@@ -295,7 +293,7 @@ public class HandOfFateBlockEntity extends BlockEntity implements TickableBlockE
 
         public void setRecipe(HOFRecipe recipe) {
             this.currentRecipe = recipe;
-            if(recipe != null) {
+            if (recipe != null) {
                 this.data = new RecipeItemData(recipe);
             } else {
                 this.data = null;
@@ -311,10 +309,10 @@ public class HandOfFateBlockEntity extends BlockEntity implements TickableBlockE
         }
 
         public boolean isRecipeComplete() {
-            if(this.hasRecipe() && data != null) {
+            if (this.hasRecipe() && data != null) {
                 boolean anyFalse = false;
-                for(Item item : this.getCurrentRecipe().items) {
-                    if(!this.data.hasItem(item)) {
+                for (Item item : this.getCurrentRecipe().items) {
+                    if (!this.data.hasItem(item)) {
                         anyFalse = true;
                     }
                 }
@@ -328,9 +326,9 @@ public class HandOfFateBlockEntity extends BlockEntity implements TickableBlockE
         }
 
         public boolean canRecipeAccept(Item item) {
-            if(this.hasRecipe() && data != null) {
+            if (this.hasRecipe() && data != null) {
                 String next = data.getNextNonContainedItem();
-                if(next != null) {
+                if (next != null) {
                     return next.equals(Registries.get(WhisperwoodsMod.MODID).get(Registry.ITEM_REGISTRY).getId(item).toString());
                 }
             }
@@ -342,9 +340,9 @@ public class HandOfFateBlockEntity extends BlockEntity implements TickableBlockE
         }
 
         public Item getDisplayItem() {
-            if(this.hasRecipe() && data != null) {
+            if (this.hasRecipe() && data != null) {
                 String itemName = data.getNextNonContainedItem();
-                if(itemName != null) {
+                if (itemName != null) {
                     return Registries.get(WhisperwoodsMod.MODID).get(Registry.ITEM_REGISTRY).get(new ResourceLocation(itemName));
                 }
             }
@@ -352,9 +350,9 @@ public class HandOfFateBlockEntity extends BlockEntity implements TickableBlockE
         }
 
         public void read(BlockState state, CompoundTag nbt) {
-            if(nbt.contains("recipe")) {
+            if (nbt.contains("recipe")) {
                 this.setRecipe(RECIPES.getOrDefault(nbt.getString("recipe"), null));
-                if(this.data != null) {
+                if (this.data != null) {
                     this.data.read(state, nbt);
                 }
             } else {
@@ -363,9 +361,9 @@ public class HandOfFateBlockEntity extends BlockEntity implements TickableBlockE
         }
 
         public CompoundTag write(CompoundTag compound) {
-            if(this.hasRecipe()) {
+            if (this.hasRecipe()) {
                 compound.putString("recipe", this.getCurrentRecipe().getName());
-                if(this.data != null) {
+                if (this.data != null) {
                     this.data.write(compound);
                 }
             }
@@ -389,8 +387,8 @@ public class HandOfFateBlockEntity extends BlockEntity implements TickableBlockE
         }
 
         public String getNextNonContainedItem() {
-            for(String key : data.keySet()) {
-                if(!data.get(key)) {
+            for (String key : data.keySet()) {
+                if (!data.get(key)) {
                     return key;
                 }
             }
@@ -399,7 +397,7 @@ public class HandOfFateBlockEntity extends BlockEntity implements TickableBlockE
 
         public boolean addItem(Item item) {
             String key = Registries.get(WhisperwoodsMod.MODID).get(Registry.ITEM_REGISTRY).getId(item).toString();
-            if(data.containsKey(key)) {
+            if (data.containsKey(key)) {
                 data.put(key, true);
                 return true;
             }
@@ -411,7 +409,7 @@ public class HandOfFateBlockEntity extends BlockEntity implements TickableBlockE
         }
 
         public void read(BlockState state, CompoundTag nbt) {
-            if(nbt.contains("items")) {
+            if (nbt.contains("items")) {
                 nbt.getList("items", NbtType.STRING).forEach(i -> data.put(i.getAsString(), true));
             } else {
                 data.keySet().forEach((i) -> data.put(i, false));
@@ -421,7 +419,7 @@ public class HandOfFateBlockEntity extends BlockEntity implements TickableBlockE
         public CompoundTag write(CompoundTag compound) {
             ListTag list = new ListTag();
             data.forEach((i, v) -> {
-                if(v)
+                if (v)
                     list.add(StringTag.valueOf(i));
             });
             compound.put("items", list);
@@ -441,7 +439,7 @@ public class HandOfFateBlockEntity extends BlockEntity implements TickableBlockE
         public final ImmutableList<Item> items;
 
         public HOFRecipe(ChatFormatting color, boolean bold, Item... items) {
-            if(items.length < 1) {
+            if (items.length < 1) {
                 throw new IllegalArgumentException("HOFRecipe constructor: \"items\" must have at least one item!");
             }
             this.color = color;
@@ -458,7 +456,7 @@ public class HandOfFateBlockEntity extends BlockEntity implements TickableBlockE
         }
 
         public String getName() {
-            if(name == null) {
+            if (name == null) {
                 this.name = HandOfFateBlockEntity.RECIPES.inverse().get(this);
             }
             return name;
@@ -486,7 +484,7 @@ public class HandOfFateBlockEntity extends BlockEntity implements TickableBlockE
 
         public Item getNextIngredient(Item lastIngredient) {
             int i = items.indexOf(lastIngredient) + 1;
-            if(!isLast(lastIngredient) && i < items.size()) {
+            if (!isLast(lastIngredient) && i < items.size()) {
                 return items.get(i);
             }
             return null;

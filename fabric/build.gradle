@@ -29,16 +29,21 @@ repositories {
     maven {
         url = "https://maven.shedaniel.me/"
     }
+    maven {
+        url = "https://cursemaven.com/"
+    }
 }
 
 dependencies {
     modImplementation "net.fabricmc:fabric-loader:${rootProject.fabric_loader_version}"
     modApi "net.fabricmc.fabric-api:fabric-api:${rootProject.fabric_api_version}"
     modApi "me.shedaniel:architectury-fabric:${rootProject.architectury_version}"
-    modRuntimeOnly ("me.shedaniel.cloth:cloth-config:4.13.49") {
-        exclude(group: "net.fabricmc.fabric-api")
+    modRuntimeOnly ("curse.maven:cloth-config-319057:3559633") {
+        transitive = false
     }
-    runtimeOnly("me.shedaniel.cloth:basic-math:0.6.0")
+    runtimeOnly("me.shedaniel.cloth:basic-math:0.6.0") {
+        transitive = false
+    }
 
     implementation(project(path: ":common", configuration: "dev")) {
         transitive = false
@@ -53,16 +58,21 @@ dependencies {
     shadowModImplementation("dev.itsmeow.imdlib:imdlib-fabric:${rootProject.imdlib_version}") {
         transitive = false
     }
-    modImplementation("io.github.onyxstudios.Cardinal-Components-API:cardinal-components-base:${rootProject.cardinal_components_version}") {
+    modRuntimeOnly("io.github.onyxstudios.Cardinal-Components-API:cardinal-components-base:${rootProject.cardinal_components_version}") {
         transitive = false
     }
-    modImplementation("io.github.onyxstudios.Cardinal-Components-API:cardinal-components-entity:${rootProject.cardinal_components_version}") {
+    modRuntimeOnly("io.github.onyxstudios.Cardinal-Components-API:cardinal-components-entity:${rootProject.cardinal_components_version}") {
         transitive = false
     }
-    modImplementation "dev.emi:trinkets:2.6.7"
+    modRuntimeOnly("dev.emi:trinkets:2.6.7") {
+        transitive = false
+    }
     modRuntimeOnly("com.terraformersmc:modmenu:1.16.22") {
         transitive = false
     }
+    /*modRuntimeOnly("dev.itsmeow.betteranimalsplus:betteranimalsplus-fabric:${rootProject.betteranimalsplus_version}") {
+        transitive = false
+    }*/
 }
 
 processResources {

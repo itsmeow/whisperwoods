@@ -14,3 +14,5 @@ accessible field net/minecraft/server/level/ChunkMap entityMap Lit/unimi/dsi/fas
 accessible field net/minecraft/server/level/ChunkMap$TrackedEntity seenBy Ljava/util/Set;
 accessible field net/minecraft/world/entity/ai/navigation/PathNavigation nodeEvaluator Lnet/minecraft/world/level/pathfinder/NodeEvaluator;
 accessible class net/minecraft/client/particle/ParticleEngine$SpriteParticleRegistration
+accessible field net/minecraft/client/particle/ParticleEngine RENDER_ORDER Ljava/util/List;
+mutable field net/minecraft/client/particle/ParticleEngine RENDER_ORDER Ljava/util/List;
