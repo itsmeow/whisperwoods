@@ -37,7 +37,12 @@ public class ModEntities {
     "brown_spotted_hawk",
     "black_white_deaths_head",
     "brown_grey_deaths_head",
-    "brown_orange_deaths_head")
+    "brown_orange_deaths_head",
+    "black_witch",
+    "brahmin",
+    "dappled_wood",
+    "owl",
+    "vampire")
     .biomesOverworld(BiomeTypes.FOREST, BiomeTypes.SWAMP)
     .containers("bottled_%s", ItemModEntityContainer.get(WhisperwoodsMod.TAB), "", c -> Items.GLASS_BOTTLE, EntityMoth::bottleTooltip));
 

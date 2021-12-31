@@ -9,96 +9,102 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.entity.Pose;
 
-/**
- * moth - cybecat5555 Created using Tabula 7.0.1
- */
 public class ModelMoth extends EntityModel<EntityMoth> {
+
     public ModelPart thorax;
     public ModelPart head;
-    public ModelPart abdomen;
-    public ModelPart lLeg00;
-    public ModelPart lLeg01;
-    public ModelPart lLeg02;
-    public ModelPart rLeg00;
-    public ModelPart rLeg01;
-    public ModelPart rLeg02;
-    public ModelPart lWing;
-    public ModelPart rWing;
     public ModelPart lAntenna;
     public ModelPart rAntenna;
+    public ModelPart abdomin;
+    public ModelPart lLeg01;
+    public ModelPart lLeg02;
+    public ModelPart lLeg03;
+    public ModelPart rLeg01;
+    public ModelPart rLeg02;
+    public ModelPart rLeg03;
+    public ModelPart lWing;
+    public ModelPart rWing;
     private boolean isOffset = false;
     private double xOff = 0;
     private double zOff = 0;
 
     public ModelMoth() {
-        this.texWidth = 64;
-        this.texHeight = 32;
-        this.lWing = new ModelPart(this, 7, 0);
-        this.lWing.setPos(1.2F, -1.0F, -1.0F);
-        this.lWing.addBox(0.0F, 0.0F, -4.5F, 15, 0, 27, 0.0F);
-        this.thorax = new ModelPart(this, 0, 7);
-        this.thorax.setPos(0.0F, 20.9F, 0.0F);
-        this.thorax.addBox(-1.5F, -1.5F, -2.0F, 3, 3, 4, 0.0F);
-        this.lLeg00 = new ModelPart(this, 17, 6);
-        this.lLeg00.setPos(0.9F, 1.2F, -0.5F);
-        this.lLeg00.addBox(-0.5F, 0.0F, -0.0F, 1, 4, 0, 0.0F);
-        this.setRotateAngle(lLeg00, -1.0471975511965976F, -0.8726646259971648F, 0.0F);
-        this.rAntenna = new ModelPart(this, 11, 0);
-        this.rAntenna.mirror = true;
-        this.rAntenna.setPos(-0.4F, -3.0F, -2.0F);
-        this.rAntenna.addBox(-2.0F, 0.0F, -5.0F, 2, 0, 5, 0.0F);
-        this.setRotateAngle(rAntenna, -0.7853981633974483F, 0.2792526803190927F, 0.0F);
-        this.lLeg01 = new ModelPart(this, 20, 5);
-        this.lLeg01.setPos(0.9F, 1.2F, 0.0F);
-        this.lLeg01.addBox(-0.0F, 0.0F, -0.5F, 0, 4, 1, 0.0F);
-        this.setRotateAngle(lLeg01, 0.0F, 0.0F, -1.0471975511965976F);
-        this.rLeg02 = new ModelPart(this, 17, 6);
-        this.rLeg02.mirror = true;
-        this.rLeg02.setPos(-0.9F, 1.2F, 0.5F);
-        this.rLeg02.addBox(-0.5F, 0.0F, -0.0F, 1, 4, 0, 0.0F);
-        this.setRotateAngle(rLeg02, 1.0471975511965976F, -0.8726646259971648F, 0.0F);
-        this.rLeg01 = new ModelPart(this, 20, 5);
-        this.rLeg01.mirror = true;
-        this.rLeg01.setPos(-0.9F, 1.2F, 0.0F);
-        this.rLeg01.addBox(-0.0F, 0.0F, -0.5F, 0, 4, 1, 0.0F);
-        this.setRotateAngle(rLeg01, 0.0F, 0.0F, 1.0471975511965976F);
-        this.rWing = new ModelPart(this, 7, 0);
-        this.rWing.mirror = true;
-        this.rWing.setPos(-1.2F, -1.0F, -1.0F);
-        this.rWing.addBox(-15.0F, 0.0F, -4.5F, 15, 0, 27, 0.0F);
-        this.lLeg02 = new ModelPart(this, 17, 6);
-        this.lLeg02.setPos(0.9F, 1.2F, 0.5F);
-        this.lLeg02.addBox(-0.5F, 0.0F, -0.0F, 1, 4, 0, 0.0F);
-        this.setRotateAngle(lLeg02, 1.0471975511965976F, 0.8726646259971648F, 0.0F);
-        this.abdomen = new ModelPart(this, 0, 16);
-        this.abdomen.setPos(0.0F, 0.2F, 1.8F);
-        this.abdomen.addBox(-1.5F, -1.5F, 0.0F, 3, 3, 6, 0.0F);
-        this.setRotateAngle(abdomen, -0.12217304763960307F, 0.0F, 0.0F);
-        this.head = new ModelPart(this, 0, 0);
-        this.head.setPos(0.0F, 0.2F, -1.4F);
-        this.head.addBox(-1.5F, -3.0F, -3.0F, 3, 3, 3, 0.0F);
-        this.setRotateAngle(head, 0.7853981633974483F, 0.0F, 0.0F);
-        this.lAntenna = new ModelPart(this, 11, 0);
-        this.lAntenna.setPos(0.4F, -3.0F, -2.0F);
-        this.lAntenna.addBox(0.0F, 0.0F, -5.0F, 2, 0, 5, 0.0F);
-        this.setRotateAngle(lAntenna, -0.7853981633974483F, -0.2792526803190927F, 0.0F);
-        this.rLeg00 = new ModelPart(this, 17, 6);
-        this.rLeg00.mirror = true;
-        this.rLeg00.setPos(-0.9F, 1.2F, -0.5F);
-        this.rLeg00.addBox(-0.5F, 0.0F, -0.0F, 1, 4, 0, 0.0F);
-        this.setRotateAngle(rLeg00, -1.0471975511965976F, 0.8726646259971648F, 0.0F);
-        this.thorax.addChild(this.lWing);
-        this.thorax.addChild(this.lLeg00);
-        this.head.addChild(this.rAntenna);
-        this.thorax.addChild(this.lLeg01);
-        this.thorax.addChild(this.rLeg02);
-        this.thorax.addChild(this.rLeg01);
-        this.thorax.addChild(this.rWing);
-        this.thorax.addChild(this.lLeg02);
-        this.thorax.addChild(this.abdomen);
-        this.thorax.addChild(this.head);
-        this.head.addChild(this.lAntenna);
-        this.thorax.addChild(this.rLeg00);
+        texWidth = 64;
+        texHeight = 32;
+
+        thorax = new ModelPart(this);
+        thorax.setPos(0.0F, 20.9F, 0.0F);
+        thorax.texOffs(0, 7).addBox(-1.5F, -1.5F, -2.0F, 3.0F, 3.0F, 4.0F, 0.0F, false);
+
+        head = new ModelPart(this);
+        head.setPos(0.0F, 0.2F, -1.15F);
+        thorax.addChild(head);
+        setRotateAngle(head, 0.7854F, 0.0F, 0.0F);
+        head.texOffs(0, 0).addBox(-1.5F, -3.0F, -3.0F, 3.0F, 3.0F, 3.0F, -0.1F, false);
+
+        lAntenna = new ModelPart(this);
+        lAntenna.setPos(0.4F, -3.0F, -2.0F);
+        head.addChild(lAntenna);
+        setRotateAngle(lAntenna, -0.7854F, -0.2793F, 0.0F);
+        lAntenna.texOffs(11, 0).addBox(0.0F, 0.0F, -5.0F, 2.0F, 0.0F, 5.0F, 0.0F, false);
+
+        rAntenna = new ModelPart(this);
+        rAntenna.setPos(-0.4F, -3.0F, -2.0F);
+        head.addChild(rAntenna);
+        setRotateAngle(rAntenna, -0.7854F, 0.2793F, 0.0F);
+        rAntenna.texOffs(11, 0).addBox(-2.0F, 0.0F, -5.0F, 2.0F, 0.0F, 5.0F, 0.0F, true);
+
+        abdomin = new ModelPart(this);
+        abdomin.setPos(0.0F, 0.2F, 1.8F);
+        thorax.addChild(abdomin);
+        setRotateAngle(abdomin, -0.1222F, 0.0F, 0.0F);
+        abdomin.texOffs(0, 16).addBox(-1.5F, -1.5F, 0.0F, 3.0F, 3.0F, 6.0F, 0.1F, false);
+
+        lLeg01 = new ModelPart(this);
+        lLeg01.setPos(0.9F, 1.2F, -0.5F);
+        thorax.addChild(lLeg01);
+        setRotateAngle(lLeg01, -1.0472F, -0.8727F, 0.0F);
+        lLeg01.texOffs(17, 6).addBox(-0.5F, 0.0F, 0.0F, 1.0F, 4.0F, 0.0F, 0.0F, true);
+
+        lLeg02 = new ModelPart(this);
+        lLeg02.setPos(0.9F, 1.2F, 0.0F);
+        thorax.addChild(lLeg02);
+        setRotateAngle(lLeg02, 0.0F, 0.0F, -1.0472F);
+        lLeg02.texOffs(20, 5).addBox(0.0F, 0.0F, -0.5F, 0.0F, 4.0F, 1.0F, 0.0F, true);
+
+        lLeg03 = new ModelPart(this);
+        lLeg03.setPos(0.9F, 1.2F, 0.5F);
+        thorax.addChild(lLeg03);
+        setRotateAngle(lLeg03, 1.0472F, 0.8727F, 0.0F);
+        lLeg03.texOffs(17, 6).addBox(-0.5F, 0.0F, 0.0F, 1.0F, 4.0F, 0.0F, 0.0F, true);
+
+        rLeg01 = new ModelPart(this);
+        rLeg01.setPos(-0.9F, 1.2F, -0.5F);
+        thorax.addChild(rLeg01);
+        setRotateAngle(rLeg01, -1.0472F, 0.8727F, 0.0F);
+        rLeg01.texOffs(17, 6).addBox(-0.5F, 0.0F, 0.0F, 1.0F, 4.0F, 0.0F, 0.0F, false);
+
+        rLeg02 = new ModelPart(this);
+        rLeg02.setPos(-0.9F, 1.2F, 0.0F);
+        thorax.addChild(rLeg02);
+        setRotateAngle(rLeg02, 0.0F, 0.0F, 1.0472F);
+        rLeg02.texOffs(20, 5).addBox(0.0F, 0.0F, -0.5F, 0.0F, 4.0F, 1.0F, 0.0F, false);
+
+        rLeg03 = new ModelPart(this);
+        rLeg03.setPos(-0.9F, 1.2F, 0.5F);
+        thorax.addChild(rLeg03);
+        setRotateAngle(rLeg03, 1.0472F, -0.8727F, 0.0F);
+        rLeg03.texOffs(17, 6).addBox(-0.5F, 0.0F, 0.0F, 1.0F, 4.0F, 0.0F, 0.0F, false);
+
+        lWing = new ModelPart(this);
+        lWing.setPos(1.2F, -1.0F, -1.0F);
+        thorax.addChild(lWing);
+        lWing.texOffs(5, 0).addBox(0.0F, 0.0F, -4.5F, 16.0F, 0.0F, 27.0F, 0.0F, false);
+
+        rWing = new ModelPart(this);
+        rWing.setPos(-1.2F, -1.0F, -1.0F);
+        thorax.addChild(rWing);
+        rWing.texOffs(5, 0).addBox(-16.0F, 0.0F, -4.5F, 16.0F, 0.0F, 27.0F, 0.0F, true);
     }
 
     @Override
@@ -112,16 +118,16 @@ public class ModelMoth extends EntityModel<EntityMoth> {
     @Override
     public void setupAnim(EntityMoth entity, float limbSwing, float limbSwingAmount, float ageInTicks, float netHeadYaw, float headPitch) {
         if(entity.isLanded()) {
-            this.setRotateAngle(lLeg00, -1.0471975511965976F, -0.8726646259971648F, 0.0F);
-            this.setRotateAngle(rAntenna, -0.7853981633974483F, 0.2792526803190927F, 0.0F);
-            this.setRotateAngle(lLeg01, 0.0F, 0.0F, -1.0471975511965976F);
-            this.setRotateAngle(rLeg02, 1.0471975511965976F, -0.8726646259971648F, 0.0F);
-            this.setRotateAngle(rLeg01, 0.0F, 0.0F, 1.0471975511965976F);
-            this.setRotateAngle(lLeg02, 1.0471975511965976F, 0.8726646259971648F, 0.0F);
-            this.setRotateAngle(abdomen, -0.12217304763960307F, 0.0F, 0.0F);
-            this.setRotateAngle(head, 0.7853981633974483F, 0.0F, 0.0F);
-            this.setRotateAngle(lAntenna, -0.7853981633974483F, -0.2792526803190927F, 0.0F);
-            this.setRotateAngle(rLeg00, -1.0471975511965976F, 0.8726646259971648F, 0.0F);
+            this.setRotateAngle(head, 0.7854F, 0.0F, 0.0F);
+            this.setRotateAngle(lAntenna, -0.7854F, -0.2793F, 0.0F);
+            this.setRotateAngle(rAntenna, -0.7854F, 0.2793F, 0.0F);
+            this.setRotateAngle(abdomin, -0.1222F, 0.0F, 0.0F);
+            this.setRotateAngle(lLeg01, -1.0472F, -0.8727F, 0.0F);
+            this.setRotateAngle(lLeg02, 0.0F, 0.0F, -1.0472F);
+            this.setRotateAngle(lLeg03, 1.0472F, 0.8727F, 0.0F);
+            this.setRotateAngle(rLeg01, -1.0472F, 0.8727F, 0.0F);
+            this.setRotateAngle(rLeg02, 0.0F, 0.0F, 1.0472F);
+            this.setRotateAngle(rLeg03, 1.0472F, -0.8727F, 0.0F);
             this.rWing.zRot = (float) Math.toRadians(3);
             this.lWing.zRot = (float) Math.toRadians(-3);
             this.lWing.yRot = (float) Math.toRadians(-30);
@@ -151,12 +157,9 @@ public class ModelMoth extends EntityModel<EntityMoth> {
         }
     }
 
-    /**
-     * This is a helper function from Tabula to set the rotation of model parts
-     */
-    public void setRotateAngle(ModelPart ModelRenderer, float x, float y, float z) {
-        ModelRenderer.xRot = x;
-        ModelRenderer.yRot = y;
-        ModelRenderer.zRot = z;
+    public void setRotateAngle(ModelPart modelPart, float x, float y, float z) {
+        modelPart.xRot = x;
+        modelPart.yRot = y;
+        modelPart.zRot = z;
     }
 }
