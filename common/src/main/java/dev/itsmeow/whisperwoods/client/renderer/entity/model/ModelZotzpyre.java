@@ -3,7 +3,6 @@ package dev.itsmeow.whisperwoods.client.renderer.entity.model;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import dev.itsmeow.whisperwoods.entity.EntityZotzpyre;
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.EntityModel;
 import net.minecraft.client.model.geom.ModelPart;
 import net.minecraft.util.Mth;
@@ -64,6 +63,8 @@ public class ModelZotzpyre<T extends LivingEntity> extends EntityModel<T> {
     public ModelPart mane02;
     public ModelPart mane03;
     public ModelPart mane04;
+
+    private boolean wasHanging = false;
 
     public ModelZotzpyre() {
         texWidth = 128;
@@ -392,58 +393,112 @@ public class ModelZotzpyre<T extends LivingEntity> extends EntityModel<T> {
     public void setupAnim(T entity, float limbSwing, float limbSwingAmount, float ageInTicks, float netHeadYaw, float headPitch) {
         if(entity instanceof EntityZotzpyre) {
             EntityZotzpyre zotz = (EntityZotzpyre) entity;
-            if((zotz.getDeltaMovement().x() > 0.05 || zotz.getDeltaMovement().z() > 0.05) && zotz.getVehicle() == null || (zotz.getVehicle() == null && zotz.hasImpulse)) {
-                this.setRotateAngle(lLeg01, 1.3962634015954636F, 0.08726646259971647F, 0.40142572795869574F);
-                this.setRotateAngle(lWing03, 0.0F, -0.9599310885968813F, 0.0F);
-                this.setRotateAngle(lWing02, 0.0F, 0.5235987755982988F, 0.0F);
-                this.setRotateAngle(rLeg01, 1.3962634015954636F, -0.08726646259971647F, -0.40142572795869574F);
-                this.setRotateAngle(rWing03, 0.0F, 0.9599310885968813F, 0.0F);
-                this.setRotateAngle(rWing02, 0.0F, -0.5235987755982988F, 0.0F);
-
-                //
-                this.setRotateAngle(tail01, 0.0F, 0.0F, 0.0F);
-                this.setRotateAngle(tail02, 0.0F, 0.0F, 0.0F);
-                this.setRotateAngle(rWingMembrane02, 0.0F, 0.0F, 0.0F);
-                this.setRotateAngle(lWingMembrane02, 0.0F, 0.0F, 0.0F);
-                this.setRotateAngle(lWing01, 0.0F, 0.0F, 0.0F);
-                this.setRotateAngle(rWing01, 0.0F, 0.0F, 0.0F);
-
-                //
-                this.setRotateAngle(head, -0.08726646259971647F, 0.0F, 0.0F);
+            if(zotz.isHanging()) {
+                this.hangingPose();
+                this.wasHanging = true;
             } else {
-                this.setRotateAngle(lWing02, 0.3490658503988659F, 0.6981317007977318F, 0.7853981633974483F);
-                this.setRotateAngle(rWing03, 0.0F, 1.9547687622336491F, 0.0F);
-                this.setRotateAngle(rWing01, -0.13962634015954636F, 0.5759586531581287F, -0.40142572795869574F);
-                this.setRotateAngle(tail01, -0.6283185307179586F, 0.0F, 0.0F);
-                this.setRotateAngle(rWingMembrane02, 0.0F, 0.5759586531581287F, 0.0F);
-                this.setRotateAngle(lLeg01, 0.0F, 0.45378560551852565F, -0.03490658503988659F);
-                this.setRotateAngle(lWingMembrane02, 0.0F, -0.5759586531581287F, 0.0F);
-                this.setRotateAngle(tail02, -0.3141592653589793F, 0.0F, 0.0F);
-                this.setRotateAngle(rWing02, 0.3490658503988659F, -0.6981317007977318F, -0.7853981633974483F);
-                this.setRotateAngle(lWing01, -0.13962634015954636F, -0.5759586531581287F, 0.40142572795869574F);
-                this.setRotateAngle(lWing03, 0.0F, -1.9547687622336491F, 0.0F);
-                this.setRotateAngle(rLeg01, 0.0F, -0.45378560551852565F, 0.03490658503988659F);
-                this.lLeg01.xRot = Mth.sin(limbSwing * 0.8665F + (float) Math.PI) * limbSwingAmount;
-                this.rLeg01.xRot = Mth.cos(limbSwing * 0.8665F) * limbSwingAmount;
-                this.lWing01.xRot = Mth.sin(limbSwing * 0.8665F + (float) Math.PI) * limbSwingAmount - 0.13962634015954636F;
-                this.rWing01.xRot = Mth.cos(limbSwing * 0.8665F) * limbSwingAmount - 0.13962634015954636F;
+                if(wasHanging) {
+                    wasHanging = false;
+                    this.resetHangingPose();
+                }
+                if (zotz.isNoGravity()) {
+                    this.setRotateAngle(lLeg01, 1.3962634015954636F, 0.08726646259971647F, 0.40142572795869574F);
+                    this.setRotateAngle(lWing03, 0.0F, -0.9599310885968813F, 0.0F);
+                    this.setRotateAngle(lWing02, 0.0F, 0.5235987755982988F, 0.0F);
+                    this.setRotateAngle(rLeg01, 1.3962634015954636F, -0.08726646259971647F, -0.40142572795869574F);
+                    this.setRotateAngle(rWing03, 0.0F, 0.9599310885968813F, 0.0F);
+                    this.setRotateAngle(rWing02, 0.0F, -0.5235987755982988F, 0.0F);
+                    this.setRotateAngle(tail01, 0.0F, 0.0F, 0.0F);
+                    this.setRotateAngle(tail02, 0.0F, 0.0F, 0.0F);
+                    this.setRotateAngle(rWingMembrane02, 0.0F, 0.0F, 0.0F);
+                    this.setRotateAngle(lWingMembrane02, 0.0F, 0.0F, 0.0F);
+                    this.setRotateAngle(lWing01, 0.0F, 0.0F, 0.0F);
+                    this.setRotateAngle(rWing01, 0.0F, 0.0F, 0.0F);
+                    this.setRotateAngle(head, -0.08726646259971647F, 0.0F, 0.0F);
+                    float limbSwingAmountM = Math.max(limbSwingAmount, 0.5F);
+                    this.lWing01.xRot = Mth.cos(ageInTicks * 0.1F) * 0.4F - 0.14F;
+                    this.rWing01.xRot = this.lWing01.xRot;
+                    this.lWing01.zRot = Mth.cos(ageInTicks) * limbSwingAmountM * 0.4F - 0.14F;
+                    this.rWing01.zRot = -this.lWing01.zRot;
+                    this.lWing03.zRot = Mth.cos(ageInTicks) * limbSwingAmountM - 0.14F;
+                    this.rWing03.zRot = -this.lWing03.zRot;
+                    this.chest.xRot = -Mth.cos(ageInTicks * 0.45F) * limbSwingAmountM * 0.02F;
+                    this.chest.zRot = -Mth.cos(ageInTicks * 0.3F) * 0.1F * limbSwingAmountM;
+                    this.stomach.zRot = -Mth.cos(ageInTicks * 0.3F) * 0.1F * limbSwingAmountM;
+                    this.lLeg01.zRot = Mth.cos(ageInTicks * 0.6F) * 0.1F * limbSwingAmountM;
+                    this.rLeg01.zRot = this.lLeg01.zRot;
+                    this.lowerJaw.xRot = 0.9F + Mth.cos(ageInTicks * 0.2F) * 0.25F;
+                } else {
+                    this.setRotateAngle(lWing02, 0.3490658503988659F, 0.6981317007977318F, 0.7853981633974483F);
+                    this.setRotateAngle(rWing03, 0.0F, 1.9547687622336491F, 0.0F);
+                    this.setRotateAngle(rWing01, -0.13962634015954636F, 0.5759586531581287F, -0.40142572795869574F);
+                    this.setRotateAngle(tail01, -0.6283185307179586F, 0.0F, 0.0F);
+                    this.setRotateAngle(rWingMembrane02, 0.0F, 0.5759586531581287F, 0.0F);
+                    this.setRotateAngle(lLeg01, 0.0F, 0.45378560551852565F, -0.03490658503988659F);
+                    this.setRotateAngle(lWingMembrane02, 0.0F, -0.5759586531581287F, 0.0F);
+                    this.setRotateAngle(tail02, -0.3141592653589793F, 0.0F, 0.0F);
+                    this.setRotateAngle(rWing02, 0.3490658503988659F, -0.6981317007977318F, -0.7853981633974483F);
+                    this.setRotateAngle(lWing01, -0.13962634015954636F, -0.5759586531581287F, 0.40142572795869574F);
+                    this.setRotateAngle(lWing03, 0.0F, -1.9547687622336491F, 0.0F);
+                    this.setRotateAngle(rLeg01, 0.0F, -0.45378560551852565F, 0.03490658503988659F);
+                    this.lLeg01.xRot = Mth.sin(limbSwing * 0.8665F + (float) Math.PI) * limbSwingAmount;
+                    this.rLeg01.xRot = Mth.cos(limbSwing * 0.8665F) * limbSwingAmount;
+                    this.lWing01.xRot = Mth.sin(limbSwing * 0.8665F + (float) Math.PI) * limbSwingAmount - 0.13962634015954636F;
+                    this.rWing01.xRot = Mth.cos(limbSwing * 0.8665F) * limbSwingAmount - 0.13962634015954636F;
+                    this.lowerJaw.xRot = 0F;
+                }
+                this.neck.xRot = headPitch * 0.017453292F;
+                this.neck.yRot = netHeadYaw * 0.017453292F;
             }
-            if(entity.getVehicle() != null) {
-                this.lowerJaw.xRot = (float) Math.toRadians(45);
-            } else {
-                this.lowerJaw.xRot = 0F;
-            }
-            this.neck.xRot = (entity.xRotO + (entity.xRot - entity.xRotO) * Minecraft.getInstance().getFrameTime()) * 0.017453292F;
-            float yawOffset = interpolate(entity.yBodyRotO, entity.yBodyRot, Minecraft.getInstance().getFrameTime());
-            float yawHead = interpolate(entity.yHeadRotO, entity.yHeadRot, Minecraft.getInstance().getFrameTime());
-            this.neck.yRot = (yawHead - yawOffset) * 0.017453292F;
         }
     }
 
-    private static float interpolate(float a1, float a2, float p) {
-        float angle = a2 - a1;
-        angle = angle < -180F ? angle += 360F : angle;
-        return a1 + p * (angle = angle >= 180F ? angle -= 360F : angle);
+    public void hangingPose() {
+        this.setRotateAngle(chest, 1.5708F, 0.0F, 0.0F);
+        this.setRotateAngle(head, 0.0F, 0.0F, 0.0F);
+        this.setRotateAngle(lClawsRotator, 0.0873F, 0.0F, 1.6144F);
+        this.setRotateAngle(lFinger, -2.0944F, -0.7854F, 2.8798F);
+        this.setRotateAngle(lLeg01, 1.5708F, -1.3963F, 0.0F);
+        this.setRotateAngle(lLeg02, 0.0F, -0.2094F, -1.4399F);
+        this.setRotateAngle(lWing01, 0.2618F, -0.1309F, 1.309F);
+        this.setRotateAngle(lWing02, 0.0F, 0.829F, 1.3526F);
+        this.setRotateAngle(lWing03, 0.0F, -1.9199F, 0.0F);
+        this.setRotateAngle(lWingMembrane02, 0.6109F, -0.2182F, -1.309F);
+        this.setRotateAngle(neck, 0.0F, 0.0F, 0.0F);
+        this.setRotateAngle(rClawsRotator, 0.0873F, 0.0F, -1.6144F);
+        this.setRotateAngle(rFinger, -2.0944F, 0.7854F, -2.8798F);
+        this.setRotateAngle(rLeg01, 1.5708F, 1.4399F, 0.0F);
+        this.setRotateAngle(rLeg02, 0.0F, 0.2094F, 1.4399F);
+        this.setRotateAngle(rWing01, 0.2618F, 0.1309F, -1.5272F);
+        this.setRotateAngle(rWing02, 0.0F, -0.829F, -1.3526F);
+        this.setRotateAngle(rWing03, 0.0F, 1.9199F, 0.0F);
+        this.setRotateAngle(rWingMembrane02, 0.6109F, 0.2182F, 1.309F);
+        this.setRotateAngle(stomach, 0.0F, 0.0F, 0.0F);
+        this.setRotateAngle(tail01, 0.0F, 0.0F, 0.0F);
+    }
+
+    public void resetHangingPose() {
+        this.setRotateAngle(chest, -0.2182F, 0.0F, 0.0F);
+        this.setRotateAngle(head, 0.0873F, 0.0F, 0.0F);
+        this.setRotateAngle(lClawsRotator, 0.0873F, 0.0F, -0.2618F);
+        this.setRotateAngle(lFinger, -0.6981F, -0.3054F, 0.6545F);
+        this.setRotateAngle(lLeg01, 0.3491F, 0.2182F, 0.2618F);
+        this.setRotateAngle(lLeg02, -0.2182F, 0.0F, 0.0F);
+        this.setRotateAngle(lWing01, 0.7418F, -0.1309F, 0.48F);
+        this.setRotateAngle(lWing02, 0.0F, 0.829F, 0.3491F);
+        this.setRotateAngle(lWing03, 0.0F, -2.1719F, 0.0F);
+        this.setRotateAngle(lWingMembrane02, 0.1745F, -0.6545F, -0.6981F);
+        this.setRotateAngle(neck, 0.1309F, 0.0F, 0.0F);
+        this.setRotateAngle(rClawsRotator, 0.0873F, 0.0F, 0.2618F);
+        this.setRotateAngle(rFinger, -0.6981F, 0.3054F, -0.6545F);
+        this.setRotateAngle(rLeg01, 0.3491F, -0.2182F, -0.2618F);
+        this.setRotateAngle(rLeg02, -0.2182F, 0.0F, 0.0F);
+        this.setRotateAngle(rWing01, 0.7418F, 0.1309F, -0.48F);
+        this.setRotateAngle(rWing02, 0.0F, -0.829F, -0.3491F);
+        this.setRotateAngle(rWing03, 0.0F, 2.1719F, 0.0F);
+        this.setRotateAngle(rWingMembrane02, 0.1745F, 0.6545F, 0.6981F);
+        this.setRotateAngle(stomach, 0.0785F, 0.0F, 0.0F);
+        this.setRotateAngle(tail01, -0.5473F, 0.0F, 0.0F);
     }
 
     public void setRotateAngle(ModelPart ModelPart, float x, float y, float z) {

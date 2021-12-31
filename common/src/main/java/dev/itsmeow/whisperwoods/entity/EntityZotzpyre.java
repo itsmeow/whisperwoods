@@ -4,14 +4,13 @@ import dev.itsmeow.imdlib.entity.EntityTypeContainer;
 import dev.itsmeow.imdlib.entity.util.BiomeTypes;
 import dev.itsmeow.whisperwoods.init.ModEntities;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.core.Registry;
-import net.minecraft.network.protocol.game.ClientboundSetPassengersPacket;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.util.Mth;
@@ -21,165 +20,66 @@ import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.ai.attributes.Attributes;
-import net.minecraft.world.entity.ai.goal.FloatGoal;
-import net.minecraft.world.entity.ai.goal.LeapAtTargetGoal;
-import net.minecraft.world.entity.ai.goal.LookAtPlayerGoal;
-import net.minecraft.world.entity.ai.goal.WaterAvoidingRandomStrollGoal;
+import net.minecraft.world.entity.ai.control.FlyingMoveControl;
+import net.minecraft.world.entity.ai.control.MoveControl;
+import net.minecraft.world.entity.ai.goal.Goal;
+import net.minecraft.world.entity.ai.goal.WaterAvoidingRandomFlyingGoal;
 import net.minecraft.world.entity.ai.goal.target.HurtByTargetGoal;
 import net.minecraft.world.entity.ai.goal.target.NearestAttackableTargetGoal;
+import net.minecraft.world.entity.ai.navigation.FlyingPathNavigation;
 import net.minecraft.world.entity.ai.navigation.PathNavigation;
-import net.minecraft.world.entity.ai.navigation.WallClimberNavigation;
-import net.minecraft.world.entity.ambient.AmbientCreature;
+import net.minecraft.world.entity.ai.util.RandomPos;
 import net.minecraft.world.entity.animal.FlyingAnimal;
-import net.minecraft.world.entity.animal.horse.AbstractHorse;
-import net.minecraft.world.entity.monster.Enemy;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelAccessor;
-import net.minecraft.world.level.pathfinder.TurtleNodeEvaluator;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
+import net.minecraft.world.phys.shapes.VoxelShape;
 
+import java.util.EnumSet;
 import java.util.Random;
 
-public class EntityZotzpyre extends EntityMonsterWithTypes {
+public class EntityZotzpyre extends EntityMonsterWithTypes implements FlyingAnimal {
 
-    private static final EntityDataAccessor<Byte> CLIMBING = SynchedEntityData.defineId(EntityZotzpyre.class, EntityDataSerializers.BYTE);
-    protected int lastAttack = 0;
-    private boolean isFromZotz = false;
+    private static final EntityDataAccessor<Boolean> HANGING = SynchedEntityData.defineId(EntityZotzpyre.class, EntityDataSerializers.BOOLEAN);
+    private FastFlyingMoveControl moveSwoop;
+    private FlyingMoveControl moveNormal;
 
     public EntityZotzpyre(EntityType<? extends EntityZotzpyre> entityType, Level worldIn) {
         super(entityType, worldIn);
+        this.setNoGravity(true);
+        this.moveSwoop = new FastFlyingMoveControl(this);
+        this.moveNormal = new FlyingMoveControl(this, 20, false);
+        this.moveControl = moveNormal;
     }
 
     @Override
     protected void registerGoals() {
-        this.goalSelector.addGoal(0, new FloatGoal(this));
-        this.goalSelector.addGoal(1, new LeapAtTargetGoal(this, 0.5F));
-        this.goalSelector.addGoal(2, new WaterAvoidingRandomStrollGoal(this, 0.6D));
-        this.goalSelector.addGoal(3, new LookAtPlayerGoal(this, Player.class, 8.0F));
+        this.goalSelector.addGoal(0, new SwoopingAttackGoal(this));
+        this.goalSelector.addGoal(1, new HangFromCeilingGoal(this));
+        this.goalSelector.addGoal(2, new WaterAvoidingRandomFlyingGoal(this, 1D));
         this.targetSelector.addGoal(0, new HurtByTargetGoal(this));
-        this.targetSelector.addGoal(1, new NearestAttackableTargetGoal<>(this, Player.class, true));
-        this.targetSelector.addGoal(2, new NearestAttackableTargetGoal<>(this, Mob.class, 0, true, true, entity -> !(entity instanceof EntityZotzpyre) && !(entity instanceof AbstractHorse) && !(entity instanceof AmbientCreature) && !(entity instanceof Enemy) && entity.getMobType() != MobType.UNDEAD));
+        this.targetSelector.addGoal(1, new NearestAttackableTargetGoal<>(this, Player.class, 0, false, false, e -> true));
     }
 
     protected PathNavigation createNavigation(Level worldIn) {
-        return new WallClimberNavigation(this, worldIn);
+        return new FlyingPathNavigation(this, worldIn);
     }
 
     @Override
     protected void defineSynchedData() {
         super.defineSynchedData();
-        this.entityData.define(CLIMBING, (byte) 0);
+        this.getEntityData().define(HANGING, false);
     }
 
-    @Override
-    public boolean isPushable() {
-        return false;
+    public boolean isHanging() {
+        return this.getEntityData().get(HANGING);
     }
 
-    @Override
-    protected void doPush(Entity entityIn) {
-    }
-
-    @Override
-    protected void pushEntities() {
-    }
-
-    @Override
-    public void tick() {
-        if (this.isPassenger()) {
-            this.setNoAi(true);
-            // you'd think it wouldn't be null. except it is. on turtles in water?
-            // explain MINECRAFT. EXPLAIN.
-            if (this.getNavigation().getNodeEvaluator() == null) {
-                this.getNavigation().nodeEvaluator = new TurtleNodeEvaluator();
-            }
-        } else if (this.isNoAi()) {
-            this.setNoAi(false);
-        }
-        super.tick();
-        if (!this.level.isClientSide && !this.isAlive() && this.getVehicle() != null || (!this.level.isClientSide && this.getVehicle() != null && !this.getVehicle().isAlive())) {
-            this.dismountZotz();
-        }
-        if (!this.level.isClientSide) {
-            this.setBesideClimbableBlock(this.horizontalCollision);
-        }
-    }
-
-    /* prevent slowdown in air */
-    @Override
-    public void travel(Vec3 vec) {
-        boolean flag = this.getDeltaMovement().y <= 0.0D;
-        double d0 = 0.08D;
-        double d1 = this.getY();
-        float f = this.isSprinting() ? 0.9F : this.getWaterSlowDown();
-        float f1 = 0.02F;
-        float f2 = (float) EnchantmentHelper.getDepthStrider(this);
-        if (f2 > 3.0F) {
-            f2 = 3.0F;
-        }
-
-        if (f2 > 0.0F) {
-            f += (0.54600006F - f) * f2 / 3.0F;
-            f1 += (this.getSpeed() - f1) * f2 / 3.0F;
-        }
-
-        if (this.hasEffect(MobEffects.DOLPHINS_GRACE)) {
-            f = 0.96F;
-        }
-
-        this.moveRelative(f1, vec);
-        this.move(MoverType.SELF, this.getDeltaMovement());
-        Vec3 vec3d1 = this.getDeltaMovement();
-        if (this.horizontalCollision && this.onClimbable()) {
-            vec3d1 = new Vec3(vec3d1.x, 0.2D, vec3d1.z);
-        }
-
-        this.setDeltaMovement(vec3d1.multiply(f, 0.8F, f));
-        if (!this.isNoGravity() && !this.isSprinting()) {
-            Vec3 vec3d2 = this.getDeltaMovement();
-            double d2;
-            if (flag && Math.abs(vec3d2.y - 0.005D) >= 0.003D && Math.abs(vec3d2.y - d0 / 16.0D) < 0.003D) {
-                d2 = -0.003D;
-            } else {
-                d2 = vec3d2.y - d0 / 16.0D;
-            }
-
-            this.setDeltaMovement(vec3d2.x, d2, vec3d2.z);
-        }
-
-        Vec3 vec3d6 = this.getDeltaMovement();
-        if (this.horizontalCollision && this.isFree(vec3d6.x, vec3d6.y + (double) 0.6F - this.getY() + d1, vec3d6.z)) {
-            this.setDeltaMovement(vec3d6.x, 0.3F, vec3d6.z);
-        }
-
-
-        this.animationSpeedOld = this.animationSpeed;
-        double d5 = this.getX() - this.xo;
-        double d6 = this.getZ() - this.zo;
-        double d8 = this instanceof FlyingAnimal ? this.getY() - this.yo : 0.0D;
-        float f8 = Mth.sqrt(d5 * d5 + d8 * d8 + d6 * d6) * 4.0F;
-        if (f8 > 1.0F) {
-            f8 = 1.0F;
-        }
-
-        this.animationSpeed += (f8 - this.animationSpeed) * 0.4F;
-        this.animationPosition += this.animationSpeed;
-    }
-
-    @Override
-    public boolean onClimbable() {
-        return this.isBesideClimbableBlock();
-    }
-
-    public boolean isBesideClimbableBlock() {
-        return (this.entityData.get(CLIMBING) & 1) != 0;
-    }
-
-    public void setBesideClimbableBlock(boolean climbing) {
-        byte b0 = this.entityData.get(CLIMBING);
-        this.entityData.set(CLIMBING, climbing ? (byte) (b0 | 1) : (byte) (b0 & -2));
+    public void setHanging(boolean hanging) {
+        this.getEntityData().set(HANGING, hanging);
     }
 
     @Override
@@ -207,83 +107,6 @@ public class EntityZotzpyre extends EntityMonsterWithTypes {
         return SoundEvents.BAT_DEATH;
     }
 
-    @Override
-    public void aiStep() {
-        super.aiStep();
-        if (!this.level.isClientSide && this.getTarget() != null && this.getTarget().isAlive()) {
-            if (this.getVehicle() != null && this.getVehicle() == this.getTarget()) {
-                float time = 20F;
-                if (!this.wasTouchingWater) {
-                    time *= 2F * (Math.random() + 1F);
-                } else {
-                    time += Math.random() * Math.random() * 2 * ((Math.random() < 0.5) ? -1 : 1);
-                }
-                if (this.lastAttack + time < this.tickCount) {
-                    this.doHurtTarget(this.getTarget());
-                }
-            } else if (this.distanceToSqr(this.getTarget()) < 3) {
-                this.grabTarget(this.getTarget());
-            }
-        }
-    }
-
-    @Override
-    public boolean rideableUnderWater() {
-        return true;
-    }
-
-    public void grabTarget(Entity entity) {
-        if (!level.isClientSide) {
-            if (this.getVehicle() == null) {
-                this.startRiding(entity, true);
-                for (ServerPlayer player : this.level.getServer().getPlayerList().getPlayers()) {
-                    if (player.level == this.level && player.distanceTo(this) <= 128) {
-                        player.connection.send(new ClientboundSetPassengersPacket(entity));
-                    }
-                }
-            }
-        }
-    }
-
-    public void dismountZotz() {
-        Entity mount = this.getVehicle();
-        this.isFromZotz = true;
-        this.stopRiding();
-        this.isFromZotz = false;
-        if (!level.isClientSide && this.level.getServer() != null) {
-            for (ServerPlayer player : this.level.getServer().getPlayerList().getPlayers()) {
-                if (player.level == this.level && player.distanceTo(this) <= 128) {
-                    player.connection.send(new ClientboundSetPassengersPacket(mount));
-                }
-            }
-        }
-    }
-
-    @Override
-    public void stopRiding() {
-        if (this.getVehicle() != null && !this.getVehicle().rideableUnderWater()) {
-            super.stopRiding();
-        } else if (this.getTarget() == null || isFromZotz) {
-            super.stopRiding();
-        }
-    }
-
-    //@Override on Forge
-    public boolean canRiderInteract() {
-        return true;
-    }
-
-    @Override
-    public double getMyRidingOffset() {
-        if (getVehicle() != null && getVehicle() instanceof Player) {
-            return getVehicle().getBbHeight() - 2.25F;
-        } else if (getVehicle() != null) {
-            return (getVehicle().getEyeHeight() / 2) - this.getBbHeight();
-        } else {
-            return super.getMyRidingOffset();
-        }
-    }
-
     @SuppressWarnings("deprecation")
     public static boolean canSpawn(EntityType<EntityZotzpyre> type, LevelAccessor world, MobSpawnType reason, BlockPos pos, Random rand) {
         if (pos.getY() >= world.getSeaLevel() && !BiomeTypes.getTypes(ResourceKey.create(Registry.BIOME_REGISTRY, ((ServerLevel)world).getServer().registryAccess().registryOrThrow(Registry.BIOME_REGISTRY).getKey(world.getBiome(pos)))).contains(BiomeTypes.JUNGLE)) {
@@ -294,25 +117,11 @@ public class EntityZotzpyre extends EntityMonsterWithTypes {
     }
 
     @Override
-    public boolean hurt(DamageSource source, float amount) {
-        if (this.isInvulnerableTo(source)) {
-            return false;
-        } else {
-            if (amount > 3 && this.getVehicle() != null && !this.level.isClientSide) {
-                this.dismountZotz();
-            }
-
-            return super.hurt(source, amount);
-        }
-    }
-
-    @Override
     public boolean doHurtTarget(Entity entityIn) {
         float f = (float) this.getAttribute(Attributes.ATTACK_DAMAGE).getValue();
         boolean flag = entityIn.hurt(DamageSource.mobAttack(this), f);
         if (flag) {
-            this.lastAttack = this.tickCount;
-            if (entityIn instanceof Player) {
+            if(entityIn instanceof Player) {
                 Player player = (Player) entityIn;
                 int slowTicks = 0;
                 if (this.level.getDifficulty() == Difficulty.EASY) {
@@ -322,13 +131,17 @@ public class EntityZotzpyre extends EntityMonsterWithTypes {
                 } else if (this.level.getDifficulty() == Difficulty.HARD) {
                     slowTicks = 600; // 30s
                 }
-                player.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SLOWDOWN, slowTicks, 1, false, false));
+                if (slowTicks > 0)
+                    player.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SLOWDOWN, slowTicks, 1, false, false));
             }
-        }
-        if (!this.level.isClientSide && !entityIn.isAlive() && entityIn == this.getVehicle()) {
-            this.dismountZotz();
+            this.setLastHurtMob(entityIn);
         }
         return flag;
+    }
+
+    @Override
+    public boolean canCollideWith(Entity entity) {
+        return entity != this.getTarget() && super.canCollideWith(entity);
     }
 
     @Override
@@ -337,8 +150,255 @@ public class EntityZotzpyre extends EntityMonsterWithTypes {
     }
 
     @Override
+    protected void checkFallDamage(double d, boolean bl, BlockState blockState, BlockPos blockPos) {
+    }
+
+    @Override
+    public void travel(Vec3 vec3) {
+        if(this.isHanging() || this.moveControl == this.moveSwoop) {
+            if (this.isInWater()) {
+                this.moveRelative(0.02F, vec3);
+                this.move(MoverType.SELF, this.getDeltaMovement());
+                this.setDeltaMovement(this.getDeltaMovement().scale(0.800000011920929D));
+            } else if (this.isInLava()) {
+                this.moveRelative(0.02F, vec3);
+                this.move(MoverType.SELF, this.getDeltaMovement());
+                this.setDeltaMovement(this.getDeltaMovement().scale(0.5D));
+            } else {
+                float f = 0.91F;
+                if (this.onGround) {
+                    f = this.level.getBlockState(new BlockPos(this.getX(), this.getY() - 1.0D, this.getZ())).getBlock().getFriction() * 0.91F;
+                }
+                float g = 0.16277137F / (f * f * f);
+                this.moveRelative(this.onGround ? 0.1F * g : 0.02F, vec3);
+                this.move(MoverType.SELF, this.getDeltaMovement());
+                this.setDeltaMovement(this.getDeltaMovement().scale(f));
+            }
+            this.calculateEntityAnimation(this, false);
+        } else {
+            super.travel(vec3);
+        }
+    }
+
+    @Override
+    public boolean onClimbable() {
+        return !this.isHanging();
+    }
+
+    @Override
     public EntityTypeContainer<EntityZotzpyre> getContainer() {
         return ModEntities.ZOTZPYRE;
     }
 
+    public static class HangFromCeilingGoal<T extends Mob> extends Goal {
+
+        protected T parentEntity;
+
+        public HangFromCeilingGoal(T parentEntity) {
+            this.parentEntity = parentEntity;
+            this.setFlags(EnumSet.of(Flag.MOVE));
+        }
+
+        @Override
+        public boolean canUse() {
+            return this.parentEntity.getTarget() == null && this.parentEntity.level.getBlockState(this.parentEntity.blockPosition().above()).isFaceSturdy(this.parentEntity.level, this.parentEntity.blockPosition().above(), Direction.DOWN);
+        }
+
+        @Override
+        public void tick() {
+            this.parentEntity.getNavigation().moveTo(this.parentEntity.getX(), this.parentEntity.blockPosition().getY(), this.parentEntity.getZ(), 1D);
+        }
+
+        @Override
+        public void start() {
+            if(parentEntity instanceof EntityZotzpyre) {
+                ((EntityZotzpyre) this.parentEntity).setHanging(true);
+            }
+        }
+
+        @Override
+        public void stop() {
+            ((EntityZotzpyre) this.parentEntity).setHanging(false);
+        }
+    }
+
+    public static class SwoopingAttackGoal<T extends PathfinderMob> extends Goal {
+
+        public enum MovementPhase {
+            SWOOP_TO,
+            HIT,
+            SWOOP_AWAY;
+        }
+
+        protected MovementPhase phase;
+        protected T parentEntity;
+        private int phaseTicks;
+        private Vec3 startPos;
+
+        private Vec3 targetPosition;
+
+        public SwoopingAttackGoal(T parentEntity) {
+            this.parentEntity = parentEntity;
+            this.setFlags(EnumSet.of(Flag.MOVE, Flag.LOOK));
+            this.phase = MovementPhase.SWOOP_TO;
+            this.phaseTicks = 0;
+            this.startPos = null;
+            this.targetPosition = null;
+        }
+
+        @Override
+        public void stop() {
+            this.phase = MovementPhase.SWOOP_TO;
+            this.phaseTicks = 0;
+            this.startPos = null;
+            this.targetPosition = null;
+            if (this.parentEntity.getMoveControl() instanceof FastFlyingMoveControl) {
+                ((FastFlyingMoveControl) this.parentEntity.getMoveControl()).stop();
+            }
+            if(this.parentEntity instanceof EntityZotzpyre) {
+                EntityZotzpyre zotzpyre = (EntityZotzpyre) this.parentEntity;
+                zotzpyre.moveControl = zotzpyre.moveNormal;
+            }
+        }
+
+        @Override
+        public boolean canUse() {
+            return this.parentEntity.getTarget() != null && this.parentEntity.canAttack(this.parentEntity.getTarget());
+        }
+
+        @Override
+        public void start() {
+            if(this.parentEntity instanceof EntityZotzpyre) {
+                EntityZotzpyre zotzpyre = (EntityZotzpyre) this.parentEntity;
+                zotzpyre.moveControl = zotzpyre.moveSwoop;
+            }
+            this.startPos = this.parentEntity.position();
+            this.phaseTicks = 0;
+            LivingEntity target = this.parentEntity.getTarget();
+            if(this.parentEntity.distanceTo(target) < 1D) {
+                this.phase = MovementPhase.HIT;
+                this.startPos = null;
+            }
+            this.targetPosition = target.getEyePosition(1F);
+        }
+
+        private boolean isAtPosition() {
+            return this.targetPosition != null ? this.parentEntity.position().distanceTo(this.targetPosition) < 1.5D : false;
+        }
+
+        @Override
+        public void tick() {
+            LivingEntity target = this.parentEntity.getTarget();
+            if(this.phase == MovementPhase.SWOOP_TO) {
+                this.targetPosition = target.getEyePosition(1F);
+                if(this.targetPosition != null && !this.isAtPosition() && this.phaseTicks++ > 20F && this.parentEntity.getDeltaMovement().length() < 0.01D) {
+                    this.parentEntity.getNavigation().moveTo(targetPosition.x(), targetPosition.y(), targetPosition.z(), 1D);
+                } else {
+                    this.parentEntity.getNavigation().stop();
+                }
+                this.parentEntity.lookAt(target, 30F, 30F);
+                if(this.isAtPosition()) {
+                    this.phase = MovementPhase.HIT;
+                    this.phaseTicks = 0;
+                }
+            } else if(this.phase == MovementPhase.HIT) {
+                this.targetPosition = target.getEyePosition(1F);
+                this.parentEntity.lookAt(target, 30F, 30F);
+                if((this.parentEntity.tickCount - this.parentEntity.getLastHurtMobTimestamp() > 40 && this.parentEntity.doHurtTarget(target)) || this.phaseTicks++ > 45) {
+                    this.phaseTicks = 0;
+                    this.phase = MovementPhase.SWOOP_AWAY;
+                    this.targetPosition = null;
+                }
+            } else if(this.phase == MovementPhase.SWOOP_AWAY) {
+                if(this.targetPosition != null) {
+                    if(this.isAtPosition() || this.phaseTicks++ > 45 || this.parentEntity.getNavigation().createPath(targetPosition.x(), targetPosition.y(), targetPosition.z(), 1) == null) {
+                        this.phase = MovementPhase.SWOOP_TO;
+                        this.phaseTicks = 0;
+                        this.startPos = this.parentEntity.position();
+                        this.targetPosition = null;
+                    }
+                } else {
+                    if (startPos != null) {
+                        Vec3 oScale = startPos.subtract(target.position()).multiply(-2D, 1D, -2D);
+                        if (oScale.length() > 10D) {
+                            oScale = oScale.multiply(0.5D, 1D, 0.5D);
+                        }
+                        if(oScale.y() > 5) {
+                            oScale = oScale.subtract(0, 2.5, 0);
+                        }
+                        Vec3 opposite = target.position().add(oScale);
+                        this.targetPosition = opposite;
+                    } else {
+                        Vec3 newPos = RandomPos.getAirPos(this.parentEntity, 10, 10, 10, null, 1D);
+                        this.targetPosition = newPos;
+                    }
+                }
+            } else {
+                this.phase = MovementPhase.SWOOP_TO;
+                this.phaseTicks = 0;
+                this.startPos = null;
+                this.targetPosition = null;
+            }
+            if(this.targetPosition != null && !this.isAtPosition()) {
+                this.parentEntity.getMoveControl().setWantedPosition(this.targetPosition.x(), this.targetPosition.y(), this.targetPosition.z(), 1D);
+            }
+        }
+    }
+
+    public static class FastFlyingMoveControl extends MoveControl {
+
+        private boolean cantReach = false;
+
+        public FastFlyingMoveControl(Mob mob) {
+            super(mob);
+        }
+
+        @Override
+        public void setWantedPosition(double d, double e, double f, double g) {
+            super.setWantedPosition(d, e, f, g);
+            this.cantReach = false;
+        }
+
+        @Override
+        public void tick() {
+            if (this.operation == Operation.MOVE_TO) {
+                this.mob.setNoGravity(true);
+                Vec3 diff = new Vec3(this.wantedX - this.mob.getX(), this.wantedY - this.mob.getY(), this.wantedZ - this.mob.getZ());
+                Vec3 diffNorm = diff.normalize();
+                if (this.canReach(diffNorm, Mth.ceil(diff.length()))) {
+                    this.mob.setDeltaMovement(this.mob.getDeltaMovement().add(diffNorm.scale(0.1D)));
+                } else {
+                    this.cantReach = true;
+                    this.stop();
+                }
+
+                double yawAngle = Math.atan2(diff.z(), diff.x()) * (180D / Math.PI) - 90D;
+                this.mob.yRot = this.rotlerp(this.mob.yRot, (float) yawAngle, 35.0F);
+
+                double pitchAngle = -Math.atan2(diff.y(), Math.sqrt(diff.x() * diff.x() + diff.z() * diff.z())) * (180D / Math.PI);
+                this.mob.xRot = this.rotlerp(this.mob.xRot, (float) pitchAngle, 35.0F);
+            } else {
+                this.mob.setNoGravity(false);
+            }
+        }
+
+        public boolean cantReach() {
+            return this.cantReach;
+        }
+
+        public void stop() {
+            this.operation = Operation.WAIT;
+        }
+
+        private boolean canReach(Vec3 vec3, int i) {
+            AABB box = this.mob.getBoundingBox();
+            for (int j = 1; j < i; ++j) {
+                box = box.move(vec3);
+                if (!this.mob.level.getBlockCollisions(this.mob, box).allMatch(VoxelShape::isEmpty)) {
+                    return false;
+                }
+            }
+            return true;
+        }
+    }
 }

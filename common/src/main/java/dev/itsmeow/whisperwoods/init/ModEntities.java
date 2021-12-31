@@ -82,7 +82,10 @@ public class ModEntities {
 
     public static final EntityTypeContainer<EntityZotzpyre> ZOTZPYRE = H.add(EntityZotzpyre.class, EntityZotzpyre::new, "zotzpyre", () -> Mob.createMobAttributes()
     .add(Attributes.MAX_HEALTH, 20.0D)
-    .add(Attributes.ATTACK_DAMAGE, 3.0D), b -> b
+    .add(Attributes.ATTACK_DAMAGE, 3.0D)
+    .add(Attributes.FLYING_SPEED)
+    .add(Attributes.FLYING_SPEED, 1D)
+    .add(Attributes.FOLLOW_RANGE, 32D), b -> b
     .spawn(MobCategory.MONSTER, 30, 1, 1)
     .defaultPlacement(EntityZotzpyre::canSpawn)
     .egg(0x321e13, 0x543a28).size(1F, 1F)
