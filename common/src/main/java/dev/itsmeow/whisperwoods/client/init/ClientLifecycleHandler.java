@@ -9,7 +9,6 @@ import dev.itsmeow.whisperwoods.client.particle.FlameParticle;
 import dev.itsmeow.whisperwoods.client.particle.WispParticle;
 import dev.itsmeow.whisperwoods.client.renderer.entity.RenderHirschgeist;
 import dev.itsmeow.whisperwoods.client.renderer.entity.RenderWisp;
-import dev.itsmeow.whisperwoods.client.renderer.entity.layer.LayerEyes;
 import dev.itsmeow.whisperwoods.client.renderer.entity.model.ModelHidebehind;
 import dev.itsmeow.whisperwoods.client.renderer.entity.model.ModelMoth;
 import dev.itsmeow.whisperwoods.client.renderer.entity.model.ModelZotzpyre;
@@ -17,6 +16,7 @@ import dev.itsmeow.whisperwoods.client.renderer.tile.RenderHGSkull;
 import dev.itsmeow.whisperwoods.client.renderer.tile.RenderTileGhostLight;
 import dev.itsmeow.whisperwoods.client.renderer.tile.RenderTileHandOfFate;
 import dev.itsmeow.whisperwoods.entity.EntityHidebehind;
+import dev.itsmeow.whisperwoods.entity.EntityZotzpyre;
 import dev.itsmeow.whisperwoods.init.*;
 import me.shedaniel.architectury.registry.BlockEntityRenderers;
 import me.shedaniel.architectury.registry.RenderTypes;
@@ -66,7 +66,16 @@ public class ClientLifecycleHandler {
         RenderFactory.addRender(ModEntities.WISP.getEntityType(), RenderWisp::new);
         RenderFactory.addRender(ModEntities.HIRSCHGEIST.getEntityType(), RenderHirschgeist::new);
 
-        R.addRender(ModEntities.ZOTZPYRE.getEntityType(), 0.4F, r -> r.tVariant().mSingle(new ModelZotzpyre<>()).layer(t -> new LayerEyes<>(t, ModResources.ZOTZPYRE_EYES)));
+        R.addRender(ModEntities.ZOTZPYRE.getEntityType(), 0.4F, r -> r.tVariant().mSingle(new ModelZotzpyre<>()).layer(t -> new RenderLayer<EntityZotzpyre, EntityModel<EntityZotzpyre>>(t) {
+            protected final RenderType GLOW_STATE_MAIN = ClientLifecycleHandler.RenderTypeAddition.getEyesEntityCutoutNoCullDepthMaskOff(ModResources.ZOTZPYRE_EYES);
+            protected final RenderType GLOW_STATE_6 = ClientLifecycleHandler.RenderTypeAddition.getEyesEntityCutoutNoCullDepthMaskOff(ModResources.ZOTZPYRE_6_EYES);
+            @Override
+            public void render(PoseStack matrixStackIn, MultiBufferSource bufferIn, int packedLightIn, EntityZotzpyre entity, float limbSwing, float limbSwingAmount, float partialTicks, float ageInTicks, float netHeadYaw, float headPitch) {
+                if (!entity.isInvisible() && !entity.isBaby()) {
+                    this.getParentModel().renderToBuffer(matrixStackIn, bufferIn.getBuffer(entity.getVariantNameOrEmpty().equals("6") ? GLOW_STATE_6 : GLOW_STATE_MAIN), 15728640, OverlayTexture.NO_OVERLAY, 1.0F, 1.0F, 1.0F, 1.0F);
+                }
+            }
+        }));
 
         BlockEntityRenderers.registerRenderer(ModBlockEntities.GHOST_LIGHT.get(), RenderTileGhostLight::new);
         BlockEntityRenderers.registerRenderer(ModBlockEntities.HG_SKULL.get(), RenderHGSkull::new);

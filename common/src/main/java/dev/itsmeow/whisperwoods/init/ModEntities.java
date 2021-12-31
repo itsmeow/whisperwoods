@@ -88,7 +88,7 @@ public class ModEntities {
     .egg(0x321e13, 0x543a28).size(1F, 1F)
     .despawn()
     .biomesOverworld(BiomeTypes.FOREST, BiomeTypes.JUNGLE, BiomeTypes.BEACH, BiomeTypes.CONIFEROUS, BiomeTypes.LUSH, BiomeTypes.WASTELAND, BiomeTypes.SWAMP, BiomeTypes.HILL, BiomeTypes.MOUNTAIN)
-    .variants(5));
+    .variants(6));
 
 
     public static LinkedHashMap<String, EntityTypeContainer<? extends Mob>> getEntities() {
