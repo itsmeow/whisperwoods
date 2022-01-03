@@ -1,15 +1,14 @@
 package dev.itsmeow.whisperwoods.util;
 
+import dev.architectury.registry.registries.RegistrySupplier;
 import dev.itsmeow.whisperwoods.block.GhostLightBlock;
 import dev.itsmeow.whisperwoods.block.WispLanternBlock;
 import dev.itsmeow.whisperwoods.init.ModBlocks;
-import me.shedaniel.architectury.registry.RegistrySupplier;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
 
 public class WispColors {
 

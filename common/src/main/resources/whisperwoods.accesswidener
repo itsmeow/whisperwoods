@@ -1,6 +1,6 @@
 accessWidener v1 named
-accessible field net/minecraft/world/entity/AgableMob$AgableMobGroupData babySpawnChance F
-mutable field net/minecraft/world/entity/AgableMob$AgableMobGroupData babySpawnChance F
+accessible field net/minecraft/world/entity/AgeableMob$AgeableMobGroupData babySpawnChance F
+mutable field net/minecraft/world/entity/AgeableMob$AgeableMobGroupData babySpawnChance F
 accessible method net/minecraft/core/particles/SimpleParticleType <init> (Z)V
 accessible method net/minecraft/world/damagesource/DamageSource bypassArmor ()Lnet/minecraft/world/damagesource/DamageSource;
 accessible method net/minecraft/world/damagesource/DamageSource bypassMagic ()Lnet/minecraft/world/damagesource/DamageSource;

@@ -1,7 +1,7 @@
 package dev.itsmeow.whisperwoods.network;
 
+import dev.architectury.networking.NetworkChannel;
 import dev.itsmeow.whisperwoods.WhisperwoodsMod;
-import me.shedaniel.architectury.networking.NetworkChannel;
 import net.minecraft.resources.ResourceLocation;
 
 public class WWNetwork {

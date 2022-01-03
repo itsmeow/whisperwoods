@@ -1,24 +1,29 @@
 package dev.itsmeow.whisperwoods.client;
 
-import com.google.common.collect.ImmutableList;
+import com.mojang.blaze3d.vertex.PoseStack;
 import dev.itsmeow.whisperwoods.WhisperwoodsMod;
 import dev.itsmeow.whisperwoods.client.init.ClientLifecycleHandler;
 import dev.itsmeow.whisperwoods.client.particle.WispParticle;
 import dev.itsmeow.whisperwoods.init.ModItems;
 import dev.itsmeow.whisperwoods.item.ItemBlockHirschgeistSkull;
 import net.fabricmc.api.ClientModInitializer;
-import net.fabricmc.fabric.api.client.rendering.v1.ArmorRenderingRegistry;
+import net.fabricmc.fabric.api.client.rendering.v1.ArmorRenderer;
 import net.fabricmc.fabric.api.event.client.ClientSpriteRegistryCallback;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.HumanoidModel;
 import net.minecraft.client.particle.ParticleEngine;
 import net.minecraft.client.particle.ParticleRenderType;
+import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.entity.LivingEntityRenderer;
 import net.minecraft.core.Direction;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
+import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Pose;
 import net.minecraft.world.inventory.InventoryMenu;
+import net.minecraft.world.item.ItemStack;
 
 import java.util.ArrayList;
 
@@ -27,7 +32,8 @@ public class WhisperwoodsClientFabric implements ClientModInitializer {
     public void onInitializeClient() {
         ClientLifecycleHandler.clientInit();
         ItemBlockHirschgeistSkull armor = ModItems.HIRSCHGEIST_SKULL.get();
-        ArmorRenderingRegistry.registerModel((entity, stack, slot, defaultModel) -> {
+        ResourceLocation tex =  new ResourceLocation(WhisperwoodsMod.MODID, "textures/models/armor/" + armor.getMaterial().getName() + "_layer_1.png");
+        ArmorRenderer.register((PoseStack matrices, MultiBufferSource vertexConsumers, ItemStack stack, LivingEntity entity, EquipmentSlot slot, int light, HumanoidModel<LivingEntity> defaultModel) -> {
             HumanoidModel<LivingEntity> model = armor.getArmorModel(entity, stack, slot, defaultModel);
             if (!Minecraft.getInstance().isPaused()) {
                 float g = Minecraft.getInstance().getFrameTime();
@@ -56,7 +62,7 @@ public class WhisperwoodsClientFabric implements ClientModInitializer {
                     k = j - h;
                 }
 
-                float m = Mth.lerp(g, entity.xRotO, entity.xRot);
+                float m = Mth.lerp(g, entity.xRotO, entity.getXRot());
                 float p;
                 if (entity.getPose() == Pose.SLEEPING) {
                     Direction direction = entity.getBedOrientation();
@@ -81,9 +87,8 @@ public class WhisperwoodsClientFabric implements ClientModInitializer {
                 }
                 model.setupAnim(entity, q, p, o, k, m);
             }
-            return model;
+            model.renderToBuffer(matrices, vertexConsumers.getBuffer(RenderType.entityCutoutNoCull(tex)), light, LivingEntityRenderer.getOverlayCoords(entity, 0.0F), 1F, 1F, 1F, 1F);
         }, armor);
-        ArmorRenderingRegistry.registerSimpleTexture(new ResourceLocation(WhisperwoodsMod.MODID, armor.getMaterial().getName()), armor);
         ClientSpriteRegistryCallback.event(InventoryMenu.BLOCK_ATLAS).register((atlasTexture, registry) -> {
             registry.register(new ResourceLocation(WhisperwoodsMod.MODID, "particle/flame"));
             for(int i = 0; i < 6; i++) {

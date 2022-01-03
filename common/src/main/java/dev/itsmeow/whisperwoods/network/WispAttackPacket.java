@@ -1,8 +1,8 @@
 package dev.itsmeow.whisperwoods.network;
 
+import dev.architectury.networking.NetworkManager;
+import dev.architectury.utils.Env;
 import dev.itsmeow.whisperwoods.particle.WispParticleData;
-import me.shedaniel.architectury.networking.NetworkManager;
-import me.shedaniel.architectury.utils.Env;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.network.FriendlyByteBuf;

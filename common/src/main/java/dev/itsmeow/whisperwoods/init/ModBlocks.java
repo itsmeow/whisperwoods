@@ -1,13 +1,13 @@
 package dev.itsmeow.whisperwoods.init;
 
+import dev.architectury.registry.registries.DeferredRegister;
+import dev.architectury.registry.registries.RegistrySupplier;
 import dev.itsmeow.whisperwoods.WhisperwoodsMod;
 import dev.itsmeow.whisperwoods.block.GhostLightBlock;
 import dev.itsmeow.whisperwoods.block.HandOfFateBlock;
-import dev.itsmeow.whisperwoods.block.WispLanternBlock;
 import dev.itsmeow.whisperwoods.block.HirschgeistSkullBlock;
+import dev.itsmeow.whisperwoods.block.WispLanternBlock;
 import dev.itsmeow.whisperwoods.util.WispColors;
-import me.shedaniel.architectury.registry.DeferredRegister;
-import me.shedaniel.architectury.registry.RegistrySupplier;
 import net.minecraft.core.Registry;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.SoundType;

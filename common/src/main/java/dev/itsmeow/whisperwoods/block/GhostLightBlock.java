@@ -51,10 +51,9 @@ public class GhostLightBlock extends Block implements EntityBlock, IHaveColor {
     }
 
     @Override
-    public BlockEntity newBlockEntity(BlockGetter blockGetter) {
-        return new GhostLightBlockEntity();
+    public BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
+        return new GhostLightBlockEntity(pos, state);
     }
-
     public int getColor() {
         return this.color;
     }

@@ -1,15 +1,17 @@
 {
   "required": true,
   "package": "dev.itsmeow.whisperwoods.mixin",
-  "compatibilityLevel": "JAVA_8",
+  "compatibilityLevel": "JAVA_16",
   "minVersion": "0.8",
   "mixins": [
     "EntityMixin",
     "LivingEntityMixin",
-    "GroundPathNavigationMixin",
-    "ParticleEngineMixin"
+    "GroundPathNavigationMixin"
   ],
-  "client": [],
+  "client": [
+    "ParticleEngineMixin",
+    "LayerDefinitionsMixin"
+  ],
   "injectors": {
     "defaultRequire": 1
   }

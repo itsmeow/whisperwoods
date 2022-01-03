@@ -2,15 +2,14 @@ package dev.itsmeow.whisperwoods.block;
 
 import dev.itsmeow.imdlib.block.AnimalSkullBlock;
 import dev.itsmeow.whisperwoods.blockentity.HGSkullBlockEntity;
-import net.minecraft.world.level.BlockGetter;
+import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.block.EntityBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
-import org.jetbrains.annotations.Nullable;
+import net.minecraft.world.level.block.state.BlockState;
 
 public class HirschgeistSkullBlock extends AnimalSkullBlock implements EntityBlock {
-    @Nullable
     @Override
-    public BlockEntity newBlockEntity(BlockGetter blockGetter) {
-        return new HGSkullBlockEntity();
+    public BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
+        return new HGSkullBlockEntity(pos, state);
     }
 }

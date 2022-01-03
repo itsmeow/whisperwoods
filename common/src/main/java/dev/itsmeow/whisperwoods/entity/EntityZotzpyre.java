@@ -28,7 +28,7 @@ import net.minecraft.world.entity.ai.goal.target.HurtByTargetGoal;
 import net.minecraft.world.entity.ai.goal.target.NearestAttackableTargetGoal;
 import net.minecraft.world.entity.ai.navigation.FlyingPathNavigation;
 import net.minecraft.world.entity.ai.navigation.PathNavigation;
-import net.minecraft.world.entity.ai.util.RandomPos;
+import net.minecraft.world.entity.ai.util.DefaultRandomPos;
 import net.minecraft.world.entity.animal.FlyingAnimal;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
@@ -88,7 +88,7 @@ public class EntityZotzpyre extends EntityMonsterWithTypes implements FlyingAnim
     }
 
     @Override
-    protected float getVoicePitch() {
+    public float getVoicePitch() {
         return super.getVoicePitch() * 0.05F;
     }
 
@@ -145,7 +145,7 @@ public class EntityZotzpyre extends EntityMonsterWithTypes implements FlyingAnim
     }
 
     @Override
-    public boolean causeFallDamage(float distance, float damageMultiplier) {
+    public boolean causeFallDamage(float f, float g, DamageSource damageSource) {
         return false;
     }
 
@@ -188,6 +188,11 @@ public class EntityZotzpyre extends EntityMonsterWithTypes implements FlyingAnim
     @Override
     public EntityTypeContainer<EntityZotzpyre> getContainer() {
         return ModEntities.ZOTZPYRE;
+    }
+
+    @Override
+    public boolean isFlying() {
+        return this.isNoGravity() && !this.isHanging();
     }
 
     public static class HangFromCeilingGoal<T extends Mob> extends Goal {
@@ -329,7 +334,7 @@ public class EntityZotzpyre extends EntityMonsterWithTypes implements FlyingAnim
                         Vec3 opposite = target.position().add(oScale);
                         this.targetPosition = opposite;
                     } else {
-                        Vec3 newPos = RandomPos.getAirPos(this.parentEntity, 10, 10, 10, null, 1D);
+                        Vec3 newPos = DefaultRandomPos.getPos(this.parentEntity, 10, 10);
                         this.targetPosition = newPos;
                     }
                 }
@@ -373,10 +378,10 @@ public class EntityZotzpyre extends EntityMonsterWithTypes implements FlyingAnim
                 }
 
                 double yawAngle = Math.atan2(diff.z(), diff.x()) * (180D / Math.PI) - 90D;
-                this.mob.yRot = this.rotlerp(this.mob.yRot, (float) yawAngle, 35.0F);
+                this.mob.setYRot(this.rotlerp(this.mob.getYRot(), (float) yawAngle, 35.0F));
 
                 double pitchAngle = -Math.atan2(diff.y(), Math.sqrt(diff.x() * diff.x() + diff.z() * diff.z())) * (180D / Math.PI);
-                this.mob.xRot = this.rotlerp(this.mob.xRot, (float) pitchAngle, 35.0F);
+                this.mob.setXRot(this.rotlerp(this.mob.getXRot(), (float) pitchAngle, 35.0F));
             } else {
                 this.mob.setNoGravity(false);
             }

@@ -1,11 +1,11 @@
 {
-  "required": false,
-  "package": "",
+  "required": true,
+  "package": "dev.itsmeow.whisperwoods.mixin.forge",
   "compatibilityLevel": "JAVA_16",
   "minVersion": "0.8",
-  "mixins": [
-  ],
+  "mixins": [],
   "client": [
+    "ItemBlockModeledArmorMixin"
   ],
   "injectors": {
     "defaultRequire": 1

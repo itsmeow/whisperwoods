@@ -6,7 +6,7 @@ import com.mojang.authlib.minecraft.MinecraftProfileTexture.Type;
 import dev.itsmeow.imdlib.entity.EntityTypeContainer;
 import dev.itsmeow.imdlib.entity.interfaces.IContainerEntity;
 import dev.itsmeow.whisperwoods.init.ModEntities;
-import dev.itsmeow.whisperwoods.init.ModItems;
+import dev.itsmeow.whisperwoods.item.ItemBlockHirschgeistSkull;
 import dev.itsmeow.whisperwoods.network.WWNetwork;
 import dev.itsmeow.whisperwoods.network.WispAttackPacket;
 import dev.itsmeow.whisperwoods.util.WispColors;
@@ -23,6 +23,7 @@ import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerChunkCache;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.network.ServerPlayerConnection;
 import net.minecraft.util.Mth;
 import net.minecraft.world.Difficulty;
 import net.minecraft.world.DifficultyInstance;
@@ -43,6 +44,7 @@ import net.minecraft.world.phys.Vec3;
 
 import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 public class EntityWisp extends Animal implements IContainerEntity<EntityWisp> {
 
@@ -55,8 +57,8 @@ public class EntityWisp extends Animal implements IContainerEntity<EntityWisp> {
     public static final EntityDataAccessor<String> TARGET_NAME = SynchedEntityData.defineId(EntityWisp.class, EntityDataSerializers.STRING);
     public static final EntityDataAccessor<Float> PASSIVE_SCALE = SynchedEntityData.defineId(EntityWisp.class, EntityDataSerializers.FLOAT);
     public static final EntityDataAccessor<Integer> COLOR_VARIANT = SynchedEntityData.defineId(EntityWisp.class, EntityDataSerializers.INT);
-    private static final TargetingConditions PASSIVE_SCALE_PREDICATE = new TargetingConditions().allowInvulnerable().allowSameTeam().allowNonAttackable();
-    private static final TargetingConditions HOSTILE_TARGET_PREDICATE = TargetingConditions.DEFAULT.selector(e -> EntitySelector.ATTACK_ALLOWED.test(e) && e.getItemBySlot(EquipmentSlot.HEAD).getItem() != ModItems.HIRSCHGEIST_SKULL.get());
+    private static final TargetingConditions PASSIVE_SCALE_PREDICATE = TargetingConditions.forNonCombat().ignoreInvisibilityTesting().ignoreLineOfSight();
+    private static final TargetingConditions HOSTILE_TARGET_PREDICATE = TargetingConditions.forCombat().selector(e -> !(e.getItemBySlot(EquipmentSlot.HEAD).getItem() instanceof ItemBlockHirschgeistSkull));
     protected ResourceLocation targetTexture;
     private boolean shouldBeHostile = false;
     private int attackCooldown = 0;
@@ -109,7 +111,7 @@ public class EntityWisp extends Animal implements IContainerEntity<EntityWisp> {
             double distance = this.distanceTo(this.getTarget());
             if (this.attackCooldown <= 0) {
                 if (distance < 10D) {
-                    WWNetwork.HANDLER.sendToPlayers(((ServerChunkCache)this.level.getChunkSource()).chunkMap.entityMap.get(this.getId()).seenBy, new WispAttackPacket(this.position().add(0F, this.getBbHeight(), 0F), this.getWispColor().getColor()));
+                    WWNetwork.HANDLER.sendToPlayers(((ServerChunkCache)this.level.getChunkSource()).chunkMap.entityMap.get(this.getId()).seenBy.stream().map(ServerPlayerConnection::getPlayer).collect(Collectors.toSet()), new WispAttackPacket(this.position().add(0F, this.getBbHeight(), 0F), this.getWispColor().getColor()));
                     this.getTarget().hurt(DamageSource.MAGIC, 1F);
                     this.attackCooldown = 40 + this.getRandom().nextInt(6);
                 }
@@ -196,9 +198,9 @@ public class EntityWisp extends Animal implements IContainerEntity<EntityWisp> {
             Vec3 vec3d1 = vec3d.add((Math.signum(d0) * 0.5D - vec3d.x) * (double) 0.1F, (Math.signum(d1) * (double) 0.7F - vec3d.y) * (double) 0.1F, (Math.signum(d2) * 0.5D - vec3d.z) * (double) 0.1F);
             this.setDeltaMovement(vec3d1);
             float f = (float) (Mth.atan2(vec3d1.z, vec3d1.x) * (double) (180F / (float) Math.PI)) - 90.0F;
-            float f1 = Mth.wrapDegrees(f - this.yRot);
+            float f1 = Mth.wrapDegrees(f - this.getYRot());
             this.zza = 0.5F;
-            this.yRot += f1;
+            this.setYRot(this.getYRot() + f1);
         }
     }
 
@@ -218,25 +220,25 @@ public class EntityWisp extends Animal implements IContainerEntity<EntityWisp> {
         if (targetTexture == null) {
             UUID target = UUID.fromString(this.getEntityData().get(EntityWisp.TARGET_ID));
             String name = this.getEntityData().get(EntityWisp.TARGET_NAME);
-            GameProfile profile = new GameProfile(target, name);
-            profile = SkullBlockEntity.updateGameprofile(profile);
-            if (profile != null) {
-                Map<Type, MinecraftProfileTexture> map = Minecraft.getInstance().getSkinManager().getInsecureSkinInformation(profile);
-                ResourceLocation skin;
-                if (map.containsKey(Type.SKIN)) {
-                    skin = Minecraft.getInstance().getSkinManager().registerTexture(map.get(Type.SKIN), Type.SKIN);
-                } else {
-                    skin = DefaultPlayerSkin.getDefaultSkin(target);
-                    Minecraft.getInstance().getSkinManager().registerSkins(profile, null, false);
+            SkullBlockEntity.updateGameprofile(new GameProfile(target, name), newProfile -> {
+                if (newProfile != null) {
+                    Map<Type, MinecraftProfileTexture> map = Minecraft.getInstance().getSkinManager().getInsecureSkinInformation(newProfile);
+                    ResourceLocation skin;
+                    if (map.containsKey(Type.SKIN)) {
+                        skin = Minecraft.getInstance().getSkinManager().registerTexture(map.get(Type.SKIN), Type.SKIN);
+                    } else {
+                        skin = DefaultPlayerSkin.getDefaultSkin(target);
+                        Minecraft.getInstance().getSkinManager().registerSkins(newProfile, null, false);
+                    }
+                    targetTexture = skin;
                 }
-                targetTexture = skin;
-            }
+            });
         }
         return targetTexture;
     }
 
     @Override
-    public boolean causeFallDamage(float distance, float damageMultiplier) {
+    public boolean causeFallDamage(float distance, float damageMultiplier, DamageSource source) {
         return false;
     }
 
@@ -341,7 +343,7 @@ public class EntityWisp extends Animal implements IContainerEntity<EntityWisp> {
         return livingdata;
     }
 
-    public static class WispData extends AgableMobGroupData {
+    public static class WispData extends AgeableMobGroupData {
         public boolean isHostile;
         public int colorVariant;
 
@@ -353,7 +355,7 @@ public class EntityWisp extends Animal implements IContainerEntity<EntityWisp> {
     }
 
     @Override
-    public AgableMob getBreedOffspring(ServerLevel world, AgableMob ageable) {
+    public AgeableMob getBreedOffspring(ServerLevel world, AgeableMob ageable) {
         return null;
     }
 

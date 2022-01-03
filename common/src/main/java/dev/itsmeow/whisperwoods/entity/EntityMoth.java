@@ -38,7 +38,7 @@ import java.util.List;
 public class EntityMoth extends EntityAnimalWithTypesAndSizeContainable {
 
     private static final EntityDataAccessor<Integer> LANDED = SynchedEntityData.defineId(EntityMoth.class, EntityDataSerializers.INT);
-    private static final TargetingConditions playerPredicate = (new TargetingConditions()).range(4.0D).allowSameTeam().allowInvulnerable();
+    private static final TargetingConditions playerPredicate = TargetingConditions.forNonCombat().range(4.0D).ignoreLineOfSight();
     private BlockPos targetPosition;
 
     public EntityMoth(EntityType<? extends EntityAnimalWithTypesAndSizeContainable> type, Level worldIn) {
@@ -102,7 +102,7 @@ public class EntityMoth extends EntityAnimalWithTypesAndSizeContainable {
                 BlockPos offset = pos.relative(Direction.from3DDataValue(this.getLandedInteger()));
                 BlockPos diff = pos.subtract(offset);
                 this.teleportTo(x - ((double) diff.getX()) / 2.778D, Math.floor(this.getY()) + 0.5D, z - ((double) diff.getZ()) / 2.778D);
-                this.yRot = 0;
+                this.setYRot(0);
                 this.yHeadRot = 0;
             } else {
                 this.teleportTo(this.getX(), Math.floor(this.getY()), this.getZ());
@@ -188,16 +188,16 @@ public class EntityMoth extends EntityAnimalWithTypesAndSizeContainable {
             Vec3 vec3d = this.getDeltaMovement();
             Vec3 vec3d1 = vec3d.add((Math.signum(d0) * 0.5D - vec3d.x) * (double) 0.1F, (Math.signum(d1) * (double) 0.7F - vec3d.y) * (double) 0.1F, (Math.signum(d2) * 0.5D - vec3d.z) * (double) 0.1F);
             float width = this.getContainer().getEntityType().getDimensions().width * 0.8F;
-            AABB axisalignedbb = AABB.ofSize(width, 0.1F, width).move(this.getX() + vec3d1.x(), this.getEyeY() + vec3d1.y(), this.getZ() + vec3d1.z());
+            AABB axisalignedbb = AABB.ofSize(vec3d1.add(this.position()), width, 0.1F, width);
             boolean collides = this.level.getBlockCollisions(this, axisalignedbb, (state, pos2) -> state.isSuffocating(this.level, pos2)).findAny().isPresent();
             if(collides) {
                 vec3d1 = vec3d1.multiply(0.5, 0.5, 0.5);
             }
             this.setDeltaMovement(vec3d1);
             float f = (float) (Mth.atan2(vec3d1.z, vec3d1.x) * (double) (180F / (float) Math.PI)) - 90.0F;
-            float f1 = Mth.wrapDegrees(f - this.yRot);
+            float f1 = Mth.wrapDegrees(f - this.getYRot());
             this.zza = 0.5F;
-            this.yRot += f1;
+            this.setYRot(this.getYRot() + f1);
         }
         int moths_req = getContainer().getCustomConfiguration().getInt("moths_to_destroy_torch");
         if(moths_req != 0 && level.getBlockState(this.blockPosition()).getBlock() instanceof TorchBlock && level.getEntitiesOfClass(EntityMoth.class, this.getBoundingBox()).size() >= moths_req && ModPlatformEvents.mobGrief(this.level, this)) {
@@ -217,12 +217,12 @@ public class EntityMoth extends EntityAnimalWithTypesAndSizeContainable {
     }
 
     @Override
-    protected boolean isMovementNoisy() {
-        return false;
+    protected MovementEmission getMovementEmission() {
+        return MovementEmission.EVENTS;
     }
 
     @Override
-    public boolean causeFallDamage(float distance, float damageMultiplier) {
+    public boolean causeFallDamage(float f, float g, DamageSource damageSource) {
         return false;
     }
 

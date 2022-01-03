@@ -2,15 +2,19 @@ plugins {
     id "com.github.johnrengelman.shadow" version "7.1.1"
 }
 
-configurations {
-    shadowCommon
-    shadowModImplementation
-    modImplementation.extendsFrom shadowModImplementation
-}
-
 architectury {
     platformSetupLoomIde()
     fabric()
+}
+
+configurations {
+    common
+    shadowCommon
+    compileClasspath.extendsFrom common
+    runtimeClasspath.extendsFrom common
+    developmentFabric.extendsFrom common
+    shadowModImplementation
+    modImplementation.extendsFrom shadowModImplementation
 }
 
 loom {
@@ -37,23 +41,9 @@ repositories {
 dependencies {
     modImplementation "net.fabricmc:fabric-loader:${rootProject.fabric_loader_version}"
     modApi "net.fabricmc.fabric-api:fabric-api:${rootProject.fabric_api_version}"
-    modApi "me.shedaniel:architectury-fabric:${rootProject.architectury_version}"
-    modRuntimeOnly ("curse.maven:cloth-config-319057:3559633") {
-        transitive = false
-    }
-    runtimeOnly("me.shedaniel.cloth:basic-math:0.6.0") {
-        transitive = false
-    }
-
-    implementation(project(path: ":common", configuration: "dev")) {
-        transitive = false
-    }
-    developmentFabric(project(path: ":common", configuration: "dev")) {
-        transitive = false
-    }
-    shadowCommon(project(path: ":common", configuration: "transformProductionFabric")) {
-        transitive = false
-    }
+    modApi "dev.architectury:architectury-fabric:${rootProject.architectury_version}"
+    common(project(path: ":common", configuration: "namedElements")) { transitive false }
+    shadowCommon(project(path: ":common", configuration: "transformProductionFabric")) { transitive false }
 
     shadowModImplementation("dev.itsmeow.imdlib:imdlib-fabric:${rootProject.imdlib_version}") {
         transitive = false
@@ -62,17 +52,24 @@ dependencies {
         transitive = false
     }
     modRuntimeOnly("io.github.onyxstudios.Cardinal-Components-API:cardinal-components-entity:${rootProject.cardinal_components_version}") {
+        exclude(group: "net.fabricmc")
+        exclude(group: "net.fabricmc.fabric-api")
+    }
+    modRuntimeOnly("dev.emi:trinkets:3.0.4") {
         transitive = false
     }
-    modRuntimeOnly("dev.emi:trinkets:2.6.7") {
-        transitive = false
-    }
-    modRuntimeOnly("com.terraformersmc:modmenu:1.16.22") {
+    modRuntimeOnly("com.terraformersmc:modmenu:2.0.14") {
         transitive = false
     }
     /*modRuntimeOnly("dev.itsmeow.betteranimalsplus:betteranimalsplus-fabric:${rootProject.betteranimalsplus_version}") {
         transitive = false
     }*/
+    modRuntimeOnly ("curse.maven:cloth-config-319057:3559636") {
+        transitive = false
+    }
+    runtimeOnly("me.shedaniel.cloth:basic-math:0.6.0") {
+        transitive = false
+    }
 }
 
 processResources {
@@ -80,6 +77,12 @@ processResources {
 
     filesMatching("fabric.mod.json") {
         expand "version": project.version
+    }
+}
+
+components.java {
+    withVariantsFromConfiguration(project.configurations.shadowRuntimeElements) {
+        skip()
     }
 }
 

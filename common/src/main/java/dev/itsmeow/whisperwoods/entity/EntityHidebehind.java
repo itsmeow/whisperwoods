@@ -1,5 +1,7 @@
 package dev.itsmeow.whisperwoods.entity;
 
+import dev.architectury.platform.Platform;
+import dev.architectury.utils.Env;
 import dev.itsmeow.imdlib.entity.EntityTypeContainer;
 import dev.itsmeow.imdlib.entity.util.BiomeTypes;
 import dev.itsmeow.imdlib.entity.util.variant.EntityVariant;
@@ -7,8 +9,6 @@ import dev.itsmeow.whisperwoods.WhisperwoodsMod;
 import dev.itsmeow.whisperwoods.init.ModEntities;
 import dev.itsmeow.whisperwoods.init.ModSounds;
 import dev.itsmeow.whisperwoods.util.IOverrideCollisions;
-import me.shedaniel.architectury.platform.Platform;
-import me.shedaniel.architectury.utils.Env;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -32,7 +32,7 @@ import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.entity.ai.goal.target.NearestAttackableTargetGoal;
 import net.minecraft.world.entity.ai.navigation.GroundPathNavigation;
 import net.minecraft.world.entity.ai.navigation.PathNavigation;
-import net.minecraft.world.entity.ai.util.RandomPos;
+import net.minecraft.world.entity.ai.util.DefaultRandomPos;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
@@ -146,7 +146,7 @@ public class EntityHidebehind extends EntityCreatureWithSelectiveTypes implement
                     for(int i1 = 0; i1 <= l; i1 = i1 > 0 ? -i1 : 1 - i1) {
                         for(int j1 = i1 < l && i1 > -l ? l : 0; j1 <= l; j1 = j1 > 0 ? -j1 : 1 - j1) {
                             bp.set(this.blockPosition()).move(i1, k - 1, j1);
-                            if(this.level.getBlockState(bp).getBlock().is(BlockTags.LOGS)) {
+                            if(this.level.getBlockState(bp).is(BlockTags.LOGS)) {
                                 destinationBlock = bp.immutable();
                             }
                         }
@@ -157,7 +157,7 @@ public class EntityHidebehind extends EntityCreatureWithSelectiveTypes implement
             if(destinationBlock != null) {
                 for(Direction dir : Direction.values()) {
                     if(!fixed) {
-                        if(this.level.isEmptyBlock(destinationBlock.relative(dir)) || this.level.getBlockState(destinationBlock.relative(dir)).getBlock().is(BlockTags.LEAVES)) {
+                        if(this.level.isEmptyBlock(destinationBlock.relative(dir)) || this.level.getBlockState(destinationBlock.relative(dir)).is(BlockTags.LEAVES)) {
                             destinationBlock = destinationBlock.relative(dir);
                             fixed = true;
                         }
@@ -214,7 +214,7 @@ public class EntityHidebehind extends EntityCreatureWithSelectiveTypes implement
                 double e1 = target.getZ() - this.getZ();
                 float angle1 = (float) (Mth.atan2(e1, e0) * (double) (180F / (float) Math.PI)) - 90.0F;
                 this.absMoveTo(this.getX(), this.getY(), this.getZ(), angle1, 0);
-                this.yRot = angle1;
+                this.setYRot(angle1);
                 if (this.attackSequenceTicks() == 20) {
                     target.playSound(ModSounds.HIDEBEHIND_SOUND.get(), 2F, 1F);
                 }
@@ -294,7 +294,7 @@ public class EntityHidebehind extends EntityCreatureWithSelectiveTypes implement
         if(target == null) {
             return -1000;
         }
-        return Mth.wrapDegrees(getRequiredViewingAngle() - Mth.wrapDegrees(getTarget().yRot));
+        return Mth.wrapDegrees(getRequiredViewingAngle() - Mth.wrapDegrees(getTarget().getYRot()));
     }
 
     /**
@@ -326,7 +326,7 @@ public class EntityHidebehind extends EntityCreatureWithSelectiveTypes implement
         boolean flag = entity.hurt(HIDEBEHIND, f);
         if (flag) {
             if (f1 > 0.0F && entity instanceof LivingEntity) {
-                ((LivingEntity)entity).knockback(f1 * 0.5F, (double)Mth.sin(this.yRot * 0.017453292F), (double)(-Mth.cos(this.yRot * 0.017453292F)));
+                ((LivingEntity)entity).knockback(f1 * 0.5F, (double)Mth.sin(this.getYRot() * 0.017453292F), (double)(-Mth.cos(this.getYRot() * 0.017453292F)));
                 this.setDeltaMovement(this.getDeltaMovement().multiply(0.6D, 1.0D, 0.6D));
             }
             this.doEnchantDamageEffects(this, entity);
@@ -343,12 +343,12 @@ public class EntityHidebehind extends EntityCreatureWithSelectiveTypes implement
 
     @Override
     public boolean canPassThrough(BlockState state) {
-        return state.getBlock().is(BlockTags.LEAVES);
+        return state.is(BlockTags.LEAVES);
     }
 
     @Override
     public boolean preventSuffocation(BlockState state) {
-        return state.getBlock().is(BlockTags.LOGS) || canPassThrough(state);
+        return state.is(BlockTags.LOGS) || canPassThrough(state);
     }
 
     public static class HideFromTargetGoal extends Goal {
@@ -392,10 +392,10 @@ public class EntityHidebehind extends EntityCreatureWithSelectiveTypes implement
             boolean nearTree = false;
             for(Direction dir : Direction.values()) {
                 if(!nearTree) {
-                    if(hidebehind.level.getBlockState(hidebehind.blockPosition().relative(dir)).getBlock().is(BlockTags.LOGS)) {
+                    if(hidebehind.level.getBlockState(hidebehind.blockPosition().relative(dir)).is(BlockTags.LOGS)) {
                         nearTree = true;
                     }
-                    if(hidebehind.level.getBlockState(hidebehind.blockPosition().above(3).relative(dir)).getBlock().is(BlockTags.LEAVES)) {
+                    if(hidebehind.level.getBlockState(hidebehind.blockPosition().above(3).relative(dir)).is(BlockTags.LEAVES)) {
                         nearTree = true;
                     }
                 }
@@ -410,7 +410,7 @@ public class EntityHidebehind extends EntityCreatureWithSelectiveTypes implement
                         for(int i1 = 0; i1 <= l; i1 = i1 > 0 ? -i1 : 1 - i1) {
                             for(int j1 = i1 < l && i1 > -l ? l : 0; j1 <= l; j1 = j1 > 0 ? -j1 : 1 - j1) {
                                 blockpos$mutableblockpos.set(hidebehind.blockPosition()).move(i1, k - 1, j1);
-                                if(hidebehind.level.getBlockState(blockpos$mutableblockpos).getBlock().is(BlockTags.LOGS)) {
+                                if(hidebehind.level.getBlockState(blockpos$mutableblockpos).is(BlockTags.LOGS)) {
                                     destinationBlock = blockpos$mutableblockpos.immutable();
                                 }
                             }
@@ -421,7 +421,7 @@ public class EntityHidebehind extends EntityCreatureWithSelectiveTypes implement
                 if(destinationBlock != null) {
                     for(Direction dir : Direction.values()) {
                         if(!fixed) {
-                            if(hidebehind.level.isEmptyBlock(destinationBlock.relative(dir)) || hidebehind.level.getBlockState(destinationBlock.relative(dir)).getBlock().is(BlockTags.LEAVES)) {
+                            if(hidebehind.level.isEmptyBlock(destinationBlock.relative(dir)) || hidebehind.level.getBlockState(destinationBlock.relative(dir)).is(BlockTags.LEAVES)) {
                                 destinationBlock = destinationBlock.relative(dir);
                                 fixed = true;
                             }
@@ -495,7 +495,7 @@ public class EntityHidebehind extends EntityCreatureWithSelectiveTypes implement
             if(this.target == null || this.target.distanceToSqr(this.hidebehind) > (double) (this.maxTargetDistance * this.maxTargetDistance)) {
                 return false;
             } else {
-                Vec3 vec3d = RandomPos.getPosTowards(this.hidebehind, 16, 7, new Vec3(this.target.getX(), this.target.getY(), this.target.getZ()));
+                Vec3 vec3d = DefaultRandomPos.getPosTowards(this.hidebehind, 16, 7, new Vec3(this.target.getX(), this.target.getY(), this.target.getZ()), Math.PI / 2D);
                 return vec3d != null && hidebehind.isEntityAttackable(target) && hidebehind.attackSequenceTicks() <= 0 && !hidebehind.getHiding();
             }
         }

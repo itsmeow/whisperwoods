@@ -1,28 +1,28 @@
 package dev.itsmeow.whisperwoods.client.renderer.tile;
 
-import java.util.Random;
 import com.mojang.blaze3d.vertex.PoseStack;
 import dev.itsmeow.whisperwoods.block.GhostLightBlock;
 import dev.itsmeow.whisperwoods.block.WispLanternBlock;
+import dev.itsmeow.whisperwoods.blockentity.GhostLightBlockEntity;
 import dev.itsmeow.whisperwoods.init.ModBlocks;
 import dev.itsmeow.whisperwoods.particle.WispParticleData;
-import dev.itsmeow.whisperwoods.blockentity.GhostLightBlockEntity;
 import dev.itsmeow.whisperwoods.util.IHaveColor;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.blockentity.BlockEntityRenderDispatcher;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
+import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Direction.Axis;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 
-public class RenderTileGhostLight extends BlockEntityRenderer<GhostLightBlockEntity> {
+import java.util.Random;
+
+public class RenderTileGhostLight implements BlockEntityRenderer<GhostLightBlockEntity> {
 
     private final Random rand = new Random();
 
-    public RenderTileGhostLight(BlockEntityRenderDispatcher rendererDispatcherIn) {
-        super(rendererDispatcherIn);
+    public RenderTileGhostLight(BlockEntityRendererProvider.Context ctx) {
     }
 
     @Override

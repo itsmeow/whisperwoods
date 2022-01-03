@@ -100,7 +100,7 @@ public class EntityHirschgeist extends Monster implements Enemy, IOverrideCollis
                 this.nodeEvaluator = new WalkNodeEvaluator() {
                     @Override
                     protected BlockPathTypes evaluateBlockPathType(BlockGetter reader, boolean b1, boolean b2, BlockPos pos, BlockPathTypes typeIn) {
-                        return typeIn == BlockPathTypes.LEAVES || reader.getBlockState(pos).getBlock().is(BlockTags.LOGS) || reader.getBlockState(pos).getBlock().is(BlockTags.LEAVES) ? BlockPathTypes.OPEN : super.evaluateBlockPathType(reader, b1, b2, pos, typeIn);
+                        return typeIn == BlockPathTypes.LEAVES || reader.getBlockState(pos).is(BlockTags.LOGS) || reader.getBlockState(pos).is(BlockTags.LEAVES) ? BlockPathTypes.OPEN : super.evaluateBlockPathType(reader, b1, b2, pos, typeIn);
                     }
                 };
                 this.nodeEvaluator.setCanPassDoors(true);
@@ -182,7 +182,7 @@ public class EntityHirschgeist extends Monster implements Enemy, IOverrideCollis
                 flameIndex++;
             }
         }
-        this.bossInfo.setPercent(this.getHealth() / this.getMaxHealth());
+        this.bossInfo.setProgress(this.getHealth() / this.getMaxHealth());
         if (!level.isClientSide) {
             this.getEntityData().set(DISTANCE_TO_TARGET, this.getTarget() == null ? -1F : this.getTarget().distanceTo(this));
             this.getEntityData().set(DAYTIME, this.isDaytime());
@@ -234,7 +234,7 @@ public class EntityHirschgeist extends Monster implements Enemy, IOverrideCollis
     }
 
     @Override
-    protected float getVoicePitch() {
+    public float getVoicePitch() {
         return 0.3F; // Lower pitch of skeleton horse sound
     }
 
@@ -250,7 +250,7 @@ public class EntityHirschgeist extends Monster implements Enemy, IOverrideCollis
 
     @Override
     public boolean canPassThrough(BlockState state) {
-        return state.getBlock().is(BlockTags.LEAVES) || state.getBlock().is(BlockTags.LOGS);
+        return state.is(BlockTags.LEAVES) || state.is(BlockTags.LOGS);
     }
 
     @Override

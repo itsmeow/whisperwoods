@@ -1,7 +1,7 @@
 package dev.itsmeow.whisperwoods.init;
 
+import dev.architectury.hooks.tags.TagHooks;
 import dev.itsmeow.whisperwoods.WhisperwoodsMod;
-import me.shedaniel.architectury.hooks.TagHooks;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.Tag;
 import net.minecraft.world.item.Item;
@@ -19,7 +19,7 @@ public class ModTags {
         }
 
         private static Tag.Named<Block> tag(String name) {
-            return TagHooks.getBlockOptional(new ResourceLocation(WhisperwoodsMod.MODID, name));
+            return TagHooks.optionalBlock(new ResourceLocation(WhisperwoodsMod.MODID, name));
         }
     }
 
@@ -32,7 +32,7 @@ public class ModTags {
         }
 
         private static Tag.Named<Item> tag(String name) {
-            return TagHooks.getItemOptional(new ResourceLocation(WhisperwoodsMod.MODID, name));
+            return TagHooks.optionalItem(new ResourceLocation(WhisperwoodsMod.MODID, name));
         }
     }
 }

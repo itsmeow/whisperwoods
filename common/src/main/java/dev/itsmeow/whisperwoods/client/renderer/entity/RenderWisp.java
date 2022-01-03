@@ -6,11 +6,11 @@ import dev.itsmeow.whisperwoods.entity.EntityWisp;
 import dev.itsmeow.whisperwoods.particle.WispParticleData;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.EntityModel;
-import net.minecraft.client.model.HumanoidHeadModel;
 import net.minecraft.client.model.SkullModel;
+import net.minecraft.client.model.geom.ModelLayers;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
-import net.minecraft.client.renderer.entity.EntityRenderDispatcher;
+import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.entity.LivingEntityRenderer;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.network.chat.TextComponent;
@@ -20,10 +20,11 @@ import java.util.UUID;
 
 public class RenderWisp extends LivingEntityRenderer<EntityWisp, EntityModel<EntityWisp>> {
 
-    SkullModel head = new HumanoidHeadModel();
+    private final SkullModel head;
 
-    public RenderWisp(EntityRenderDispatcher mgr) {
-        super(mgr, null, 0F);
+    public RenderWisp(EntityRendererProvider.Context ctx) {
+        super(ctx, null, 0F);
+        this.head = new SkullModel(ctx.getModelSet().bakeLayer(ModelLayers.PLAYER_HEAD));
     }
 
     @Override
@@ -42,7 +43,7 @@ public class RenderWisp extends LivingEntityRenderer<EntityWisp, EntityModel<Ent
                     stack.translate(0F, 0.8F, 0F);
                     //stack.translate(entity.getPosX(), entity.getPosY() + 0.8F, entity.getPosZ());
                     VertexConsumer vertex = bufferIn.getBuffer(RenderType.entityTranslucent(entity.getTargetTexture()));
-                    head.setupAnim(0F, -entity.yHeadRot, 180F + entity.xRot);
+                    head.setupAnim(0F, -entity.yHeadRot, 180F + entity.getXRot());
                     head.renderToBuffer(stack, vertex, packedLightIn, OverlayTexture.NO_OVERLAY, r / 255F, g / 255F, b / 255F, 0.6F);
                     stack.translate(0F, 0.4F, 0F);
                     this.renderNameTag(entity, new TextComponent(name + "'s soul"), stack, bufferIn, packedLightIn);

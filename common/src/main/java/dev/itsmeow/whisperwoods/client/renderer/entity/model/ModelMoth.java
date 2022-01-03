@@ -5,6 +5,8 @@ import com.mojang.blaze3d.vertex.VertexConsumer;
 import dev.itsmeow.whisperwoods.entity.EntityMoth;
 import net.minecraft.client.model.EntityModel;
 import net.minecraft.client.model.geom.ModelPart;
+import net.minecraft.client.model.geom.PartPose;
+import net.minecraft.client.model.geom.builders.*;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.entity.Pose;
@@ -28,83 +30,39 @@ public class ModelMoth extends EntityModel<EntityMoth> {
     private double xOff = 0;
     private double zOff = 0;
 
-    public ModelMoth() {
-        texWidth = 64;
-        texHeight = 32;
+    public ModelMoth(ModelPart root) {
+        this.thorax = root.getChild("thorax");
+        this.head = thorax.getChild("head");
+        this.lAntenna = head.getChild("lAntenna");
+        this.rAntenna = head.getChild("rAntenna");
+        this.abdomin = thorax.getChild("abdomin");
+        this.lLeg01 = thorax.getChild("lLeg01");
+        this.lLeg02 = thorax.getChild("lLeg02");
+        this.lLeg03 = thorax.getChild("lLeg03");
+        this.rLeg01 = thorax.getChild("rLeg01");
+        this.rLeg02 = thorax.getChild("rLeg02");
+        this.rLeg03 = thorax.getChild("rLeg03");
+        this.lWing = thorax.getChild("lWing");
+        this.rWing = thorax.getChild("rWing");
+    }
 
-        thorax = new ModelPart(this);
-        thorax.setPos(0.0F, 20.9F, 0.0F);
-        thorax.texOffs(0, 7).addBox(-1.5F, -1.5F, -2.0F, 3.0F, 3.0F, 4.0F, 0.0F, false);
-
-        head = new ModelPart(this);
-        head.setPos(0.0F, 0.2F, -1.15F);
-        thorax.addChild(head);
-        setRotateAngle(head, 0.7854F, 0.0F, 0.0F);
-        head.texOffs(0, 0).addBox(-1.5F, -3.0F, -3.0F, 3.0F, 3.0F, 3.0F, -0.1F, false);
-
-        lAntenna = new ModelPart(this);
-        lAntenna.setPos(0.4F, -3.0F, -2.0F);
-        head.addChild(lAntenna);
-        setRotateAngle(lAntenna, -0.7854F, -0.2793F, 0.0F);
-        lAntenna.texOffs(11, 0).addBox(0.0F, 0.0F, -5.0F, 2.0F, 0.0F, 5.0F, 0.0F, false);
-
-        rAntenna = new ModelPart(this);
-        rAntenna.setPos(-0.4F, -3.0F, -2.0F);
-        head.addChild(rAntenna);
-        setRotateAngle(rAntenna, -0.7854F, 0.2793F, 0.0F);
-        rAntenna.texOffs(11, 0).addBox(-2.0F, 0.0F, -5.0F, 2.0F, 0.0F, 5.0F, 0.0F, true);
-
-        abdomin = new ModelPart(this);
-        abdomin.setPos(0.0F, 0.2F, 1.8F);
-        thorax.addChild(abdomin);
-        setRotateAngle(abdomin, -0.1222F, 0.0F, 0.0F);
-        abdomin.texOffs(0, 16).addBox(-1.5F, -1.5F, 0.0F, 3.0F, 3.0F, 6.0F, 0.1F, false);
-
-        lLeg01 = new ModelPart(this);
-        lLeg01.setPos(0.9F, 1.2F, -0.5F);
-        thorax.addChild(lLeg01);
-        setRotateAngle(lLeg01, -1.0472F, -0.8727F, 0.0F);
-        lLeg01.texOffs(17, 6).addBox(-0.5F, 0.0F, 0.0F, 1.0F, 4.0F, 0.0F, 0.0F, true);
-
-        lLeg02 = new ModelPart(this);
-        lLeg02.setPos(0.9F, 1.2F, 0.0F);
-        thorax.addChild(lLeg02);
-        setRotateAngle(lLeg02, 0.0F, 0.0F, -1.0472F);
-        lLeg02.texOffs(20, 5).addBox(0.0F, 0.0F, -0.5F, 0.0F, 4.0F, 1.0F, 0.0F, true);
-
-        lLeg03 = new ModelPart(this);
-        lLeg03.setPos(0.9F, 1.2F, 0.5F);
-        thorax.addChild(lLeg03);
-        setRotateAngle(lLeg03, 1.0472F, 0.8727F, 0.0F);
-        lLeg03.texOffs(17, 6).addBox(-0.5F, 0.0F, 0.0F, 1.0F, 4.0F, 0.0F, 0.0F, true);
-
-        rLeg01 = new ModelPart(this);
-        rLeg01.setPos(-0.9F, 1.2F, -0.5F);
-        thorax.addChild(rLeg01);
-        setRotateAngle(rLeg01, -1.0472F, 0.8727F, 0.0F);
-        rLeg01.texOffs(17, 6).addBox(-0.5F, 0.0F, 0.0F, 1.0F, 4.0F, 0.0F, 0.0F, false);
-
-        rLeg02 = new ModelPart(this);
-        rLeg02.setPos(-0.9F, 1.2F, 0.0F);
-        thorax.addChild(rLeg02);
-        setRotateAngle(rLeg02, 0.0F, 0.0F, 1.0472F);
-        rLeg02.texOffs(20, 5).addBox(0.0F, 0.0F, -0.5F, 0.0F, 4.0F, 1.0F, 0.0F, false);
-
-        rLeg03 = new ModelPart(this);
-        rLeg03.setPos(-0.9F, 1.2F, 0.5F);
-        thorax.addChild(rLeg03);
-        setRotateAngle(rLeg03, 1.0472F, -0.8727F, 0.0F);
-        rLeg03.texOffs(17, 6).addBox(-0.5F, 0.0F, 0.0F, 1.0F, 4.0F, 0.0F, 0.0F, false);
-
-        lWing = new ModelPart(this);
-        lWing.setPos(1.2F, -1.0F, -1.0F);
-        thorax.addChild(lWing);
-        lWing.texOffs(5, 0).addBox(0.0F, 0.0F, -4.5F, 16.0F, 0.0F, 27.0F, 0.0F, false);
-
-        rWing = new ModelPart(this);
-        rWing.setPos(-1.2F, -1.0F, -1.0F);
-        thorax.addChild(rWing);
-        rWing.texOffs(5, 0).addBox(-16.0F, 0.0F, -4.5F, 16.0F, 0.0F, 27.0F, 0.0F, true);
+    public static LayerDefinition createBodyLayer() {
+        MeshDefinition meshdefinition = new MeshDefinition();
+        PartDefinition partdefinition = meshdefinition.getRoot();
+        PartDefinition thorax = partdefinition.addOrReplaceChild("thorax", CubeListBuilder.create().texOffs(0, 7).addBox(-1.5F, -1.5F, -2.0F, 3.0F, 3.0F, 4.0F, new CubeDeformation(0.0F)), PartPose.offset(0.0F, 20.9F, 0.0F));
+        PartDefinition head = thorax.addOrReplaceChild("head", CubeListBuilder.create().texOffs(0, 0).addBox(-1.5F, -3.0F, -3.0F, 3.0F, 3.0F, 3.0F, new CubeDeformation(-0.1F)), PartPose.offsetAndRotation(0.0F, 0.2F, -1.15F, 0.7854F, 0.0F, 0.0F));
+        PartDefinition lAntenna = head.addOrReplaceChild("lAntenna", CubeListBuilder.create().texOffs(11, 0).addBox(0.0F, 0.0F, -5.0F, 2.0F, 0.0F, 5.0F, new CubeDeformation(0.0F)), PartPose.offsetAndRotation(0.4F, -3.0F, -2.0F, -0.7854F, -0.2793F, 0.0F));
+        PartDefinition rAntenna = head.addOrReplaceChild("rAntenna", CubeListBuilder.create().texOffs(11, 0).mirror().addBox(-2.0F, 0.0F, -5.0F, 2.0F, 0.0F, 5.0F, new CubeDeformation(0.0F)).mirror(false), PartPose.offsetAndRotation(-0.4F, -3.0F, -2.0F, -0.7854F, 0.2793F, 0.0F));
+        PartDefinition abdomin = thorax.addOrReplaceChild("abdomin", CubeListBuilder.create().texOffs(0, 16).addBox(-1.5F, -1.5F, 0.0F, 3.0F, 3.0F, 6.0F, new CubeDeformation(0.1F)), PartPose.offsetAndRotation(0.0F, 0.2F, 1.8F, -0.1222F, 0.0F, 0.0F));
+        PartDefinition lLeg01 = thorax.addOrReplaceChild("lLeg01", CubeListBuilder.create().texOffs(17, 6).mirror().addBox(-0.5F, 0.0F, 0.0F, 1.0F, 4.0F, 0.0F, new CubeDeformation(0.0F)).mirror(false), PartPose.offsetAndRotation(0.9F, 1.2F, -0.5F, -1.0472F, -0.8727F, 0.0F));
+        PartDefinition lLeg02 = thorax.addOrReplaceChild("lLeg02", CubeListBuilder.create().texOffs(20, 5).mirror().addBox(0.0F, 0.0F, -0.5F, 0.0F, 4.0F, 1.0F, new CubeDeformation(0.0F)).mirror(false), PartPose.offsetAndRotation(0.9F, 1.2F, 0.0F, 0.0F, 0.0F, -1.0472F));
+        PartDefinition lLeg03 = thorax.addOrReplaceChild("lLeg03", CubeListBuilder.create().texOffs(17, 6).mirror().addBox(-0.5F, 0.0F, 0.0F, 1.0F, 4.0F, 0.0F, new CubeDeformation(0.0F)).mirror(false), PartPose.offsetAndRotation(0.9F, 1.2F, 0.5F, 1.0472F, 0.8727F, 0.0F));
+        PartDefinition rLeg01 = thorax.addOrReplaceChild("rLeg01", CubeListBuilder.create().texOffs(17, 6).addBox(-0.5F, 0.0F, 0.0F, 1.0F, 4.0F, 0.0F, new CubeDeformation(0.0F)), PartPose.offsetAndRotation(-0.9F, 1.2F, -0.5F, -1.0472F, 0.8727F, 0.0F));
+        PartDefinition rLeg02 = thorax.addOrReplaceChild("rLeg02", CubeListBuilder.create().texOffs(20, 5).addBox(0.0F, 0.0F, -0.5F, 0.0F, 4.0F, 1.0F, new CubeDeformation(0.0F)), PartPose.offsetAndRotation(-0.9F, 1.2F, 0.0F, 0.0F, 0.0F, 1.0472F));
+        PartDefinition rLeg03 = thorax.addOrReplaceChild("rLeg03", CubeListBuilder.create().texOffs(17, 6).addBox(-0.5F, 0.0F, 0.0F, 1.0F, 4.0F, 0.0F, new CubeDeformation(0.0F)), PartPose.offsetAndRotation(-0.9F, 1.2F, 0.5F, 1.0472F, -0.8727F, 0.0F));
+        PartDefinition lWing = thorax.addOrReplaceChild("lWing", CubeListBuilder.create().texOffs(5, 0).addBox(0.0F, 0.0F, -4.5F, 16.0F, 0.0F, 27.0F, new CubeDeformation(0.0F)), PartPose.offset(1.2F, -1.0F, -1.0F));
+        PartDefinition rWing = thorax.addOrReplaceChild("rWing", CubeListBuilder.create().texOffs(5, 0).mirror().addBox(-16.0F, 0.0F, -4.5F, 16.0F, 0.0F, 27.0F, new CubeDeformation(0.0F)).mirror(false), PartPose.offset(-1.2F, -1.0F, -1.0F));
+        return LayerDefinition.create(meshdefinition, 64, 32);
     }
 
     @Override

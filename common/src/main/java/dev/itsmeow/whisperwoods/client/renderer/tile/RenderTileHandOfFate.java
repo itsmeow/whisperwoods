@@ -1,35 +1,39 @@
 package dev.itsmeow.whisperwoods.client.renderer.tile;
 
-import java.util.Random;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Vector3f;
 import dev.itsmeow.whisperwoods.WhisperwoodsMod;
 import dev.itsmeow.whisperwoods.block.GhostLightBlock;
 import dev.itsmeow.whisperwoods.block.HandOfFateBlock;
 import dev.itsmeow.whisperwoods.block.HandOfFateBlock.Orientation;
+import dev.itsmeow.whisperwoods.blockentity.HandOfFateBlockEntity;
+import dev.itsmeow.whisperwoods.client.renderer.tile.model.ModelHGSkull;
 import dev.itsmeow.whisperwoods.client.renderer.tile.model.ModelHandOfFate;
 import dev.itsmeow.whisperwoods.particle.WispParticleData;
-import dev.itsmeow.whisperwoods.blockentity.HandOfFateBlockEntity;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.model.geom.ModelLayerLocation;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.block.model.ItemTransforms.TransformType;
-import net.minecraft.client.renderer.blockentity.BlockEntityRenderDispatcher;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
+import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 
-public class RenderTileHandOfFate extends BlockEntityRenderer<HandOfFateBlockEntity> {
-    private static final ModelHandOfFate MODEL = new ModelHandOfFate();
+import java.util.Random;
+
+public class RenderTileHandOfFate implements BlockEntityRenderer<HandOfFateBlockEntity> {
+
     private static final ResourceLocation TEXTURE = new ResourceLocation(WhisperwoodsMod.MODID, "textures/blocks/hand_of_fate.png");
+    private final ModelHandOfFate model;
     private Random rand = new Random();
     private ItemStack istack = null;
 
-    public RenderTileHandOfFate(BlockEntityRenderDispatcher dispatcher) {
-        super(dispatcher);
+    public RenderTileHandOfFate(BlockEntityRendererProvider.Context ctx) {
+        this.model = new ModelHandOfFate(ctx.bakeLayer(new ModelLayerLocation(new ResourceLocation(WhisperwoodsMod.MODID, "hand_of_fate"), "main")));
     }
 
     @Override
@@ -40,7 +44,7 @@ public class RenderTileHandOfFate extends BlockEntityRenderer<HandOfFateBlockEnt
         Orientation rot = te.getBlockState().getValue(HandOfFateBlock.ROTATION);
         float rotation = (float) rot.getHorizontalAngle();
         stack.mulPose(Vector3f.YP.rotationDegrees(rotation));
-        MODEL.renderToBuffer(stack, bufferIn.getBuffer(RenderType.entityCutoutNoCull(TEXTURE)), combinedLightIn, combinedOverlayIn, 1F, 1F, 1F, 1F);
+        model.renderToBuffer(stack, bufferIn.getBuffer(RenderType.entityCutoutNoCull(TEXTURE)), combinedLightIn, combinedOverlayIn, 1F, 1F, 1F, 1F);
         if(!Minecraft.getInstance().isPaused() && Minecraft.getInstance().player != null) {
             if(te.isLit()) {
                 GhostLightBlock light = (GhostLightBlock) te.getLevel().getBlockState(te.getBlockPos().above()).getBlock();
@@ -68,7 +72,7 @@ public class RenderTileHandOfFate extends BlockEntityRenderer<HandOfFateBlockEnt
                 if(istack == null || istack.getItem() != display) {
                     istack = new ItemStack(display);
                 }
-                Minecraft.getInstance().getItemRenderer().renderStatic(istack, TransformType.NONE, combinedLightIn, combinedOverlayIn, stack, bufferIn);
+                Minecraft.getInstance().getItemRenderer().renderStatic(istack, TransformType.NONE, combinedLightIn, combinedOverlayIn, stack, bufferIn, 0);
             }
             stack.popPose();
         }

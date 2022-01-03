@@ -2,6 +2,7 @@ package dev.itsmeow.whisperwoods.block;
 
 import dev.itsmeow.whisperwoods.blockentity.HandOfFateBlockEntity;
 import dev.itsmeow.whisperwoods.blockentity.HandOfFateBlockEntity.HOFRecipe;
+import dev.itsmeow.whisperwoods.init.ModBlockEntities;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.ChatFormatting;
@@ -30,6 +31,8 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.EntityBlock;
 import net.minecraft.world.level.block.RenderShape;
 import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.entity.BlockEntityTicker;
+import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
@@ -131,8 +134,19 @@ public class HandOfFateBlock extends Block implements EntityBlock {
     }
 
     @Override
-    public BlockEntity newBlockEntity(BlockGetter blockGetter) {
-        return new HandOfFateBlockEntity();
+    public BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
+        return new HandOfFateBlockEntity(pos, state);
+    }
+
+    @Override
+    public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState blockState, BlockEntityType<T> blockEntityType) {
+        return level.isClientSide() ? null : (blockEntityType == ModBlockEntities.HAND_OF_FATE.get() ? new BlockEntityTicker<T>() {
+            @Override
+            public void tick(Level level, BlockPos blockPos, BlockState blockState, T blockEntity) {
+                if (blockEntity instanceof HandOfFateBlockEntity b)
+                    HandOfFateBlockEntity.serverTick(level, blockPos, blockState, b);
+            }
+        } : null);
     }
 
     @Environment(EnvType.CLIENT)

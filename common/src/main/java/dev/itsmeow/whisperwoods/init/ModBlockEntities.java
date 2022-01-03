@@ -1,11 +1,11 @@
 package dev.itsmeow.whisperwoods.init;
 
+import dev.architectury.registry.registries.DeferredRegister;
+import dev.architectury.registry.registries.RegistrySupplier;
 import dev.itsmeow.whisperwoods.WhisperwoodsMod;
 import dev.itsmeow.whisperwoods.blockentity.GhostLightBlockEntity;
 import dev.itsmeow.whisperwoods.blockentity.HGSkullBlockEntity;
 import dev.itsmeow.whisperwoods.blockentity.HandOfFateBlockEntity;
-import me.shedaniel.architectury.registry.DeferredRegister;
-import me.shedaniel.architectury.registry.RegistrySupplier;
 import net.minecraft.core.Registry;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;

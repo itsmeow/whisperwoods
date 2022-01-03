@@ -1,7 +1,7 @@
 package dev.itsmeow.whisperwoods.util;
 
 import dev.architectury.injectables.annotations.ExpectPlatform;
-import me.shedaniel.architectury.utils.PlatformExpectedError;
+import dev.architectury.utils.PlatformExpectedError;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.level.Level;
 

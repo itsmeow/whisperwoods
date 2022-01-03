@@ -1,10 +1,10 @@
 package dev.itsmeow.whisperwoods;
 
 import dev.architectury.injectables.annotations.ExpectPlatform;
+import dev.architectury.utils.PlatformExpectedError;
 import dev.itsmeow.imdlib.IMDLib;
 import dev.itsmeow.whisperwoods.init.*;
 import dev.itsmeow.whisperwoods.network.WWNetwork;
-import me.shedaniel.architectury.utils.PlatformExpectedError;
 import net.minecraft.world.item.CreativeModeTab;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;

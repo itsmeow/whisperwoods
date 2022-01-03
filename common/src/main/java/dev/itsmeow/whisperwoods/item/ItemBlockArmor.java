@@ -73,7 +73,7 @@ public class ItemBlockArmor extends ArmorItem {
 
                     SoundType soundtype = blockstate1.getSoundType();
                     world.playSound(playerentity, blockpos, this.getPlaceSound(blockstate1), SoundSource.BLOCKS, (soundtype.getVolume() + 1.0F) / 2.0F, soundtype.getPitch() * 0.8F);
-                    if(playerentity == null || !playerentity.abilities.instabuild) {
+                    if(playerentity == null || !playerentity.getAbilities().instabuild) {
                         itemstack.shrink(1);
                     }
 

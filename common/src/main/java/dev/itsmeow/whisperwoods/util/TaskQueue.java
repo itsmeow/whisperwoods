@@ -1,11 +1,11 @@
 package dev.itsmeow.whisperwoods.util;
 
 import com.google.common.collect.ImmutableSet;
+import dev.architectury.event.events.client.ClientTickEvent;
+import dev.architectury.event.events.common.TickEvent;
+import dev.architectury.platform.Platform;
+import dev.architectury.utils.Env;
 import dev.itsmeow.imdlib.util.ClassLoadHacks;
-import me.shedaniel.architectury.event.events.TickEvent;
-import me.shedaniel.architectury.event.events.client.ClientTickEvent;
-import me.shedaniel.architectury.platform.Platform;
-import me.shedaniel.architectury.utils.Env;
 
 import java.util.HashSet;
 import java.util.Set;

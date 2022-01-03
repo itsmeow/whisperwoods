@@ -1,10 +1,10 @@
 package dev.itsmeow.whisperwoods.network;
 
 import com.mojang.math.Vector3f;
+import dev.architectury.networking.NetworkManager;
+import dev.architectury.utils.Env;
 import dev.itsmeow.whisperwoods.particle.WispParticleData;
 import dev.itsmeow.whisperwoods.util.TaskQueue;
-import me.shedaniel.architectury.networking.NetworkManager;
-import me.shedaniel.architectury.utils.Env;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.sounds.SoundEvents;

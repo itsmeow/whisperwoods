@@ -3,6 +3,9 @@ package dev.itsmeow.whisperwoods.blockentity;
 import com.google.common.collect.ImmutableBiMap;
 import com.google.common.collect.ImmutableList;
 import com.mojang.math.Vector3f;
+import dev.architectury.extensions.BlockEntityExtension;
+import dev.architectury.registry.registries.Registries;
+import dev.architectury.utils.NbtType;
 import dev.itsmeow.whisperwoods.WhisperwoodsMod;
 import dev.itsmeow.whisperwoods.block.GhostLightBlock;
 import dev.itsmeow.whisperwoods.block.HandOfFateBlock;
@@ -15,9 +18,6 @@ import dev.itsmeow.whisperwoods.network.WWNetwork;
 import dev.itsmeow.whisperwoods.util.TaskQueue;
 import dev.itsmeow.whisperwoods.util.WispColors;
 import dev.itsmeow.whisperwoods.util.WispColors.WispColor;
-import me.shedaniel.architectury.extensions.BlockEntityExtension;
-import me.shedaniel.architectury.registry.Registries;
-import me.shedaniel.architectury.utils.NbtType;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -47,7 +47,6 @@ import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
-import net.minecraft.world.level.block.entity.TickableBlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.BlockHitResult;
@@ -59,18 +58,18 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-public class HandOfFateBlockEntity extends BlockEntity implements TickableBlockEntity, BlockEntityExtension {
+public class HandOfFateBlockEntity extends BlockEntity implements BlockEntityExtension {
 
     public static final ImmutableBiMap<String, HOFRecipe> RECIPES = ImmutableBiMap.of(
             "hirschgeist", new HOFRecipe(ChatFormatting.AQUA, true, Items.BONE, Items.DIAMOND, Items.SOUL_SAND),
             "wisp", new HOFRecipe(ChatFormatting.GOLD, false, Items.BLAZE_POWDER, Items.GLOWSTONE_DUST, Items.SOUL_SAND));
     private final CurrentRecipeContainer recipeContainer = new CurrentRecipeContainer();
     private Item toDisplay = null;
-    private boolean displayDirty = true;
+    boolean displayDirty = true;
     public float lastAnimationY = 0F;
 
-    public HandOfFateBlockEntity() {
-        super(ModBlockEntities.HAND_OF_FATE.get());
+    public HandOfFateBlockEntity(BlockPos pos, BlockState state) {
+        super(ModBlockEntities.HAND_OF_FATE.get(), pos, state);
     }
 
     public Item getDisplayItem() {
@@ -117,34 +116,32 @@ public class HandOfFateBlockEntity extends BlockEntity implements TickableBlockE
         }
     }
 
-    @Override
-    public void tick() {
-        if (this.hasLevel() && this.worldPosition != null && this.level.getGameTime() % 5 == 0 && !level.isClientSide) {
-            BlockState state = this.getBlockState();
-            List<ItemEntity> items = this.level.getEntitiesOfClass(ItemEntity.class, state.getBlockSupportShape(level, worldPosition).bounds().move(worldPosition).inflate(0.25D));
+    public static <T extends HandOfFateBlockEntity> void serverTick(Level level, BlockPos pos, BlockState state, T blockEntity) {
+        if (level.getGameTime() % 5 == 0) {
+            List<ItemEntity> items = level.getEntitiesOfClass(ItemEntity.class, state.getBlockSupportShape(level, pos).bounds().move(pos).inflate(0.25D));
             for (ItemEntity item : items) {
                 if (item.isAlive()) {
                     ItemStack stack = item.getItem();
                     if (stack.getCount() > 0) {
-                        InteractionResult r = this.reactToItem(stack, state, level, worldPosition);
+                        InteractionResult r = blockEntity.reactToItem(stack, state, level, pos);
                         if (r == InteractionResult.CONSUME) {
                             item.getItem().shrink(1);
-                            this.playSound(SoundEvents.END_PORTAL_FRAME_FILL, 1F, 1F);
-                            this.displayDirty = true;
+                            blockEntity.playSound(SoundEvents.END_PORTAL_FRAME_FILL, 1F, 1F);
+                            blockEntity.displayDirty = true;
                             if (item.getItem().getCount() == 0) {
-                                item.remove();
+                                item.discard();
                             }
-                            this.setChanged();
+                            blockEntity.setChanged();
                             break;
-                        } else if (stack.getItem() instanceof BlockItem && level.isEmptyBlock(this.worldPosition.above())) {
+                        } else if (stack.getItem() instanceof BlockItem && level.isEmptyBlock(pos.above())) {
                             BlockItem i = (BlockItem) stack.getItem();
                             if (i.getBlock() instanceof GhostLightBlock) {
                                 item.getItem().shrink(1);
-                                this.playSound(SoundEvents.END_PORTAL_FRAME_FILL, 1F, 1F);
-                                level.setBlockAndUpdate(worldPosition.above(), i.getBlock().defaultBlockState());
+                                blockEntity.playSound(SoundEvents.END_PORTAL_FRAME_FILL, 1F, 1F);
+                                level.setBlockAndUpdate(pos.above(), i.getBlock().defaultBlockState());
                             }
                             if (item.getItem().getCount() == 0) {
-                                item.remove();
+                                item.discard();
                             }
                             break;
                         }
@@ -212,8 +209,8 @@ public class HandOfFateBlockEntity extends BlockEntity implements TickableBlockE
                     wisp.setPos((double) pos.getX() + 0.5D, (double) pos.getY() + 1D, (double) pos.getZ() + 0.5D);
                     double d0 = 1.0D + Shapes.collide(Direction.Axis.Y, wisp.getBoundingBox(), world.getCollisions(null, new AABB(pos), e -> true), -1.0D);
                     wisp.moveTo((double) pos.getX() + 0.5D, (double) pos.getY() + d0, (double) pos.getZ() + 0.5D, Mth.wrapDegrees(world.random.nextFloat() * 360.0F), 0.0F);
-                    wisp.yHeadRot = wisp.yRot;
-                    wisp.yBodyRot = wisp.yRot;
+                    wisp.yHeadRot = wisp.getYRot();
+                    wisp.yBodyRot = wisp.getYRot();
                     wisp.isHostile = wisp.getNewHostileChance();
                     wisp.getEntityData().set(EntityWisp.COLOR_VARIANT, wColor.ordinal() + 1);
                     worldIn.addFreshEntity(wisp);
@@ -237,9 +234,9 @@ public class HandOfFateBlockEntity extends BlockEntity implements TickableBlockE
     }
 
     @Override
-    public void load(BlockState state, CompoundTag nbt) {
-        super.load(state, nbt);
-        this.getRecipeContainer().read(state, nbt);
+    public void load(CompoundTag compoundTag) {
+        super.load(compoundTag);
+        this.getRecipeContainer().read(compoundTag);
         this.displayDirty = true;
     }
 
@@ -266,7 +263,7 @@ public class HandOfFateBlockEntity extends BlockEntity implements TickableBlockE
 
     @Override
     public void loadClientData(BlockState pos, CompoundTag tag) {
-        this.load(pos, tag);
+        this.load(tag);
     }
 
     @Override
@@ -349,11 +346,11 @@ public class HandOfFateBlockEntity extends BlockEntity implements TickableBlockE
             return null;
         }
 
-        public void read(BlockState state, CompoundTag nbt) {
+        public void read(CompoundTag nbt) {
             if (nbt.contains("recipe")) {
                 this.setRecipe(RECIPES.getOrDefault(nbt.getString("recipe"), null));
                 if (this.data != null) {
-                    this.data.read(state, nbt);
+                    this.data.read(nbt);
                 }
             } else {
                 this.setRecipe(null);
@@ -408,7 +405,7 @@ public class HandOfFateBlockEntity extends BlockEntity implements TickableBlockE
             return data.getOrDefault(Registries.get(WhisperwoodsMod.MODID).get(Registry.ITEM_REGISTRY).getId(item).toString(), false);
         }
 
-        public void read(BlockState state, CompoundTag nbt) {
+        public void read(CompoundTag nbt) {
             if (nbt.contains("items")) {
                 nbt.getList("items", NbtType.STRING).forEach(i -> data.put(i.getAsString(), true));
             } else {

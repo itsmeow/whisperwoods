@@ -17,22 +17,17 @@ public abstract class ItemBlockModeledArmor extends ItemBlockArmor {
         super(block, material, slot, properties);
     }
 
-    //@Override (FORGE)
+    // Referenced by ItemModeledArmorMixin and Fabric
     @Environment(EnvType.CLIENT)
-    public <A extends HumanoidModel<?>> A getArmorModel(LivingEntity entityLiving, ItemStack itemStack, EquipmentSlot armorSlot, A defaultModel) {
-        if(itemStack != null) {
-            if(itemStack.getItem() instanceof ArmorItem && defaultModel != null && armorSlot != null) {
+    public <T extends LivingEntity, A extends HumanoidModel<T>> A getArmorModel(T entityLiving, ItemStack itemStack, EquipmentSlot armorSlot, A defaultModel) {
+        if (itemStack != null) {
+            if (itemStack.getItem() instanceof ArmorItem && armorSlot != null) {
                 A armorModel = this.getBaseModelInstance();
                 armorModel = displays(armorModel, armorSlot);
-
                 if (defaultModel != null) {
-                    armorModel.crouching = defaultModel.crouching;
-                    armorModel.riding = defaultModel.riding;
-                    armorModel.young = defaultModel.young;
-                    armorModel.rightArmPose = defaultModel.rightArmPose;
-                    armorModel.leftArmPose = defaultModel.leftArmPose;
+                    defaultModel.copyPropertiesTo(armorModel);
                 }
-
+                armorModel.setupAnim(entityLiving, 0, 0, 0, 0, 0);
                 return armorModel;
             }
         }

@@ -1,14 +1,18 @@
 package dev.itsmeow.whisperwoods.item;
 
+import dev.architectury.platform.Platform;
 import dev.itsmeow.whisperwoods.WhisperwoodsMod;
 import dev.itsmeow.whisperwoods.client.renderer.tile.model.ModelHGSkullMask;
-import me.shedaniel.architectury.platform.Platform;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.advancements.CriteriaTriggers;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.HumanoidModel;
+import net.minecraft.client.model.geom.ModelLayerLocation;
+import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
@@ -27,8 +31,6 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.state.BlockState;
 
-import java.sql.Ref;
-
 public class ItemBlockHirschgeistSkull extends ItemBlockModeledArmor {
 
     public ItemBlockHirschgeistSkull(Block blockIn) {
@@ -40,6 +42,9 @@ public class ItemBlockHirschgeistSkull extends ItemBlockModeledArmor {
     @Environment(EnvType.CLIENT)
     @Override
     protected <A extends HumanoidModel<?>> A getBaseModelInstance() {
+        if(ModelHGSkullMask.INSTANCE == null) {
+            ModelHGSkullMask.INSTANCE = new ModelHGSkullMask<>(new EntityRendererProvider.Context(Minecraft.getInstance().getEntityRenderDispatcher(), Minecraft.getInstance().getItemRenderer(), Minecraft.getInstance().getResourceManager(), Minecraft.getInstance().getEntityModels(), Minecraft.getInstance().font).bakeLayer(new ModelLayerLocation(new ResourceLocation(WhisperwoodsMod.MODID, "hirschgeist_skull_mask"), "main")));
+        }
         return (A) ModelHGSkullMask.INSTANCE;
     }
 

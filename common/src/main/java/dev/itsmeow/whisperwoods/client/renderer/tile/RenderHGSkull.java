@@ -5,21 +5,22 @@ import dev.itsmeow.imdlib.block.AnimalSkullBlock;
 import dev.itsmeow.whisperwoods.WhisperwoodsMod;
 import dev.itsmeow.whisperwoods.blockentity.HGSkullBlockEntity;
 import dev.itsmeow.whisperwoods.client.renderer.tile.model.ModelHGSkull;
+import net.minecraft.client.model.geom.ModelLayerLocation;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
-import net.minecraft.client.renderer.blockentity.BlockEntityRenderDispatcher;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
+import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 import net.minecraft.core.Direction;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.block.state.BlockState;
 
-public class RenderHGSkull extends BlockEntityRenderer<HGSkullBlockEntity> {
+public class RenderHGSkull implements BlockEntityRenderer<HGSkullBlockEntity> {
 
-    private static final ModelHGSkull MODEL = new ModelHGSkull();
+    private final ModelHGSkull model;
     private static final ResourceLocation TEXTURE = new ResourceLocation(WhisperwoodsMod.MODID, "textures/entity/hirschgeist_01.png");
 
-    public RenderHGSkull(BlockEntityRenderDispatcher rendererDispatcherIn) {
-        super(rendererDispatcherIn);
+    public RenderHGSkull(BlockEntityRendererProvider.Context ctx) {
+        this.model = new ModelHGSkull(ctx.bakeLayer(new ModelLayerLocation(new ResourceLocation(WhisperwoodsMod.MODID, "hirschgeist_skull"), "main")));
     }
 
     @Override
@@ -44,8 +45,8 @@ public class RenderHGSkull extends BlockEntityRenderer<HGSkullBlockEntity> {
         if(facing != null) {
             rotX = facing == Direction.UP ? 0.0F : 90F;
         }
-        MODEL.setupAnim(null, skullRotation, rotX, 0.0F, 0.0F, 0.0F);
-        MODEL.renderToBuffer(matrixStackIn, bufferIn.getBuffer(RenderType.entityCutoutNoCull(TEXTURE)), packedLightIn, packedOverlayIn, 1F, 1F, 1F, 1F);
+        model.setupAnim(null, skullRotation, rotX, 0.0F, 0.0F, 0.0F);
+        model.renderToBuffer(matrixStackIn, bufferIn.getBuffer(RenderType.entityCutoutNoCull(TEXTURE)), packedLightIn, packedOverlayIn, 1F, 1F, 1F, 1F);
         matrixStackIn.popPose();
 
     }

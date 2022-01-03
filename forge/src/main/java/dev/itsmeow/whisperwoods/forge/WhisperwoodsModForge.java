@@ -1,7 +1,8 @@
-package dev.itsmeow.whisperwoods;
+package dev.itsmeow.whisperwoods.forge;
 
-import dev.itsmeow.whisperwoods.client.WhisperwoodsClientForge;
-import me.shedaniel.architectury.platform.forge.EventBuses;
+import dev.architectury.platform.forge.EventBuses;
+import dev.itsmeow.whisperwoods.WhisperwoodsMod;
+import dev.itsmeow.whisperwoods.client.forge.WhisperwoodsClientForge;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
