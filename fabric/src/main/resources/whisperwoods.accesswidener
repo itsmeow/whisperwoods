@@ -4,8 +4,8 @@ mutable field net/minecraft/world/entity/AgeableMob$AgeableMobGroupData babySpaw
 accessible method net/minecraft/core/particles/SimpleParticleType <init> (Z)V
 accessible method net/minecraft/world/damagesource/DamageSource bypassArmor ()Lnet/minecraft/world/damagesource/DamageSource;
 accessible method net/minecraft/world/damagesource/DamageSource bypassMagic ()Lnet/minecraft/world/damagesource/DamageSource;
-accessible field net/minecraft/client/model/geom/ModelPart cubes Lit/unimi/dsi/fastutil/objects/ObjectList;
-accessible field net/minecraft/client/model/geom/ModelPart children Lit/unimi/dsi/fastutil/objects/ObjectList;
+accessible field net/minecraft/client/model/geom/ModelPart cubes Ljava/util/List;
+accessible field net/minecraft/client/model/geom/ModelPart children Ljava/util/Map;
 accessible method net/minecraft/client/model/geom/ModelPart compile (Lcom/mojang/blaze3d/vertex/PoseStack$Pose;Lcom/mojang/blaze3d/vertex/VertexConsumer;IIFFFF)V
 accessible field com/mojang/math/Matrix4f m03 F
 accessible field com/mojang/math/Matrix4f m13 F

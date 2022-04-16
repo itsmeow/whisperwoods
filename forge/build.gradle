@@ -51,7 +51,7 @@ task fixJar(type: Jar) {
         filter {
             line ->
                 {
-                    line = line.replaceAll('dev.itsmeow.imdlib.mixin', "${rootProject.maven_group}.imdlib.mixin")
+                    line = line.replaceAll('dev.itsmeow.imdlib', "${rootProject.maven_group}.imdlib")
                     line.replaceAll('imdlib-common-refmap.json', "imdlib-${rootProject.mod_id}-common-refmap.json")
                 }
         }

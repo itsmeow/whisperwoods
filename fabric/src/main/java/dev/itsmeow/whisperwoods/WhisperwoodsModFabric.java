@@ -1,6 +1,5 @@
 package dev.itsmeow.whisperwoods;
 
-import dev.itsmeow.imdlib.util.ClassLoadHacks;
 import net.fabricmc.api.ModInitializer;
 
 public class WhisperwoodsModFabric implements ModInitializer {
