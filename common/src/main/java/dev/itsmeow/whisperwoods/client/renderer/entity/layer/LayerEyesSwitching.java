@@ -11,19 +11,25 @@ import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.Mob;
 
-public class LayerEyes<T extends Mob, A extends EntityModel<T>> extends RenderLayer<T, A> {
+import java.util.function.Predicate;
 
-    protected final RenderType GLOW_STATE;
+public class LayerEyesSwitching<T extends Mob, A extends EntityModel<T>> extends RenderLayer<T, A> {
 
-    public LayerEyes(MobRenderer<T, A> baseRenderer, ResourceLocation texture) {
+    protected final Predicate<T> condition;
+    protected final RenderType trueType;
+    protected final RenderType falseType;
+
+    public LayerEyesSwitching(MobRenderer<T, A> baseRenderer, Predicate<T> condition, ResourceLocation textureTrue, ResourceLocation textureFalse) {
         super(baseRenderer);
-        this.GLOW_STATE = ClientLifecycleHandler.RenderTypeAddition.getEyesEntityCutoutNoCullDepthMaskOff(texture);
+        this.condition = condition;
+        this.trueType = RenderType.eyes(textureTrue);
+        this.falseType = RenderType.eyes(textureFalse);
     }
 
     @Override
     public void render(PoseStack matrixStackIn, MultiBufferSource bufferIn, int packedLightIn, T entity, float limbSwing, float limbSwingAmount, float partialTicks, float ageInTicks, float netHeadYaw, float headPitch) {
         if (!entity.isInvisible() && !entity.isBaby()) {
-            this.getParentModel().renderToBuffer(matrixStackIn, bufferIn.getBuffer(GLOW_STATE), 15728640, OverlayTexture.NO_OVERLAY, 1.0F, 1.0F, 1.0F, 1.0F);
+            this.getParentModel().renderToBuffer(matrixStackIn, bufferIn.getBuffer(condition.test(entity) ? trueType : falseType), 15728640, OverlayTexture.NO_OVERLAY, 1.0F, 1.0F, 1.0F, 1.0F);
         }
     }
 }

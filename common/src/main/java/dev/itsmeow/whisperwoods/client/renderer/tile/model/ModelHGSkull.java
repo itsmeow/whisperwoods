@@ -8,6 +8,7 @@ import net.minecraft.client.model.EntityModel;
 import net.minecraft.client.model.geom.ModelPart;
 import net.minecraft.client.model.geom.PartPose;
 import net.minecraft.client.model.geom.builders.*;
+import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.world.entity.Entity;
 
 import java.util.List;
@@ -72,13 +73,15 @@ public class ModelHGSkull extends EntityModel<Entity> {
     @Override
     public void renderToBuffer(PoseStack poseStack, VertexConsumer bufferIn, int packedLightIn, int packedOverlayIn, float red, float green, float blue, float alpha) {
         this.baseSkull.render(poseStack, bufferIn, packedLightIn, packedOverlayIn, red, green, blue, alpha);
+    }
+
+    public void renderFlames(PoseStack poseStack, MultiBufferSource multiBufferSource) {
         ModelPart.Visitor v = (PoseStack.Pose pose, String string, int i, ModelPart.Cube cube) -> {
-            if(flameTips.stream().anyMatch(part -> string.endsWith(part + "/"))) {
-                ModelHirschgeist.FlameRender.render(poseStack, 1F);
+            if(flameTips.stream().anyMatch(part -> string.endsWith(part))) {
+                ModelHirschgeist.FlameRender.render(poseStack, multiBufferSource, cube, 1F);
             }
         };
-        rAntler01.visit(poseStack, v);
-        lAntler01.visit(poseStack, v);
+        baseSkull.visit(poseStack, v);
     }
 
     @Override

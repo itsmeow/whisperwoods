@@ -17,7 +17,7 @@ import net.minecraft.world.level.block.state.BlockState;
 public class RenderHGSkull implements BlockEntityRenderer<HGSkullBlockEntity> {
 
     private final ModelHGSkull model;
-    private static final ResourceLocation TEXTURE = new ResourceLocation(WhisperwoodsMod.MODID, "textures/entity/hirschgeist_01.png");
+    private static final ResourceLocation TEXTURE = new ResourceLocation(WhisperwoodsMod.MODID, "textures/entity/hirschgeist_bones.png");
 
     public RenderHGSkull(BlockEntityRendererProvider.Context ctx) {
         this.model = new ModelHGSkull(ctx.bakeLayer(new ModelLayerLocation(new ResourceLocation(WhisperwoodsMod.MODID, "hirschgeist_skull"), "main")));
@@ -47,6 +47,7 @@ public class RenderHGSkull implements BlockEntityRenderer<HGSkullBlockEntity> {
         }
         model.setupAnim(null, skullRotation, rotX, 0.0F, 0.0F, 0.0F);
         model.renderToBuffer(matrixStackIn, bufferIn.getBuffer(RenderType.entityCutoutNoCull(TEXTURE)), packedLightIn, packedOverlayIn, 1F, 1F, 1F, 1F);
+        model.renderFlames(matrixStackIn, bufferIn);
         matrixStackIn.popPose();
 
     }

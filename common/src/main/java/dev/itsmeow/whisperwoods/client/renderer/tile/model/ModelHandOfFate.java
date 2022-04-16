@@ -116,7 +116,7 @@ public class ModelHandOfFate extends EntityModel<Entity> {
         PartDefinition metal08a = partdefinition.addOrReplaceChild("metal08a", CubeListBuilder.create().texOffs(36, 0).addBox(-0.5F, -8.0F, -0.5F, 1.0F, 8.0F, 1.0F, new CubeDeformation(0.0F)), PartPose.offsetAndRotation(0.0F, 19.7F, -2.3F, -0.0456F, 0.0F, 0.0F));
         PartDefinition metal08b = metal08a.addOrReplaceChild("metal08b", CubeListBuilder.create().texOffs(36, 0).addBox(-0.5F, -3.5F, -0.5F, 1.0F, 4.0F, 1.0F, new CubeDeformation(0.0F)), PartPose.offsetAndRotation(0.0F, -7.8F, 0.0F, 0.1367F, 0.0F, 0.0F));
         PartDefinition metal08c = metal08b.addOrReplaceChild("metal08c", CubeListBuilder.create().texOffs(35, 3).addBox(-1.5F, -0.5F, -0.5F, 3.0F, 1.0F, 1.0F, new CubeDeformation(0.0F)), PartPose.offset(0.0F, -3.8F, -0.2F));
-        return LayerDefinition.create(meshdefinition, 64, 32);
+        return LayerDefinition.create(meshdefinition, 32, 32);
     }
 
     @Override

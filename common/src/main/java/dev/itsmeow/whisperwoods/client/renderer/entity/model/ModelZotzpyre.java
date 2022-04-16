@@ -185,7 +185,7 @@ public class ModelZotzpyre<T extends LivingEntity> extends EntityModel<T> {
 
     @Override
     public void renderToBuffer(PoseStack matrixStackIn, VertexConsumer bufferIn, int packedLightIn, int packedOverlayIn, float red, float green, float blue, float alpha) {
-        this.chest.render(matrixStackIn, bufferIn, packedLightIn, packedOverlayIn);
+        this.chest.render(matrixStackIn, bufferIn, packedLightIn, packedOverlayIn, red, green, blue, alpha);
     }
 
     @Override

@@ -220,6 +220,8 @@ public class EntityWisp extends Animal implements IContainerEntity<EntityWisp> {
         if (targetTexture == null) {
             UUID target = UUID.fromString(this.getEntityData().get(EntityWisp.TARGET_ID));
             String name = this.getEntityData().get(EntityWisp.TARGET_NAME);
+            // Temporarily pass the default texture so it doesn't error
+            targetTexture = DefaultPlayerSkin.getDefaultSkin(target);
             SkullBlockEntity.updateGameprofile(new GameProfile(target, name), newProfile -> {
                 if (newProfile != null) {
                     Map<Type, MinecraftProfileTexture> map = Minecraft.getInstance().getSkinManager().getInsecureSkinInformation(newProfile);

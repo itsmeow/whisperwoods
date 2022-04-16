@@ -70,7 +70,7 @@ public class ModelMoth extends EntityModel<EntityMoth> {
         if(this.isOffset) {
             matrixStackIn.translate(-this.xOff, 0D, this.zOff);
         }
-        this.thorax.render(matrixStackIn, bufferIn, packedLightIn, packedOverlayIn);
+        this.thorax.render(matrixStackIn, bufferIn, packedLightIn, packedOverlayIn, red, green, blue, alpha);
     }
 
     @Override

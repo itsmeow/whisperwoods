@@ -1,16 +1,20 @@
 package dev.itsmeow.whisperwoods.client.renderer.entity.model;
 
 import com.google.common.collect.ImmutableList;
-import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.vertex.*;
+import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.math.Matrix4f;
+import dev.itsmeow.imdlib.client.util.RenderUtil;
 import dev.itsmeow.whisperwoods.WhisperwoodsMod;
+import dev.itsmeow.whisperwoods.client.init.ClientLifecycleHandler;
 import dev.itsmeow.whisperwoods.entity.EntityHirschgeist;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.EntityModel;
 import net.minecraft.client.model.geom.ModelPart;
 import net.minecraft.client.model.geom.PartPose;
 import net.minecraft.client.model.geom.builders.*;
+import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.RenderType;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 
@@ -154,6 +158,7 @@ public class ModelHirschgeist extends EntityModel<EntityHirschgeist> {
     public ModelPart backFlameL01;
     public ModelPart backFlameR01;
     protected List<String> flameTips;
+    //protected List<String> ectoParts;
 
     public ModelHirschgeist(ModelPart root) {
         this.spine01 = root.getChild("spine01");
@@ -290,6 +295,7 @@ public class ModelHirschgeist extends EntityModel<EntityHirschgeist> {
         this.backFlameL01 = chestEcto.getChild("backFlameL01");
         this.backFlameR01 = chestEcto.getChild("backFlameR01");
         this.flameTips = ImmutableList.of("rAntler06", "rAntler08b", "lAntler07b", "rAntler07b", "rAntler09c", "lAntler05b", "rAntler10b", "lAntler06", "rAntler05b", "lAntler09c", "lAntler08b", "lAntler10b");
+        //this.ectoParts = ImmutableList.of("lLeg02Ecto", "lLeg01Ecto", "lLeg00Ecto", "rLeg02Ecto", "rLeg01Ecto", "rLeg00Ecto", "tail03Ecto", "tail04Ecto", "assEcto", "torsoEcto", "lArm02Ecto", "lArm01Ecto", "lArm00Ecto", "lArmShoulderEcto", "rArm02Ecto", "rArm01Ecto", "rArm00Ecto", "rArmShoulderEcto", "headEcto", "snoutEcto", "neck02Ecto", "neck01Ecto", "lowerNeckEcto", "spineEcto", "chestEcto", "lbLegFlame", "rbLegFlame", "lfLegFlame", "rfLegFlame", "backFlameL02", "backFlameR02", "neckFlameL02", "neckFlameR02", "neckFlameM", "backFlameL01", "backFlameR01");
     }
 
     public static LayerDefinition createBodyLayer() {
@@ -434,13 +440,15 @@ public class ModelHirschgeist extends EntityModel<EntityHirschgeist> {
     @Override
     public void renderToBuffer(PoseStack poseStack, VertexConsumer bufferIn, int packedLightIn, int packedOverlayIn, float red, float green, float blue, float alpha) {
         this.spine01.render(poseStack, bufferIn, packedLightIn, packedOverlayIn, red, green, blue, alpha);
+    }
+
+    public void renderFlames(PoseStack poseStack, MultiBufferSource multiBufferSource) {
         ModelPart.Visitor v = (PoseStack.Pose pose, String string, int i, ModelPart.Cube cube) -> {
-            if(flameTips.stream().anyMatch(part -> string.endsWith(part + "/"))) {
-                FlameRender.render(poseStack, 1F);
+            if(flameTips.stream().anyMatch(part -> string.endsWith(part))) {
+                FlameRender.render(poseStack, multiBufferSource, cube, 1F);
             }
         };
-        rAntler01.visit(poseStack, v);
-        lAntler01.visit(poseStack, v);
+        spine01.visit(poseStack, v);
     }
 
     @Override
@@ -463,36 +471,29 @@ public class ModelHirschgeist extends EntityModel<EntityHirschgeist> {
         private static final ResourceLocation TEXTURE = new ResourceLocation(WhisperwoodsMod.MODID, "textures/particle/flame.png");
 
         @SuppressWarnings({ "resource", "deprecation" })
-        public static void render(PoseStack stack, float scale) {
-            RenderSystem.disableCull();
-            RenderSystem.enableDepthTest();
-            Minecraft.getInstance().getEntityRenderDispatcher().textureManager.bindForSetup(TEXTURE);
-            Tesselator tessellator = Tesselator.getInstance();
-            BufferBuilder bufferbuilder = tessellator.getBuilder();
+        public static void render(PoseStack stack, MultiBufferSource multiBufferSource, ModelPart.Cube cube, float scale) {
+            stack.translate(cube.minX / 16F, cube.minY / 16F, cube.minZ / 16F);
             Matrix4f d = stack.last().pose();
             float ticks = ((float) Minecraft.getInstance().player.tickCount % 30) / 30F;
             Matrix4f matrix = Matrix4f.createTranslateMatrix(d.m03 + ((float) Math.random() - 0.5F) / 100F, d.m13 + ((float) Math.random() - 0.5F) / 100F, d.m23 + ((float) Math.random() - 0.5F) / 100F);
             float extraScale = (1F - ticks) + (float) Math.random() / 10F;
             matrix.multiply(Matrix4f.createScaleMatrix(0.1F * scale, 0.1F * scale, 0.1F * scale));
-            bufferbuilder.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_TEX);
-            bufferbuilder.vertex(matrix, -1F, -1F, 0F).uv(1, 1).endVertex();
-            bufferbuilder.vertex(matrix, -1F, 1F, 0F).uv(1, 0).endVertex();
-            bufferbuilder.vertex(matrix, 1F, 1F, 0F).uv(0, 0).endVertex();
-            bufferbuilder.vertex(matrix, 1F, -1F, 0F).uv(0, 1).endVertex();
-            bufferbuilder.end();
-            BufferUploader.end(bufferbuilder);
+
+            VertexConsumer vertexConsumer = multiBufferSource.getBuffer(ClientLifecycleHandler.RenderTypeAddition.getEyesEntityCutoutNoCullDepthMaskOff(TEXTURE));
+            vertexConsumer.vertex(matrix, -1F, -1F, 0F).color(255, 255, 255, 255).uv(1,1).overlayCoords(0, 0).uv2(255).normal(stack.last().normal(), -1.0F, -1.0F, 0.0F).endVertex();
+            vertexConsumer.vertex(matrix, -1F, 1F, 0F).color(255, 255, 255, 255).uv(1, 0).overlayCoords(0, 0).uv2(255).normal(stack.last().normal(), -1.0F, 1.0F, 0.0F).endVertex();
+            vertexConsumer.vertex(matrix, 1F, 1F, 0F).color(255, 255, 255, 255).uv(0, 0).overlayCoords(0, 0).uv2(255).normal(stack.last().normal(), 1.0F, 1.0F, 0.0F).endVertex();
+            vertexConsumer.vertex(matrix, 1F, -1F, 0F).color(255, 255, 255, 255).uv(0, 1).overlayCoords(0, 0).uv2(255).normal(stack.last().normal(), 1.0F, -1.0F, 0.0F).endVertex();
+
+
             matrix = Matrix4f.createTranslateMatrix(d.m03, d.m13, d.m23 + 0.01F);
             matrix.multiply(Matrix4f.createScaleMatrix(0.1F * scale, 0.1F * scale, 0.1F * scale));
             matrix.multiply(Matrix4f.createScaleMatrix(extraScale, extraScale, extraScale));
-            bufferbuilder.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_TEX);
-            bufferbuilder.vertex(matrix, -1F, -1F, 0F).uv(1, 1).endVertex();
-            bufferbuilder.vertex(matrix, -1F, 1F, 0F).uv(1, 0).endVertex();
-            bufferbuilder.vertex(matrix, 1F, 1F, 0F).uv(0, 0).endVertex();
-            bufferbuilder.vertex(matrix, 1F, -1F, 0F).uv(0, 1).endVertex();
-            bufferbuilder.end();
-            BufferUploader.end(bufferbuilder);
-            RenderSystem.disableDepthTest();
-            RenderSystem.enableCull();
+
+            vertexConsumer.vertex(matrix, -1F, -1F, 0F).color(255, 255, 255, 255).uv(1,1).overlayCoords(0, 0).uv2(255).normal(stack.last().normal(), -1.0F, -1.0F, 0.0F).endVertex();
+            vertexConsumer.vertex(matrix, -1F, 1F, 0F).color(255, 255, 255, 255).uv(1, 0).overlayCoords(0, 0).uv2(255).normal(stack.last().normal(), -1.0F, 1.0F, 0.0F).endVertex();
+            vertexConsumer.vertex(matrix, 1F, 1F, 0F).color(255, 255, 255, 255).uv(0, 0).overlayCoords(0, 0).uv2(255).normal(stack.last().normal(), 1.0F, 1.0F, 0.0F).endVertex();
+            vertexConsumer.vertex(matrix, 1F, -1F, 0F).color(255, 255, 255, 255).uv(0, 1).overlayCoords(0, 0).uv2(255).normal(stack.last().normal(), 1.0F, -1.0F, 0.0F).endVertex();
         }
 
     }

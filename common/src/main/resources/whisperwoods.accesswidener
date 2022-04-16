@@ -16,3 +16,4 @@ accessible field net/minecraft/world/entity/ai/navigation/PathNavigation nodeEva
 accessible class net/minecraft/client/particle/ParticleEngine$SpriteParticleRegistration
 accessible field net/minecraft/client/particle/ParticleEngine RENDER_ORDER Ljava/util/List;
 mutable field net/minecraft/client/particle/ParticleEngine RENDER_ORDER Ljava/util/List;
+accessible method net/minecraft/client/renderer/RenderType create (Ljava/lang/String;Lcom/mojang/blaze3d/vertex/VertexFormat;Lcom/mojang/blaze3d/vertex/VertexFormat$Mode;IZZLnet/minecraft/client/renderer/RenderType$CompositeState;)Lnet/minecraft/client/renderer/RenderType$CompositeRenderType;
