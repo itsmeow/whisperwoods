@@ -27,8 +27,7 @@
   },
   "mixins": [
     "mixin.imdlib.json",
-    "whisperwoods.mixins.json",
-    "whisperwoods-fabric.mixins.json"
+    "whisperwoods.mixins.json"
   ],
   "custom": {
     "modmenu": {

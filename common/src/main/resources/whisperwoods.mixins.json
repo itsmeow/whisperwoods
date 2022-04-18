@@ -6,10 +6,11 @@
   "mixins": [
     "EntityMixin",
     "LivingEntityMixin",
-    "GroundPathNavigationMixin",
+    "GroundPathNavigationMixin"
+  ],
+  "client": [
     "ParticleEngineMixin"
   ],
-  "client": [],
   "injectors": {
     "defaultRequire": 1
   }
