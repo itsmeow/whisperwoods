@@ -306,7 +306,7 @@ public class EntityHirschgeist extends Monster implements Enemy, IOverrideCollis
                 areaEffectCloud.setOwner(this.attacker);
                 areaEffectCloud.setRadius(3.0F);
                 areaEffectCloud.setDuration(2000);
-                areaEffectCloud.setParticle(ParticleTypes.FLAME);
+                areaEffectCloud.setParticle(ParticleTypes.SOUL_FIRE_FLAME);
                 areaEffectCloud.addEffect(new MobEffectInstance(MobEffects.HARM));
                 this.attacker.level.addFreshEntity(areaEffectCloud);
             }
