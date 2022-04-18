@@ -2,6 +2,7 @@ package dev.itsmeow.whisperwoods.client.init;
 
 import com.google.common.collect.ImmutableMap;
 import com.mojang.blaze3d.vertex.DefaultVertexFormat;
+import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexFormat;
 import dev.architectury.event.events.client.ClientReloadShadersEvent;
 import dev.architectury.platform.Platform;
@@ -26,14 +27,18 @@ import dev.itsmeow.whisperwoods.client.renderer.tile.model.ModelHGSkull;
 import dev.itsmeow.whisperwoods.client.renderer.tile.model.ModelHGSkullMask;
 import dev.itsmeow.whisperwoods.client.renderer.tile.model.ModelHandOfFate;
 import dev.itsmeow.whisperwoods.entity.EntityHidebehind;
+import dev.itsmeow.whisperwoods.entity.projectile.EntityHirschgeistFireball;
 import dev.itsmeow.whisperwoods.init.*;
 import net.minecraft.Util;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.geom.ModelLayerLocation;
 import net.minecraft.client.model.geom.builders.LayerDefinition;
 import net.minecraft.client.particle.ParticleProvider;
 import net.minecraft.client.particle.SpriteSet;
+import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.ShaderInstance;
+import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.core.particles.ParticleType;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.Pose;
@@ -82,6 +87,32 @@ public class ClientLifecycleHandler {
         RenderFactory.addRender(ModEntities.WISP::getEntityType, RenderWisp::new);
         RenderFactory.addRender(ModEntities.HIRSCHGEIST::getEntityType, RenderHirschgeist::new);
 
+        RenderFactory.addRender(ModEntities.PROJECTILE_HIRSCHGEIST_FIREBALL::get, t -> new EntityRenderer<EntityHirschgeistFireball>(t) {
+
+            @Override
+            public void render(EntityHirschgeistFireball entity, float f, float g, PoseStack poseStack, MultiBufferSource multiBufferSource, int i) {
+                if(!Minecraft.getInstance().isPaused()) {
+                    if(System.nanoTime() - entity.lastSpawn >= 10_000_000L) {
+                        entity.lastSpawn = System.nanoTime();
+                        for(int j = 0; j < 5; j++) {
+                            double xO = (entity.getRandom().nextFloat() * 2F - 1F);
+                            double yO = (entity.getRandom().nextFloat() * 2F - 1F);
+                            double zO = (entity.getRandom().nextFloat() * 2F - 1F);
+                            entity.level.addParticle(ModParticles.SOUL_FLAME.get(),
+                                    entity.getX() + xO,
+                                    entity.getY() + yO,
+                                    entity.getZ() + zO, 0, 0.005F, 0);
+                        }
+                    }
+                }
+            }
+
+            @Override
+            public ResourceLocation getTextureLocation(EntityHirschgeistFireball entity) {
+                return null;
+            }
+        });
+
         R.addRender(ModEntities.ZOTZPYRE::getEntityType, 0.4F, r -> r.tVariant().mSingle(ModelZotzpyre::new, "zotzpyre").layer(t -> new LayerEyesSwitching<>(t, e -> "6".equals(e.getVariantNameOrEmpty()), ModResources.ZOTZPYRE_6_EYES, ModResources.ZOTZPYRE_EYES)));
     }
 
@@ -99,8 +130,8 @@ public class ClientLifecycleHandler {
     public static void registerParticles(BiConsumer<ParticleType<?>, Function<SpriteSet, ParticleProvider<?>>> register) {
         register.accept(ModParticles.WISP.get(), WispParticle.WispFactory::new);
         register.accept(ModParticles.FLAME.get(), FlameParticle.FlameFactory::new);
+        register.accept(ModParticles.SOUL_FLAME.get(), FlameParticle.FlameFactory::new);
     }
-
 
     public static class RenderTypeAddition extends RenderType {
 

@@ -1,7 +1,9 @@
 package dev.itsmeow.whisperwoods.entity;
 
 import dev.itsmeow.imdlib.entity.EntityTypeContainer;
+import dev.itsmeow.whisperwoods.entity.projectile.EntityHirschgeistFireball;
 import dev.itsmeow.whisperwoods.init.ModEntities;
+import dev.itsmeow.whisperwoods.init.ModSounds;
 import dev.itsmeow.whisperwoods.util.IOverrideCollisions;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
@@ -19,12 +21,11 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.world.BossEvent;
 import net.minecraft.world.DifficultyInstance;
 import net.minecraft.world.damagesource.DamageSource;
-import net.minecraft.world.effect.MobEffectInstance;
-import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.ai.goal.FloatGoal;
 import net.minecraft.world.entity.ai.goal.Goal;
@@ -44,7 +45,6 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.pathfinder.BlockPathTypes;
 import net.minecraft.world.level.pathfinder.PathFinder;
 import net.minecraft.world.level.pathfinder.WalkNodeEvaluator;
-import net.minecraft.world.phys.Vec3;
 
 import java.util.EnumSet;
 
@@ -59,6 +59,7 @@ public class EntityHirschgeist extends Monster implements Enemy, IOverrideCollis
     public EntityHirschgeist(EntityType<? extends EntityHirschgeist> entityType, Level worldIn) {
         super(entityType, worldIn);
         this.xpReward = 150;
+        this.maxUpStep = 1.5F;
     }
 
     @Override
@@ -161,6 +162,10 @@ public class EntityHirschgeist extends Monster implements Enemy, IOverrideCollis
             if (entityIn instanceof LivingEntity) {
                 ((LivingEntity) entityIn).knockback(2F, this.getX() - entityIn.getX(), this.getZ() - entityIn.getZ());
                 entityIn.setSecondsOnFire(2 + this.getRandom().nextInt(2));
+                if(level instanceof ServerLevel) {
+                    ServerLevel serverLevel = (ServerLevel) level;
+                    serverLevel.sendParticles(ParticleTypes.SOUL_FIRE_FLAME, this.position().x() + ((entityIn.position().x() - this.position().x()) / 2D), this.position().y() + ((entityIn.position().y() - this.position().y()) / 2D), this.position().z() + ((entityIn.position().z() - this.position().z()) / 2D), 500, Math.abs((entityIn.position().x() - this.position().x()) / 25D), 0, Math.abs((entityIn.position().z() - this.position().z()) / 25D), 0.1D);
+                }
             }
             return true;
         }
@@ -214,10 +219,14 @@ public class EntityHirschgeist extends Monster implements Enemy, IOverrideCollis
 
     @Override
     public boolean hurt(DamageSource source, float amount) {
-        if (this.isDaytime() && !this.level.isClientSide && !source.isCreativePlayer()) {
-            if (source.getEntity() instanceof Player) {
+        if(!this.level.isClientSide && source.getEntity() instanceof Player && !source.isCreativePlayer()) {
+            if (this.isDaytime()) {
                 Player player = (Player) source.getEntity();
                 player.sendMessage(new TranslatableComponent("entity.whisperwoods.hirschgeist.message.invulnerable"), Util.NIL_UUID);
+                return false;
+            } else if (this.getRandom().nextInt(4) == 0) {
+                this.level.playSound(null, source.getEntity(), SoundEvents.BUCKET_FILL_LAVA, SoundSource.MASTER, 1F, 2F);
+                return false;
             }
         }
         return super.hurt(source, amount);
@@ -230,12 +239,17 @@ public class EntityHirschgeist extends Monster implements Enemy, IOverrideCollis
 
     @Override
     protected SoundEvent getAmbientSound() {
-        return this.getRandom().nextBoolean() ? SoundEvents.SKELETON_HORSE_AMBIENT : SoundEvents.RAVAGER_ROAR;
+        return ModSounds.HIRSCHGEIST_AMBIENT.get();
     }
 
     @Override
-    public float getVoicePitch() {
-        return 0.3F; // Lower pitch of skeleton horse sound
+    protected SoundEvent getHurtSound(DamageSource damageSource) {
+        return ModSounds.HIRSCHGEIST_HURT.get();
+    }
+
+    @Override
+    protected SoundEvent getDeathSound() {
+        return ModSounds.HIRSCHGEIST_DEATH.get();
     }
 
     @Override
@@ -277,71 +291,36 @@ public class EntityHirschgeist extends Monster implements Enemy, IOverrideCollis
     }
 
     public static class FlameAttackGoal extends Goal {
-        private int flameTicks;
         private final EntityHirschgeist attacker;
-        private final Level world;
 
         public FlameAttackGoal(EntityHirschgeist creature) {
             this.attacker = creature;
-            this.world = creature.level;
             this.setFlags(EnumSet.of(Goal.Flag.LOOK));
         }
 
         @Override
         public boolean canUse() {
-            return this.attacker.getTarget() != null && !this.attacker.isDaytime() && this.attacker.getTarget().isAlive();
+            return this.attacker.getTarget() != null && this.attacker.getRandom().nextInt(500) == 0;
         }
 
         @Override
         public boolean canContinueToUse() {
-            return this.flameTicks <= 200 && this.attacker.getTarget() != null;
-        }
-
-        @Override
-        public void tick() {
-            ++this.flameTicks;
-            LivingEntity target = this.attacker.getTarget();
-            if (this.flameTicks == 10 && target != null && target.distanceToSqr(this.attacker) <= 100) {
-                AreaEffectCloud areaEffectCloud = new AreaEffectCloud(target.level, target.getX(), target.getY(), target.getZ());
-                areaEffectCloud.setOwner(this.attacker);
-                areaEffectCloud.setRadius(3.0F);
-                areaEffectCloud.setDuration(2000);
-                areaEffectCloud.setParticle(ParticleTypes.SOUL_FIRE_FLAME);
-                areaEffectCloud.addEffect(new MobEffectInstance(MobEffects.HARM));
-                this.attacker.level.addFreshEntity(areaEffectCloud);
-            }
-
-            if (this.world.isClientSide) {
-                this.doClientRenderEffects();
-            }
-        }
-
-        public void doClientRenderEffects() {
-            if (this.flameTicks % 2 == 0 && this.flameTicks < 10 && this.attacker.getTarget() != null) {
-                LivingEntity target = this.attacker.getTarget();
-                Vec3 vec3d = this.attacker.getViewVector(1.0F).normalize();
-                vec3d.yRot(-((float) Math.PI / 4F));
-                double d0 = target.getX();
-                double d1 = target.getY();
-                double d2 = target.getZ();
-
-                for (int i = 0; i < 8; ++i) {
-                    double d3 = d0 + this.attacker.getRandom().nextGaussian() / 2.0D;
-                    double d4 = d1 + this.attacker.getRandom().nextGaussian() / 2.0D;
-                    double d5 = d2 + this.attacker.getRandom().nextGaussian() / 2.0D;
-
-                    for (int j = 0; j < 6; ++j) {
-                        this.attacker.level.addParticle(ParticleTypes.FLAME, d3, d4, d5, -vec3d.x * 0.07999999821186066D * j, -vec3d.y * 0.6000000238418579D, -vec3d.z * 0.07999999821186066D * j);
-                    }
-
-                    vec3d.yRot(0.19634955F);
-                }
-            }
+            return false;
         }
 
         @Override
         public void start() {
-            this.flameTicks = 0;
+            this.attacker.lookAt(this.attacker.getTarget(), 20, 20);
+            LivingEntity target = this.attacker.getTarget();
+            double d0 = target.getX() - this.attacker.getX();
+            double d1 = target.getY() - this.attacker.getEyeY() - 0.1D;
+            double d2 = target.getZ() - this.attacker.getZ();
+            double d3 = Math.sqrt(d0 * d0 + d2 * d2);
+            EntityHirschgeistFireball ball = new EntityHirschgeistFireball(ModEntities.PROJECTILE_HIRSCHGEIST_FIREBALL.get(), this.attacker.level, this.attacker);
+            ball.setPos(target.getX(), target.getEyeY() - 0.1D, target.getZ());
+            ball.shoot(d0, d1 + d3 * 0.2D, d2, 0.5F, 2);
+            this.attacker.level.playSound(null, this.attacker, SoundEvents.EVOKER_CAST_SPELL, SoundSource.HOSTILE, 1F, 1F);
+            this.attacker.level.addFreshEntity(ball);
         }
 
     }
@@ -361,6 +340,7 @@ public class EntityHirschgeist extends Monster implements Enemy, IOverrideCollis
         @Override
         public void start() {
             if(parent.level instanceof ServerLevel) {
+                this.parent.level.playSound(null, this.parent, SoundEvents.EVOKER_CAST_SPELL, SoundSource.HOSTILE, 1F, 1F);
                 for(int i = 0; i < 3; i++) {
                     EntityWisp wisp = ModEntities.WISP.getEntityType().create((ServerLevel) parent.level, null, null, null, parent.blockPosition().offset(parent.getRandom().nextInt(8) - 4 + 0.5D, parent.getRandom().nextInt(4) + 1 + 0.5D, parent.getRandom().nextInt(8) - 4 + 0.5D), MobSpawnType.REINFORCEMENT, false, false);
                     wisp.setHirschgeistSummon(true);

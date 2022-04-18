@@ -7,5 +7,50 @@
             	"name": "whisperwoods:hidebehind"
             }
         ]
+    },
+    "entity.hirschgeist.death": {
+        "replace": false,
+        "category": "entity",
+        "sounds": [
+            {
+                "name": "whisperwoods:hirschgeist/death_1"
+            },
+            {
+                "name": "whisperwoods:hirschgeist/death_2"
+            }
+        ]
+    },
+    "entity.hirschgeist.hurt": {
+        "replace": false,
+        "category": "entity",
+        "sounds": [
+            {
+                "name": "whisperwoods:hirschgeist/hurt_1"
+            },
+            {
+                "name": "whisperwoods:hirschgeist/hurt_2"
+            },
+            {
+                "name": "whisperwoods:hirschgeist/hurt_3"
+            },
+            {
+                "name": "whisperwoods:hirschgeist/hurt_4"
+            }
+        ]
+    },
+    "entity.hirschgeist.ambient": {
+        "replace": false,
+        "category": "entity",
+        "sounds": [
+            {
+                "name": "whisperwoods:hirschgeist/ambient_1"
+            },
+            {
+                "name": "whisperwoods:hirschgeist/ambient_2"
+            },
+            {
+                "name": "whisperwoods:hirschgeist/ambient_3"
+            }
+        ]
     }
 }
