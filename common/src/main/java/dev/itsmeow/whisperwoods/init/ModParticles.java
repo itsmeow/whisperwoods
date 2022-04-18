@@ -22,10 +22,15 @@ public class ModParticles {
             return WispParticleData.CODEC;
         }
     });
-    public static final RegistrySupplier<ParticleType<SimpleParticleType>> FLAME = r("flame", () -> new SimpleParticleType(false));
+    public static final RegistrySupplier<SimpleParticleType> FLAME = rSimple("flame", false);
+    public static final RegistrySupplier<SimpleParticleType> SOUL_FLAME = rSimple("soul_flame", false);
 
     private static <T extends ParticleOptions> RegistrySupplier<ParticleType<T>> r(String name, Supplier<ParticleType<T>> b) {
         return PARTICLES.register(name, b);
+    }
+
+    private static RegistrySupplier<SimpleParticleType> rSimple(String name, boolean override) {
+        return PARTICLES.register(name, () -> new SimpleParticleType(override));
     }
 
     public static void init() {

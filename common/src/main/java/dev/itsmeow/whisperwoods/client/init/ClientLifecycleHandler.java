@@ -3,6 +3,7 @@ package dev.itsmeow.whisperwoods.client.init;
 import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import com.mojang.blaze3d.vertex.PoseStack;
 import dev.itsmeow.imdlib.client.IMDLibClient;
+import dev.itsmeow.imdlib.client.render.BaseRenderer;
 import dev.itsmeow.imdlib.client.render.RenderFactory;
 import dev.itsmeow.whisperwoods.WhisperwoodsMod;
 import dev.itsmeow.whisperwoods.client.particle.FlameParticle;
@@ -16,20 +17,27 @@ import dev.itsmeow.whisperwoods.client.renderer.tile.RenderHGSkull;
 import dev.itsmeow.whisperwoods.client.renderer.tile.RenderTileGhostLight;
 import dev.itsmeow.whisperwoods.client.renderer.tile.RenderTileHandOfFate;
 import dev.itsmeow.whisperwoods.entity.EntityHidebehind;
+import dev.itsmeow.whisperwoods.entity.EntityWisp;
 import dev.itsmeow.whisperwoods.entity.EntityZotzpyre;
+import dev.itsmeow.whisperwoods.entity.projectile.EntityHirschgeistFireball;
 import dev.itsmeow.whisperwoods.init.*;
+import dev.itsmeow.whisperwoods.particle.WispParticleData;
 import me.shedaniel.architectury.registry.BlockEntityRenderers;
 import me.shedaniel.architectury.registry.RenderTypes;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.EntityModel;
 import net.minecraft.client.particle.ParticleProvider;
 import net.minecraft.client.particle.SpriteSet;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderStateShard;
 import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.client.renderer.entity.layers.RenderLayer;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.core.particles.ParticleType;
+import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.Pose;
 import org.apache.logging.log4j.LogManager;
 
@@ -77,6 +85,33 @@ public class ClientLifecycleHandler {
             }
         }));
 
+        RenderFactory.addRender(ModEntities.PROJECTILE_HIRSCHGEIST_FIREBALL.get(), t -> new EntityRenderer<EntityHirschgeistFireball>(t) {
+
+            @Override
+            public void render(EntityHirschgeistFireball entity, float f, float g, PoseStack poseStack, MultiBufferSource multiBufferSource, int i) {
+                if(!Minecraft.getInstance().isPaused()) {
+                    if(System.nanoTime() - entity.lastSpawn >= 10_000_000L) {
+                        entity.lastSpawn = System.nanoTime();
+                        // spawn bottom particles
+                        for(int j = 0; j < 5; j++) {
+                            double xO = (entity.getRandom().nextFloat() * 2F - 1F);
+                            double yO = (entity.getRandom().nextFloat() * 2F - 1F);
+                            double zO = (entity.getRandom().nextFloat() * 2F - 1F);
+                            entity.level.addParticle(ModParticles.SOUL_FLAME.get(),
+                                    entity.getX() + xO,
+                                    entity.getY() + yO,
+                                    entity.getZ() + zO, 0, 0.005F, 0);
+                        }
+                    }
+                }
+            }
+
+            @Override
+            public ResourceLocation getTextureLocation(EntityHirschgeistFireball entity) {
+                return null;
+            }
+        });
+
         BlockEntityRenderers.registerRenderer(ModBlockEntities.GHOST_LIGHT.get(), RenderTileGhostLight::new);
         BlockEntityRenderers.registerRenderer(ModBlockEntities.HG_SKULL.get(), RenderHGSkull::new);
         BlockEntityRenderers.registerRenderer(ModBlockEntities.HAND_OF_FATE.get(), RenderTileHandOfFate::new);
@@ -89,6 +124,7 @@ public class ClientLifecycleHandler {
     public static void registerParticles(BiConsumer<ParticleType<?>, Function<SpriteSet, ParticleProvider<?>>> register) {
         register.accept(ModParticles.WISP.get(), WispParticle.WispFactory::new);
         register.accept(ModParticles.FLAME.get(), FlameParticle.FlameFactory::new);
+        register.accept(ModParticles.SOUL_FLAME.get(), FlameParticle.FlameFactory::new);
     }
 
     public static class RenderTypeAddition extends RenderType {

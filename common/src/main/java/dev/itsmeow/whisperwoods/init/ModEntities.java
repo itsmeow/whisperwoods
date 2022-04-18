@@ -9,13 +9,20 @@ import dev.itsmeow.imdlib.item.ItemModEntityContainer;
 import dev.itsmeow.whisperwoods.WhisperwoodsMod;
 import dev.itsmeow.whisperwoods.entity.*;
 import dev.itsmeow.whisperwoods.entity.EntityHidebehind.HidebehindVariant;
+import dev.itsmeow.whisperwoods.entity.projectile.EntityHirschgeistFireball;
+import me.shedaniel.architectury.registry.RegistrySupplier;
+import net.minecraft.core.Registry;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.Difficulty;
+import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.MobCategory;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.monster.Monster;
+import net.minecraft.world.entity.projectile.Projectile;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.phys.AABB;
+import org.w3c.dom.Attr;
 
 import java.util.LinkedHashMap;
 
@@ -70,8 +77,10 @@ public class ModEntities {
 
     public static final EntityTypeContainer<EntityHirschgeist> HIRSCHGEIST = H.add(EntityHirschgeist.class, EntityHirschgeist::new, "hirschgeist", () -> Mob.createMobAttributes()
     .add(Attributes.MAX_HEALTH, 150.0D)
-    .add(Attributes.FOLLOW_RANGE, 50.0D)
-    .add(Attributes.MOVEMENT_SPEED, 0.65D)
+    .add(Attributes.FOLLOW_RANGE, 100.0D)
+    .add(Attributes.MOVEMENT_SPEED, 0.5D)
+    .add(Attributes.ARMOR, 10D)
+    .add(Attributes.ARMOR_TOUGHNESS, 5D)
     .add(Attributes.ATTACK_DAMAGE)
     .add(Attributes.ATTACK_DAMAGE, 6.0D), b -> b
     .spawn(MobCategory.CREATURE, 2, 1, 1)
@@ -98,7 +107,13 @@ public class ModEntities {
         return H.ENTITIES;
     }
 
+    public static final RegistrySupplier<EntityType<EntityHirschgeistFireball>> PROJECTILE_HIRSCHGEIST_FIREBALL = projectile(EntityHirschgeistFireball::new, "hirschgeist_fireball", 0.8F, 0.8F);
+
     public static void init() {
         H.init();
+    }
+
+    private static <T extends Projectile> RegistrySupplier<EntityType<T>> projectile(EntityType.EntityFactory<T> factory, String name, float width, float height) {
+        return IMDLib.getRegistry(Registry.ENTITY_TYPE_REGISTRY).registerSupplied(new ResourceLocation(WhisperwoodsMod.MODID, name), () -> H.createEntityType(factory, name, MobCategory.MISC, 64, 1, true, width, height));
     }
 }
