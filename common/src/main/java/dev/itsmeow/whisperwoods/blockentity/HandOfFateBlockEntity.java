@@ -25,7 +25,6 @@ import net.minecraft.core.Registry;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.StringTag;
-import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerChunkCache;
 import net.minecraft.server.level.ServerLevel;
@@ -245,20 +244,6 @@ public class HandOfFateBlockEntity extends BlockEntity implements BlockEntityExt
         CompoundTag c = super.save(compound);
         this.getRecipeContainer().write(compound);
         return c;
-    }
-
-    @Override
-    public ClientboundBlockEntityDataPacket getUpdatePacket() {
-        CompoundTag tag = new CompoundTag();
-        this.save(tag);
-        return new ClientboundBlockEntityDataPacket(this.worldPosition, 1, tag);
-    }
-
-    @Override
-    public CompoundTag getUpdateTag() {
-        CompoundTag tag = new CompoundTag();
-        this.save(tag);
-        return tag;
     }
 
     @Override
