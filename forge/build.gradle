@@ -12,7 +12,7 @@ loom {
         }
     }
     forge {
-        mixinConfig "mixin.imdlib-whisperwoods.json", "whisperwoods.mixins.json", "whisperwoods-forge.mixins.json"
+        mixinConfig "mixin.imdlib-whisperwoods.json", "whisperwoods.mixins.json"
         accessTransformer(file("src/main/resources/META-INF/accesstransformer.cfg"))
     }
 }
