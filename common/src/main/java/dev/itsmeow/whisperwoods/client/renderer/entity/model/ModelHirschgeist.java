@@ -439,7 +439,7 @@ public class ModelHirschgeist extends EntityModel<EntityHirschgeist> {
         this.spine01.render(poseStack, bufferIn, packedLightIn, packedOverlayIn, red, green, blue, alpha);
         ModelPart.Visitor v = (PoseStack.Pose pose, String string, int i, ModelPart.Cube cube) -> {
             if(flameTips.stream().anyMatch(part -> string.endsWith(part))) {
-                FlameRender.render(poseStack, cube, 1F);
+                FlameRender.render(poseStack, cube, 2F);
             }
         };
         spine01.visit(poseStack, v);
