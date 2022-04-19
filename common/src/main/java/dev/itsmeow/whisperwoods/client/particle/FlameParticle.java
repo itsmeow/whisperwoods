@@ -45,6 +45,22 @@ public class FlameParticle extends TextureSheetParticle {
         return ParticleRenderType.PARTICLE_SHEET_LIT;
     }
 
+    public float u0() {
+        return this.getU0();
+    }
+
+    public float v0() {
+        return this.getV0();
+    }
+
+    public float u1() {
+        return this.getU1();
+    }
+
+    public float v1() {
+        return this.getV1();
+    }
+
     public static class FlameFactory implements ParticleProvider<SimpleParticleType> {
         private final SpriteSet spriteSet;
 

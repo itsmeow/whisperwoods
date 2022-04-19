@@ -108,7 +108,6 @@ public class RenderHirschgeist extends LivingEntityRenderer<EntityHirschgeist, M
             int p = getOverlayCoords(livingEntity, this.getWhiteOverlayProgress(livingEntity, g));
             this.model.renderToBuffer(poseStack, vertexConsumer, i, p, 1.0F, 1.0F, 1.0F, bl2 ? 0.15F : 1.0F);
         }
-        this.model.renderFlames(poseStack, multiBufferSource);
         if (!livingEntity.isSpectator()) {
             for(RenderLayer<EntityHirschgeist, ModelHirschgeist> layer : layers) {
                 layer.render(poseStack, multiBufferSource, i, livingEntity, o, n, g, l, k, m);

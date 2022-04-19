@@ -1,20 +1,17 @@
 package dev.itsmeow.whisperwoods.client.renderer.entity.model;
 
 import com.google.common.collect.ImmutableList;
-import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.blaze3d.vertex.VertexConsumer;
+import com.mojang.blaze3d.systems.RenderSystem;
+import com.mojang.blaze3d.vertex.*;
 import com.mojang.math.Matrix4f;
-import dev.itsmeow.imdlib.client.util.RenderUtil;
 import dev.itsmeow.whisperwoods.WhisperwoodsMod;
-import dev.itsmeow.whisperwoods.client.init.ClientLifecycleHandler;
 import dev.itsmeow.whisperwoods.entity.EntityHirschgeist;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.EntityModel;
 import net.minecraft.client.model.geom.ModelPart;
 import net.minecraft.client.model.geom.PartPose;
 import net.minecraft.client.model.geom.builders.*;
-import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 
@@ -440,12 +437,9 @@ public class ModelHirschgeist extends EntityModel<EntityHirschgeist> {
     @Override
     public void renderToBuffer(PoseStack poseStack, VertexConsumer bufferIn, int packedLightIn, int packedOverlayIn, float red, float green, float blue, float alpha) {
         this.spine01.render(poseStack, bufferIn, packedLightIn, packedOverlayIn, red, green, blue, alpha);
-    }
-
-    public void renderFlames(PoseStack poseStack, MultiBufferSource multiBufferSource) {
         ModelPart.Visitor v = (PoseStack.Pose pose, String string, int i, ModelPart.Cube cube) -> {
             if(flameTips.stream().anyMatch(part -> string.endsWith(part))) {
-                FlameRender.render(poseStack, multiBufferSource, cube, 1F);
+                FlameRender.render(poseStack, cube, 1F);
             }
         };
         spine01.visit(poseStack, v);
@@ -469,31 +463,49 @@ public class ModelHirschgeist extends EntityModel<EntityHirschgeist> {
     public static class FlameRender {
 
         private static final ResourceLocation TEXTURE = new ResourceLocation(WhisperwoodsMod.MODID, "textures/particle/flame.png");
+        private static final float u0 = 0;
+        private static final float v0 = 0;
+        private static final float u1 = 1;
+        private static final float v1 = 1;
 
-        @SuppressWarnings({ "resource", "deprecation" })
-        public static void render(PoseStack stack, MultiBufferSource multiBufferSource, ModelPart.Cube cube, float scale) {
+        public static void render(PoseStack stack, ModelPart.Cube cube, float scale) {
             stack.translate(cube.minX / 16F, cube.minY / 16F, cube.minZ / 16F);
             Matrix4f d = stack.last().pose();
             float ticks = ((float) Minecraft.getInstance().player.tickCount % 30) / 30F;
             Matrix4f matrix = Matrix4f.createTranslateMatrix(d.m03 + ((float) Math.random() - 0.5F) / 100F, d.m13 + ((float) Math.random() - 0.5F) / 100F, d.m23 + ((float) Math.random() - 0.5F) / 100F);
             float extraScale = (1F - ticks) + (float) Math.random() / 10F;
             matrix.multiply(Matrix4f.createScaleMatrix(0.1F * scale, 0.1F * scale, 0.1F * scale));
+            RenderSystem.disableCull();
+            RenderSystem.enableDepthTest();
+            RenderSystem.setShader(GameRenderer::getPositionTexShader);
+            RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
 
-            VertexConsumer vertexConsumer = multiBufferSource.getBuffer(ClientLifecycleHandler.RenderTypeAddition.getEyesEntityCutoutNoCullDepthMaskOff(TEXTURE));
-            vertexConsumer.vertex(matrix, -1F, -1F, 0F).color(255, 255, 255, 255).uv(1,1).overlayCoords(0, 0).uv2(255).normal(stack.last().normal(), -1.0F, -1.0F, 0.0F).endVertex();
-            vertexConsumer.vertex(matrix, -1F, 1F, 0F).color(255, 255, 255, 255).uv(1, 0).overlayCoords(0, 0).uv2(255).normal(stack.last().normal(), -1.0F, 1.0F, 0.0F).endVertex();
-            vertexConsumer.vertex(matrix, 1F, 1F, 0F).color(255, 255, 255, 255).uv(0, 0).overlayCoords(0, 0).uv2(255).normal(stack.last().normal(), 1.0F, 1.0F, 0.0F).endVertex();
-            vertexConsumer.vertex(matrix, 1F, -1F, 0F).color(255, 255, 255, 255).uv(0, 1).overlayCoords(0, 0).uv2(255).normal(stack.last().normal(), 1.0F, -1.0F, 0.0F).endVertex();
+            Tesselator tesselator = Tesselator.getInstance();
+            BufferBuilder bufferBuilder = tesselator.getBuilder();
 
+            RenderSystem.setShaderTexture(0, TEXTURE);
+
+            bufferBuilder.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_TEX);
+            bufferBuilder.vertex(matrix, -1F, -1F, 0F).uv(u1, v1).endVertex();
+            bufferBuilder.vertex(matrix, -1F, 1F, 0F).uv(u1, v0).endVertex();
+            bufferBuilder.vertex(matrix, 1F, 1F, 0F).uv(u0, v0).endVertex();
+            bufferBuilder.vertex(matrix, 1F, -1F, 0F).uv(u0, v1).endVertex();
+            bufferBuilder.end();
+            BufferUploader.end(bufferBuilder);
 
             matrix = Matrix4f.createTranslateMatrix(d.m03, d.m13, d.m23 + 0.01F);
             matrix.multiply(Matrix4f.createScaleMatrix(0.1F * scale, 0.1F * scale, 0.1F * scale));
             matrix.multiply(Matrix4f.createScaleMatrix(extraScale, extraScale, extraScale));
 
-            vertexConsumer.vertex(matrix, -1F, -1F, 0F).color(255, 255, 255, 255).uv(1,1).overlayCoords(0, 0).uv2(255).normal(stack.last().normal(), -1.0F, -1.0F, 0.0F).endVertex();
-            vertexConsumer.vertex(matrix, -1F, 1F, 0F).color(255, 255, 255, 255).uv(1, 0).overlayCoords(0, 0).uv2(255).normal(stack.last().normal(), -1.0F, 1.0F, 0.0F).endVertex();
-            vertexConsumer.vertex(matrix, 1F, 1F, 0F).color(255, 255, 255, 255).uv(0, 0).overlayCoords(0, 0).uv2(255).normal(stack.last().normal(), 1.0F, 1.0F, 0.0F).endVertex();
-            vertexConsumer.vertex(matrix, 1F, -1F, 0F).color(255, 255, 255, 255).uv(0, 1).overlayCoords(0, 0).uv2(255).normal(stack.last().normal(), 1.0F, -1.0F, 0.0F).endVertex();
+            bufferBuilder.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_TEX);
+            bufferBuilder.vertex(matrix, -1F, -1F, 0F).uv(u1, v1).endVertex();
+            bufferBuilder.vertex(matrix, -1F, 1F, 0F).uv(u1, v0).endVertex();
+            bufferBuilder.vertex(matrix, 1F, 1F, 0F).uv(u0, v0).endVertex();
+            bufferBuilder.vertex(matrix, 1F, -1F, 0F).uv(u0, v1).endVertex();
+            bufferBuilder.end();
+            BufferUploader.end(bufferBuilder);
+            RenderSystem.disableDepthTest();
+            RenderSystem.enableCull();
         }
 
     }

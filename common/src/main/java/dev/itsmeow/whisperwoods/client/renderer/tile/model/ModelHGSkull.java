@@ -16,14 +16,10 @@ import java.util.List;
 public class ModelHGSkull extends EntityModel<Entity> {
 
     public ModelPart baseSkull;
-    public ModelPart lAntler01;
-    public ModelPart rAntler01;
     protected List<String> flameTips;
 
     public ModelHGSkull(ModelPart root) {
         this.baseSkull = root.getChild("baseSkull");
-        this.lAntler01 = baseSkull.getChild("lAntler01");
-        this.rAntler01 = baseSkull.getChild("rAntler01");
         this.flameTips = ImmutableList.of("rAntler06", "rAntler08b", "lAntler07b", "rAntler07b", "rAntler09c", "lAntler05b", "rAntler10b", "lAntler06", "rAntler05b", "lAntler09c", "lAntler08b", "lAntler10b");
     }
 
@@ -73,12 +69,9 @@ public class ModelHGSkull extends EntityModel<Entity> {
     @Override
     public void renderToBuffer(PoseStack poseStack, VertexConsumer bufferIn, int packedLightIn, int packedOverlayIn, float red, float green, float blue, float alpha) {
         this.baseSkull.render(poseStack, bufferIn, packedLightIn, packedOverlayIn, red, green, blue, alpha);
-    }
-
-    public void renderFlames(PoseStack poseStack, MultiBufferSource multiBufferSource) {
         ModelPart.Visitor v = (PoseStack.Pose pose, String string, int i, ModelPart.Cube cube) -> {
             if(flameTips.stream().anyMatch(part -> string.endsWith(part))) {
-                ModelHirschgeist.FlameRender.render(poseStack, multiBufferSource, cube, 1F);
+                ModelHirschgeist.FlameRender.render(poseStack, cube, 1F);
             }
         };
         baseSkull.visit(poseStack, v);

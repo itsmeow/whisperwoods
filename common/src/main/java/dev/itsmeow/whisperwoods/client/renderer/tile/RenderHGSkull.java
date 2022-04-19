@@ -47,9 +47,7 @@ public class RenderHGSkull implements BlockEntityRenderer<HGSkullBlockEntity> {
         }
         model.setupAnim(null, skullRotation, rotX, 0.0F, 0.0F, 0.0F);
         model.renderToBuffer(matrixStackIn, bufferIn.getBuffer(RenderType.entityCutoutNoCull(TEXTURE)), packedLightIn, packedOverlayIn, 1F, 1F, 1F, 1F);
-        model.renderFlames(matrixStackIn, bufferIn);
         matrixStackIn.popPose();
-
     }
 
     private static void translateHead(PoseStack matrixStackIn, Direction face, float yOffset) {

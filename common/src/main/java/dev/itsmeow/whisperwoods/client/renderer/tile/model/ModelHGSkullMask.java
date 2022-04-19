@@ -1,94 +1,28 @@
 package dev.itsmeow.whisperwoods.client.renderer.tile.model;
 
+import com.google.common.collect.ImmutableList;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
+import dev.itsmeow.whisperwoods.client.renderer.entity.model.ModelHirschgeist;
 import net.minecraft.client.model.HumanoidModel;
 import net.minecraft.client.model.geom.ModelPart;
 import net.minecraft.client.model.geom.PartPose;
 import net.minecraft.client.model.geom.builders.*;
 import net.minecraft.world.entity.LivingEntity;
 
+import java.util.List;
+
 public class ModelHGSkullMask<T extends LivingEntity> extends HumanoidModel<T> {
 
     public static ModelHGSkullMask<LivingEntity> INSTANCE = null;
 
     public ModelPart skullBase;
-    public ModelPart lUpperJaw;
-    public ModelPart lowerJaw;
-    public ModelPart snout;
-    public ModelPart rUpperJaw;
-    public ModelPart lAntler01;
-    public ModelPart lAntler02;
-    public ModelPart lAntler03;
-    public ModelPart lAntler04;
-    public ModelPart lAntler05;
-    public ModelPart lAntler05b;
-    public ModelPart lAntler06;
-    public ModelPart lAntler07;
-    public ModelPart lAntler07b;
-    public ModelPart lAntler08;
-    public ModelPart lAntler08b;
-    public ModelPart lAntler09;
-    public ModelPart lAntler09b;
-    public ModelPart lAntler09c;
-    public ModelPart lAntler10;
-    public ModelPart lAntler10b;
-    public ModelPart rAntler01;
-    public ModelPart rAntler02;
-    public ModelPart rAntler03;
-    public ModelPart rAntler04;
-    public ModelPart rAntler05;
-    public ModelPart rAntler05b;
-    public ModelPart rAntler06;
-    public ModelPart rAntler07;
-    public ModelPart rAntler07b;
-    public ModelPart rAntler08;
-    public ModelPart rAntler08b;
-    public ModelPart rAntler09;
-    public ModelPart rAntler09b;
-    public ModelPart rAntler09c;
-    public ModelPart rAntler10;
-    public ModelPart rAntler10b;
+    protected List<String> flameTips;
 
     public ModelHGSkullMask(ModelPart root) {
         super(root);
         this.skullBase = head.getChild("skullBase");
-        this.lUpperJaw = skullBase.getChild("lUpperJaw");
-        this.lowerJaw = skullBase.getChild("lowerJaw");
-        this.snout = skullBase.getChild("snout");
-        this.rUpperJaw = skullBase.getChild("rUpperJaw");
-        this.lAntler01 = skullBase.getChild("lAntler01");
-        this.lAntler02 = lAntler01.getChild("lAntler02");
-        this.lAntler03 = lAntler02.getChild("lAntler03");
-        this.lAntler04 = lAntler03.getChild("lAntler04");
-        this.lAntler05 = lAntler04.getChild("lAntler05");
-        this.lAntler05b = lAntler05.getChild("lAntler05b");
-        this.lAntler06 = lAntler04.getChild("lAntler06");
-        this.lAntler07 = lAntler03.getChild("lAntler07");
-        this.lAntler07b = lAntler07.getChild("lAntler07b");
-        this.lAntler08 = lAntler02.getChild("lAntler08");
-        this.lAntler08b = lAntler08.getChild("lAntler08b");
-        this.lAntler09 = lAntler02.getChild("lAntler09");
-        this.lAntler09b = lAntler09.getChild("lAntler09b");
-        this.lAntler09c = lAntler09b.getChild("lAntler09c");
-        this.lAntler10 = lAntler02.getChild("lAntler10");
-        this.lAntler10b = lAntler10.getChild("lAntler10b");
-        this.rAntler01 = skullBase.getChild("rAntler01");
-        this.rAntler02 = rAntler01.getChild("rAntler02");
-        this.rAntler03 = rAntler02.getChild("rAntler03");
-        this.rAntler04 = rAntler03.getChild("rAntler04");
-        this.rAntler05 = rAntler04.getChild("rAntler05");
-        this.rAntler05b = rAntler05.getChild("rAntler05b");
-        this.rAntler06 = rAntler04.getChild("rAntler06");
-        this.rAntler07 = rAntler03.getChild("rAntler07");
-        this.rAntler07b = rAntler07.getChild("rAntler07b");
-        this.rAntler08 = rAntler02.getChild("rAntler08");
-        this.rAntler08b = rAntler08.getChild("rAntler08b");
-        this.rAntler09 = rAntler02.getChild("rAntler09");
-        this.rAntler09b = rAntler09.getChild("rAntler09b");
-        this.rAntler09c = rAntler09b.getChild("rAntler09c");
-        this.rAntler10 = rAntler02.getChild("rAntler10");
-        this.rAntler10b = rAntler10.getChild("rAntler10b");
+        this.flameTips = ImmutableList.of("rAntler06", "rAntler08b", "lAntler07b", "rAntler07b", "rAntler09c", "lAntler05b", "rAntler10b", "lAntler06", "rAntler05b", "lAntler09c", "lAntler08b", "lAntler10b");
     }
 
     public static LayerDefinition createBodyLayer() {
@@ -144,6 +78,12 @@ public class ModelHGSkullMask<T extends LivingEntity> extends HumanoidModel<T> {
         this.rightLeg.visible = false;
         this.body.visible = false;
         super.renderToBuffer(stack, bufferIn, packedLightIn, packedOverlayIn, red, green, blue, alpha);
+        ModelPart.Visitor v = (PoseStack.Pose pose, String string, int i, ModelPart.Cube cube) -> {
+            if(flameTips.stream().anyMatch(part -> string.endsWith(part))) {
+                ModelHirschgeist.FlameRender.render(stack, cube, 1F);
+            }
+        };
+        head.visit(stack, v);
     }
 
     @Override
