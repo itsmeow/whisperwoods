@@ -8,9 +8,7 @@
     "LivingEntityMixin",
     "GroundPathNavigationMixin"
   ],
-  "client": [
-    "ParticleEngineMixin"
-  ],
+  "client": [],
   "injectors": {
     "defaultRequire": 1
   }
