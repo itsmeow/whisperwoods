@@ -26,18 +26,14 @@ dependencies {
     shadowModImplementation("dev.itsmeow.imdlib:imdlib-fabric:${rootProject.imdlib_version}") {
         transitive = false
     }
-    modRuntimeOnly("com.terraformersmc:modmenu:2.0.14") {
+    modRuntimeOnly("com.terraformersmc:modmenu:3.1.1") {
         transitive = false
     }
-    /*modRuntimeOnly("dev.itsmeow.betteranimalsplus:betteranimalsplus-fabric:${rootProject.betteranimalsplus_version}") {
-        transitive = false
-    }*/
-    modRuntimeOnly ("curse.maven:cloth-config-319057:3559636") {
-        transitive = false
+    modRuntimeOnly ("curse.maven:cloth-config-319057:3641132") {
+        exclude(group: "net.fabricmc")
+        exclude(group: "net.fabricmc.fabric-api")
     }
-    runtimeOnly("me.shedaniel.cloth:basic-math:0.6.0") {
-        transitive = false
-    }
+    runtimeOnly("me.shedaniel.cloth:basic-math:0.6.0")
 }
 
 shadowJar {

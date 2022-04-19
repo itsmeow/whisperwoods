@@ -58,7 +58,7 @@ public class EntityWisp extends Animal implements IContainerEntity<EntityWisp> {
     public static final EntityDataAccessor<Float> PASSIVE_SCALE = SynchedEntityData.defineId(EntityWisp.class, EntityDataSerializers.FLOAT);
     public static final EntityDataAccessor<Integer> COLOR_VARIANT = SynchedEntityData.defineId(EntityWisp.class, EntityDataSerializers.INT);
     private static final TargetingConditions PASSIVE_SCALE_PREDICATE = TargetingConditions.forNonCombat().ignoreInvisibilityTesting().ignoreLineOfSight();
-    private static final TargetingConditions HOSTILE_TARGET_PREDICATE = TargetingConditions.forCombat().selector(e -> !(e.getItemBySlot(EquipmentSlot.HEAD).getItem() instanceof ItemBlockHirschgeistSkull));
+    private static final TargetingConditions HOSTILE_TARGET_PREDICATE = TargetingConditions.forCombat().ignoreLineOfSight().selector(e -> !(e.getItemBySlot(EquipmentSlot.HEAD).getItem() instanceof ItemBlockHirschgeistSkull));
     protected ResourceLocation targetTexture;
     private boolean shouldBeHostile = false;
     private int attackCooldown = 0;

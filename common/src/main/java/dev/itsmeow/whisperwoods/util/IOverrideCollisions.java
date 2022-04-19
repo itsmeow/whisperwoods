@@ -1,9 +1,12 @@
 package dev.itsmeow.whisperwoods.util;
 
 import dev.itsmeow.imdlib.entity.interfaces.IContainerEntity;
+import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.shapes.BooleanOp;
+import net.minecraft.world.phys.shapes.Shapes;
 
 public interface IOverrideCollisions<T extends Mob> extends IContainerEntity<T> {
 
@@ -11,9 +14,12 @@ public interface IOverrideCollisions<T extends Mob> extends IContainerEntity<T> 
         if (this.getImplementation().noPhysics) {
             return false;
         } else {
-            float f1 = this.getImplementation().getType().getDimensions().width * 0.8F;
-            AABB axisalignedbb = AABB.ofSize(this.getImplementation().getEyePosition(), f1, 0.1F, f1);
-            return this.getImplementation().getCommandSenderWorld().getBlockCollisions(this.getImplementation(), axisalignedbb, (state, pos) -> state.isSuffocating(this.getImplementation().getCommandSenderWorld(), pos) && !preventSuffocation(state)).findAny().isPresent();
+            float f = this.getImplementation().getType().getDimensions().width * 0.8F;
+            AABB aABB = AABB.ofSize(this.getImplementation().getEyePosition(), (double)f, 1.0E-6D, (double)f);
+            return BlockPos.betweenClosedStream(aABB).anyMatch((blockPos) -> {
+                BlockState blockState = this.getImplementation().getLevel().getBlockState(blockPos);
+                return !blockState.isAir() && blockState.isSuffocating(this.getImplementation().getLevel(), blockPos) && !preventSuffocation(blockState) && Shapes.joinIsNotEmpty(blockState.getCollisionShape(this.getImplementation().getLevel(), blockPos).move(blockPos.getX(), blockPos.getY(), blockPos.getZ()), Shapes.create(aABB), BooleanOp.AND);
+            });
         }
     }
 

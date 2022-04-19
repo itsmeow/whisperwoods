@@ -3,9 +3,7 @@ package dev.itsmeow.whisperwoods.blockentity;
 import com.google.common.collect.ImmutableBiMap;
 import com.google.common.collect.ImmutableList;
 import com.mojang.math.Vector3f;
-import dev.architectury.extensions.BlockEntityExtension;
 import dev.architectury.registry.registries.Registries;
-import dev.architectury.utils.NbtType;
 import dev.itsmeow.whisperwoods.WhisperwoodsMod;
 import dev.itsmeow.whisperwoods.block.GhostLightBlock;
 import dev.itsmeow.whisperwoods.block.HandOfFateBlock;
@@ -25,6 +23,10 @@ import net.minecraft.core.Registry;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.StringTag;
+import net.minecraft.nbt.Tag;
+import net.minecraft.network.protocol.Packet;
+import net.minecraft.network.protocol.game.ClientGamePacketListener;
+import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerChunkCache;
 import net.minecraft.server.level.ServerLevel;
@@ -55,9 +57,8 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
 
-public class HandOfFateBlockEntity extends BlockEntity implements BlockEntityExtension {
+public class HandOfFateBlockEntity extends BlockEntity {
 
     public static final ImmutableBiMap<String, HOFRecipe> RECIPES = ImmutableBiMap.of(
             "hirschgeist", new HOFRecipe(ChatFormatting.AQUA, true, Items.BONE, Items.DIAMOND, Items.SOUL_SAND),
@@ -82,8 +83,13 @@ public class HandOfFateBlockEntity extends BlockEntity implements BlockEntityExt
     @Override
     public void setChanged() {
         super.setChanged();
-        if (this.hasLevel() && !this.level.isClientSide())
-            this.syncData();
+        this.sync();
+    }
+
+    public void sync() {
+        if (level != null && !level.isClientSide()) {
+            level.sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), Block.UPDATE_CLIENTS);
+        }
     }
 
     public boolean isLit() {
@@ -111,7 +117,7 @@ public class HandOfFateBlockEntity extends BlockEntity implements BlockEntityExt
 
     protected void sendToTrackers(HOFEffectPacket pkt) {
         if (this.hasLevel()) {
-            WWNetwork.HANDLER.sendToPlayers(((ServerChunkCache) this.getLevel().getChunkSource()).chunkMap.getPlayers(new ChunkPos(worldPosition), false).collect(Collectors.toSet()), pkt);
+            WWNetwork.HANDLER.sendToPlayers(((ServerChunkCache) this.getLevel().getChunkSource()).chunkMap.getPlayers(new ChunkPos(worldPosition), false), pkt);
         }
     }
 
@@ -206,7 +212,7 @@ public class HandOfFateBlockEntity extends BlockEntity implements BlockEntityExt
                         wColor = WispColors.values()[wisp.getRandom().nextInt(WispColors.values().length)];
                     }
                     wisp.setPos((double) pos.getX() + 0.5D, (double) pos.getY() + 1D, (double) pos.getZ() + 0.5D);
-                    double d0 = 1.0D + Shapes.collide(Direction.Axis.Y, wisp.getBoundingBox(), world.getCollisions(null, new AABB(pos), e -> true), -1.0D);
+                    double d0 = 1.0D + Shapes.collide(Direction.Axis.Y, wisp.getBoundingBox(), world.getCollisions(null, new AABB(pos)), -1.0D);
                     wisp.moveTo((double) pos.getX() + 0.5D, (double) pos.getY() + d0, (double) pos.getZ() + 0.5D, Mth.wrapDegrees(world.random.nextFloat() * 360.0F), 0.0F);
                     wisp.yHeadRot = wisp.getYRot();
                     wisp.yBodyRot = wisp.getYRot();
@@ -233,6 +239,18 @@ public class HandOfFateBlockEntity extends BlockEntity implements BlockEntityExt
     }
 
     @Override
+    public Packet<ClientGamePacketListener> getUpdatePacket() {
+        return ClientboundBlockEntityDataPacket.create(this);
+    }
+
+    @Override
+    public CompoundTag getUpdateTag() {
+        CompoundTag nbt = super.getUpdateTag();
+        saveAdditional(nbt);
+        return nbt;
+    }
+
+    @Override
     public void load(CompoundTag compoundTag) {
         super.load(compoundTag);
         this.getRecipeContainer().read(compoundTag);
@@ -240,20 +258,9 @@ public class HandOfFateBlockEntity extends BlockEntity implements BlockEntityExt
     }
 
     @Override
-    public CompoundTag save(CompoundTag compound) {
-        CompoundTag c = super.save(compound);
+    public void saveAdditional(CompoundTag compound) {
+        super.saveAdditional(compound);
         this.getRecipeContainer().write(compound);
-        return c;
-    }
-
-    @Override
-    public void loadClientData(BlockState pos, CompoundTag tag) {
-        this.load(tag);
-    }
-
-    @Override
-    public CompoundTag saveClientData(CompoundTag tag) {
-        return this.save(tag);
     }
 
     public void dropItems(Level worldIn, BlockPos pos) {
@@ -392,7 +399,7 @@ public class HandOfFateBlockEntity extends BlockEntity implements BlockEntityExt
 
         public void read(CompoundTag nbt) {
             if (nbt.contains("items")) {
-                nbt.getList("items", NbtType.STRING).forEach(i -> data.put(i.getAsString(), true));
+                nbt.getList("items", Tag.TAG_STRING).forEach(i -> data.put(i.getAsString(), true));
             } else {
                 data.keySet().forEach((i) -> data.put(i, false));
             }

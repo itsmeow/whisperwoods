@@ -127,7 +127,7 @@ public class EntityMoth extends EntityAnimalWithTypesAndSizeContainable {
                 this.setNotLanded();
             }
         }
-        if(this.targetPosition == null || this.random.nextInt(30) == 0 || (this.targetPosition.closerThan(this.position(), 1.0D) && !isLightBlock(level.getBlockState(this.targetPosition)))) {
+        if(this.targetPosition == null || this.random.nextInt(30) == 0 || (this.targetPosition.closerThan(this.blockPosition(), 1.0D) && !isLightBlock(level.getBlockState(this.targetPosition)))) {
             int i = 12;
             int j = 2;
             BlockPos.MutableBlockPos blockpos$mutableblockpos = new BlockPos.MutableBlockPos();
@@ -189,7 +189,7 @@ public class EntityMoth extends EntityAnimalWithTypesAndSizeContainable {
             Vec3 vec3d1 = vec3d.add((Math.signum(d0) * 0.5D - vec3d.x) * (double) 0.1F, (Math.signum(d1) * (double) 0.7F - vec3d.y) * (double) 0.1F, (Math.signum(d2) * 0.5D - vec3d.z) * (double) 0.1F);
             float width = this.getContainer().getEntityType().getDimensions().width * 0.8F;
             AABB axisalignedbb = AABB.ofSize(vec3d1.add(this.position()), width, 0.1F, width);
-            boolean collides = this.level.getBlockCollisions(this, axisalignedbb, (state, pos2) -> state.isSuffocating(this.level, pos2)).findAny().isPresent();
+            boolean collides = this.level.getBlockCollisions(this, axisalignedbb).iterator().hasNext();
             if(collides) {
                 vec3d1 = vec3d1.multiply(0.5, 0.5, 0.5);
             }

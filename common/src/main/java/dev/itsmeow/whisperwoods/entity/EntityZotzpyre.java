@@ -5,12 +5,9 @@ import dev.itsmeow.imdlib.entity.util.BiomeTypes;
 import dev.itsmeow.whisperwoods.init.ModEntities;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.core.Registry;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
-import net.minecraft.resources.ResourceKey;
-import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.util.Mth;
@@ -36,7 +33,6 @@ import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
-import net.minecraft.world.phys.shapes.VoxelShape;
 
 import java.util.EnumSet;
 import java.util.Random;
@@ -109,7 +105,7 @@ public class EntityZotzpyre extends EntityMonsterWithTypes implements FlyingAnim
 
     @SuppressWarnings("deprecation")
     public static boolean canSpawn(EntityType<EntityZotzpyre> type, LevelAccessor world, MobSpawnType reason, BlockPos pos, Random rand) {
-        if (pos.getY() >= world.getSeaLevel() && !BiomeTypes.getTypes(ResourceKey.create(Registry.BIOME_REGISTRY, ((ServerLevel)world).getServer().registryAccess().registryOrThrow(Registry.BIOME_REGISTRY).getKey(world.getBiome(pos)))).contains(BiomeTypes.JUNGLE)) {
+        if (pos.getY() >= world.getSeaLevel() && !BiomeTypes.getTypes(world.getBiome(pos).unwrapKey().get()).contains(BiomeTypes.JUNGLE)) {
             return false;
         } else {
             return checkAnyLightMonsterSpawnRules(type, world, reason, pos, rand);
@@ -399,7 +395,7 @@ public class EntityZotzpyre extends EntityMonsterWithTypes implements FlyingAnim
             AABB box = this.mob.getBoundingBox();
             for (int j = 1; j < i; ++j) {
                 box = box.move(vec3);
-                if (!this.mob.level.getBlockCollisions(this.mob, box).allMatch(VoxelShape::isEmpty)) {
+                if (this.mob.level.getBlockCollisions(this.mob, box).iterator().hasNext()) {
                     return false;
                 }
             }
