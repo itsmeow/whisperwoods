@@ -1,10 +1,46 @@
 {
-    "hidebehind": {
+    "entity.hidebehind.death": {
         "replace": false,
         "category": "entity",
         "sounds": [
-        	{
-            	"name": "whisperwoods:hidebehind"
+            {
+                "name": "whisperwoods:hidebehind/death"
+            }
+        ]
+    },
+    "entity.hidebehind.hurt": {
+        "replace": false,
+        "category": "entity",
+        "sounds": [
+            {
+                "name": "whisperwoods:hidebehind/hurt"
+            }
+        ]
+    },
+    "entity.hidebehind.ambient": {
+        "replace": false,
+        "category": "entity",
+        "sounds": [
+            {
+                "name": "whisperwoods:hidebehind/ambient_1"
+            },
+            {
+                "name": "whisperwoods:hidebehind/ambient_2"
+            },
+            {
+                "name": "whisperwoods:hidebehind/ambient_3"
+            },
+            {
+                "name": "whisperwoods:hidebehind/ambient_4"
+            }
+        ]
+    },
+    "entity.hidebehind.scare": {
+        "replace": false,
+        "category": "entity",
+        "sounds": [
+            {
+                "name": "whisperwoods:hidebehind/scare"
             }
         ]
     },

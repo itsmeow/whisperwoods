@@ -18,6 +18,7 @@ import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.sounds.SoundEvent;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionHand;
@@ -74,6 +75,21 @@ public class EntityHidebehind extends EntityCreatureWithSelectiveTypes implement
         this.goalSelector.addGoal(1, new HideFromTargetGoal(this));
         this.goalSelector.addGoal(3, new StalkTargetGoal(this, 0.5D, 35F));
         this.targetSelector.addGoal(0, new NearestAttackableTargetGoal<>(this, Player.class, 0, false, false, this::isEntityAttackable));
+    }
+
+    @Override
+    protected SoundEvent getAmbientSound() {
+        return ModSounds.HIDEBEHIND_AMBIENT.get();
+    }
+
+    @Override
+    protected SoundEvent getHurtSound(DamageSource damageSource) {
+        return ModSounds.HIDEBEHIND_HURT.get();
+    }
+
+    @Override
+    protected SoundEvent getDeathSound() {
+        return ModSounds.HIDEBEHIND_DEATH.get();
     }
 
     public boolean hasTargetUUID() {
@@ -215,8 +231,8 @@ public class EntityHidebehind extends EntityCreatureWithSelectiveTypes implement
                 float angle1 = (float) (Mth.atan2(e1, e0) * (double) (180F / (float) Math.PI)) - 90.0F;
                 this.absMoveTo(this.getX(), this.getY(), this.getZ(), angle1, 0);
                 this.yRot = angle1;
-                if (this.attackSequenceTicks() == 20) {
-                    target.playSound(ModSounds.HIDEBEHIND_SOUND.get(), 2F, 1F);
+                if (this.attackSequenceTicks() == 40) {
+                    target.playSound(ModSounds.HIDEBEHIND_SCARE.get(), 2F, 1F);
                 }
                 this.getLookControl().setLookAt(target, 360F, 360F);
             }
