@@ -1,11 +1,13 @@
 {
-  "required": true,
-  "package": "dev.itsmeow.whisperwoods.mixin",
-  "compatibilityLevel": "JAVA_16",
-  "minVersion": "0.8",
-  "mixins": [],
-  "client": [],
-  "injectors": {
-    "defaultRequire": 1
-  }
+    "required": true,
+    "package": "dev.itsmeow.whisperwoods.mixin",
+    "compatibilityLevel": "JAVA_16",
+    "minVersion": "0.8",
+    "mixins": [],
+    "client": [
+        "ParticleEngineMixin"
+    ],
+    "injectors": {
+        "defaultRequire": 1
+    }
 }

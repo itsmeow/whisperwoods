@@ -9,7 +9,6 @@
     "GroundPathNavigationMixin"
   ],
   "client": [
-    "ParticleEngineMixin",
     "LayerDefinitionsMixin"
   ],
   "injectors": {
