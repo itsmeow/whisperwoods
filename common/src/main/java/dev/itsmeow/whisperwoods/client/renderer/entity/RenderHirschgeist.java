@@ -103,7 +103,7 @@ public class RenderHirschgeist extends LivingEntityRenderer<EntityHirschgeist, M
             int p = getOverlayCoords(livingEntity, this.getWhiteOverlayProgress(livingEntity, g));
             this.model.renderToBuffer(poseStack, vertexConsumer, i, p, 1.0F, 1.0F, 1.0F, bl2 ? 0.15F : 1.0F);
         }
-        if (renderType != null) {
+        if (renderType != null && !livingEntity.isDaytimeClient()) {
             VertexConsumer vertexConsumer = multiBufferSource.getBuffer(ClientLifecycleHandler.RenderTypeAddition.getEyesEntityCutoutNoCullDepthMaskOff(this.getEctoTexture(livingEntity)));
             int p = getOverlayCoords(livingEntity, this.getWhiteOverlayProgress(livingEntity, g));
             this.model.renderToBuffer(poseStack, vertexConsumer, i, p, 1.0F, 1.0F, 1.0F, bl2 ? 0.15F : 1.0F);
