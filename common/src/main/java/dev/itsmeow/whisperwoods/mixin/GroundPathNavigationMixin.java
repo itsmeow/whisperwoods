@@ -1,9 +1,7 @@
 package dev.itsmeow.whisperwoods.mixin;
 
-import dev.itsmeow.whisperwoods.entity.EntityHirschgeist;
 import dev.itsmeow.whisperwoods.util.IOverrideCollisions;
 import net.minecraft.core.BlockPos;
-import net.minecraft.tags.BlockTags;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.ai.navigation.GroundPathNavigation;
 import net.minecraft.world.entity.ai.navigation.PathNavigation;
