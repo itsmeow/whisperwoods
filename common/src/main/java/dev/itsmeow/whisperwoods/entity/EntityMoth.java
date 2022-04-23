@@ -4,6 +4,7 @@ import dev.itsmeow.imdlib.entity.EntityTypeContainer;
 import dev.itsmeow.imdlib.entity.util.EntityTypeContainerContainable;
 import dev.itsmeow.imdlib.item.ItemModEntityContainer;
 import dev.itsmeow.whisperwoods.init.ModEntities;
+import dev.itsmeow.whisperwoods.init.ModTags;
 import dev.itsmeow.whisperwoods.util.ModPlatformEvents;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
@@ -21,19 +22,19 @@ import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.ai.targeting.TargetingConditions;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LightLayer;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.SupportType;
 import net.minecraft.world.level.block.TorchBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 
 import java.util.List;
+import java.util.function.Predicate;
 
 public class EntityMoth extends EntityAnimalWithTypesAndSizeContainable {
 
@@ -118,8 +119,9 @@ public class EntityMoth extends EntityAnimalWithTypesAndSizeContainable {
         super.customServerAiStep();
         BlockPos blockpos = this.blockPosition();
         if(this.isLanded()) {
-            BlockPos offset = blockpos.relative(Direction.from3DDataValue(this.getLandedInteger()));
-            if(this.level.getBlockState(offset).isRedstoneConductor(this.level, offset)) {
+            Direction d = Direction.from3DDataValue(this.getLandedInteger());
+            BlockPos offset = blockpos.relative(d);
+            if(this.level.getBlockState(offset).isFaceSturdy(this.level, offset, d.getOpposite(), SupportType.CENTER)) {
                 if(this.level.getNearestPlayer(playerPredicate, this) != null || this.getRandom().nextInt(this.isAttractedToLight() ? 500 : 1000) == 0) {
                     this.setNotLanded();
                 }
@@ -155,12 +157,16 @@ public class EntityMoth extends EntityAnimalWithTypesAndSizeContainable {
                 if(this.isAttractedToLight()) {
                     for(LivingEntity entity : level.getEntitiesOfClass(LivingEntity.class, this.getBoundingBox().inflate(10))) {
                         for(InteractionHand hand : InteractionHand.values()) {
-                            Item held = entity.getItemInHand(hand).getItem();
-                            if(held == Items.TORCH || held == Items.LANTERN) {
+                            ItemStack held = entity.getItemInHand(hand);
+                            if(held.is(ModTags.Items.MOTH_TARGET_HELD_LIGHT_ITEMS)) {
                                 this.targetPosition = entity.blockPosition().offset(0, 1.5, 0);
                                 found = true;
                                 this.setNotLanded();
+                                break;
                             }
+                        }
+                        if(found) {
+                            break;
                         }
                     }
                 }
@@ -168,10 +174,11 @@ public class EntityMoth extends EntityAnimalWithTypesAndSizeContainable {
                     for(Direction direction : Direction.values()) {
                         if(direction != Direction.UP) {
                             BlockPos offset = blockpos.relative(direction);
-                            if(level.getBlockState(offset).isRedstoneConductor(level, offset)) {
+                            if(level.getBlockState(offset).isFaceSturdy(level, offset, direction.getOpposite(), SupportType.CENTER)) {
                                 this.setLanded(direction);
                                 this.targetPosition = null;
                                 found = true;
+                                break;
                             }
                         }
                     }
@@ -182,17 +189,27 @@ public class EntityMoth extends EntityAnimalWithTypesAndSizeContainable {
             }
         }
         if(!this.isLanded() && targetPosition != null) {
+            if(this.isInWall()) {
+                this.targetPosition = this.tryToFindPositionSlow(pos -> {
+                    AABB abb = this.getBoundingBox();
+                    Vec3 diff = new Vec3(pos.getX() + 0.5D, pos.getY() + 0.1D, pos.getZ() + 0.5D).subtract(this.position());
+                    double length = diff.length();
+                    diff = diff.normalize();
+                    for(int i = 1; i < length; ++i) {
+                        abb = abb.move(diff);
+                        if (!this.level.noCollision(this, abb)) {
+                            return false;
+                        }
+                    }
+                    return true;
+                });
+
+            }
             double d0 = (double) this.targetPosition.getX() + 0.5D - this.getX();
             double d1 = (double) this.targetPosition.getY() + 0.1D - this.getY();
             double d2 = (double) this.targetPosition.getZ() + 0.5D - this.getZ();
             Vec3 vec3d = this.getDeltaMovement();
             Vec3 vec3d1 = vec3d.add((Math.signum(d0) * 0.5D - vec3d.x) * (double) 0.1F, (Math.signum(d1) * (double) 0.7F - vec3d.y) * (double) 0.1F, (Math.signum(d2) * 0.5D - vec3d.z) * (double) 0.1F);
-            float width = this.getContainer().getEntityType().getDimensions().width * 0.8F;
-            AABB axisalignedbb = AABB.ofSize(vec3d1.add(this.position()), width, 0.1F, width);
-            boolean collides = this.level.getBlockCollisions(this, axisalignedbb, (state, pos2) -> state.isSuffocating(this.level, pos2)).findAny().isPresent();
-            if(collides) {
-                vec3d1 = vec3d1.multiply(0.5, 0.5, 0.5);
-            }
             this.setDeltaMovement(vec3d1);
             float f = (float) (Mth.atan2(vec3d1.z, vec3d1.x) * (double) (180F / (float) Math.PI)) - 90.0F;
             float f1 = Mth.wrapDegrees(f - this.getYRot());
@@ -205,6 +222,29 @@ public class EntityMoth extends EntityAnimalWithTypesAndSizeContainable {
             Block.dropResources(state, level, this.blockPosition());
             level.setBlockAndUpdate(this.blockPosition(), Blocks.AIR.defaultBlockState());
         }
+    }
+
+    private BlockPos tryToFindPositionSlow(Predicate<BlockPos> condition) {
+        BlockPos.MutableBlockPos pos = new BlockPos.MutableBlockPos();
+        int i = 12;
+        int j = 2;
+        boolean down = false;
+        while (!down) {
+            for (int k = down ? -1 : 0; down ? k >= -j : k <= j; k += down ? -1 : 1) {
+                for (int l = 0; l < i; ++l) {
+                    for (int i1 = 0; i1 <= l; i1 = i1 > 0 ? -i1 : 1 - i1) {
+                        for (int j1 = i1 < l && i1 > -l ? l : 0; j1 <= l; j1 = j1 > 0 ? -j1 : 1 - j1) {
+                            pos.set(this.blockPosition()).move(i1, k, j1);
+                            if (condition.test(pos.immutable())) {
+                                return pos.immutable();
+                            }
+                        }
+                    }
+                }
+            }
+            down = true;
+        }
+        return null;
     }
 
     public boolean isAttractedToLight() {

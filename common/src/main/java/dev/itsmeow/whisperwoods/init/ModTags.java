@@ -26,6 +26,7 @@ public class ModTags {
     public static final class Items {
         public static final Tag.Named<Item> GHOST_LIGHT = tag("ghost_light");
         public static final Tag.Named<Item> WISP_LANTERN = tag("wisp_lantern");
+        public static final Tag.Named<Item> MOTH_TARGET_HELD_LIGHT_ITEMS = tag("moth_target_held_light_items");
 
         public static void loadTags() {
             // This is a classloading dummy.
