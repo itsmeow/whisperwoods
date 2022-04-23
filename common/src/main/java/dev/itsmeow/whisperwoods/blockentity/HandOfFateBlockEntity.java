@@ -339,7 +339,7 @@ public class HandOfFateBlockEntity extends BlockEntity {
         }
 
         public void read(CompoundTag nbt) {
-            if (nbt.contains("recipe")) {
+            if (nbt.contains("recipe") && !"empty".equals(nbt.getString("recipe"))) {
                 this.setRecipe(RECIPES.getOrDefault(nbt.getString("recipe"), null));
                 if (this.data != null) {
                     this.data.read(nbt);
@@ -355,6 +355,8 @@ public class HandOfFateBlockEntity extends BlockEntity {
                 if (this.data != null) {
                     this.data.write(compound);
                 }
+            } else {
+                compound.putString("recipe", "empty");
             }
             return compound;
         }
