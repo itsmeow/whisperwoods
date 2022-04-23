@@ -12,6 +12,7 @@ public class ModTags {
     public static final class Blocks {
         public static final Tag.Named<Block> GHOST_LIGHT = tag("ghost_light");
         public static final Tag.Named<Block> WISP_LANTERN = tag("wisp_lantern");
+        public static final Tag.Named<Block> MOTH_BREAKABLE = tag("moth_breakable");
 
 
         public static void loadTags() {
