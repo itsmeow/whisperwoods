@@ -12,6 +12,7 @@ public class ModTags {
     public static final class Blocks {
         public static final TagKey<Block> GHOST_LIGHT = tag("ghost_light");
         public static final TagKey<Block> WISP_LANTERN = tag("wisp_lantern");
+        public static final TagKey<Block> MOTH_BREAKABLE = tag("moth_breakable");
 
 
         public static void loadTags() {
