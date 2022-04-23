@@ -1,0 +1,10 @@
+{
+    "replace": false,
+    "values": [
+        "minecraft:torch",
+        "minecraft:lantern",
+        "minecraft:soul_lantern",
+        "#whisperwoods:ghost_light",
+        "#whisperwoods:wisp_lantern"
+    ]
+}
