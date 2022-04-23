@@ -1,3 +1,28 @@
+# 2.1.0
+
+**Architectury is now REQUIRED for Forge and Fabric versions of the mod.**
+
+- Ported to Architectury API / Fabric
+- Updated mod icon
+- Added new moth variants and slightly tweaked model
+- Tweaked zotzpyre model
+- Added new albino zotzpyre variant
+- Reworked Zotzpyre AI entirely, it now flies and swoops at the player
+- Hirschgeist flame AoE attack is now projectile-based and uses soul flames
+- Added new sounds for the Hirschgeist
+- Greatly buffed the Hirschgeist (added armor, health)
+- 1/4 of all attacks will now "pass through" the Hirschgeist's ectoplasm layer, indicated by a liquid-like sloshing sound
+- Fixed bug where Hirschgeist would sit still for several seconds when attacking with flames
+- Added new sounds for the Hidebehind
+- Optimized moth pathing, prevent getting stuck inside blocks
+- Added a tag for moths targeting held light items
+- Added a tag for light sources breakable by moths (torches and soul tourches by default)
+- Moths will now target all holdable common light sources in the game when held by the player at night
+- Tweaked wisp lantern model
+- Cleaned up mod data fields
+- 1.17: The Hidebehind and Hirschgeist are immune to freezing and can walk on powdered snow
+- Fabric: Added Cloth Config API and Mod Menu compatibility
+
 # 2.0.2
 
 - Add Russian Translation (Credit: Magnaderra)
