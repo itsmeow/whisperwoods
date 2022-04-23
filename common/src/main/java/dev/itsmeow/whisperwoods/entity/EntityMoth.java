@@ -217,7 +217,7 @@ public class EntityMoth extends EntityAnimalWithTypesAndSizeContainable {
             this.setYRot(this.getYRot() + f1);
         }
         int moths_req = getContainer().getCustomConfiguration().getInt("moths_to_destroy_torch");
-        if(moths_req != 0 && level.getEntitiesOfClass(EntityMoth.class, this.getBoundingBox()).size() >= moths_req && level.getBlockState(this.blockPosition()).getBlock().is(ModTags.Blocks.MOTH_BREAKABLE) && ModPlatformEvents.mobGrief(this.level, this)) {
+        if(moths_req != 0 && level.getEntitiesOfClass(EntityMoth.class, this.getBoundingBox()).size() >= moths_req && level.getBlockState(this.blockPosition()).is(ModTags.Blocks.MOTH_BREAKABLE) && ModPlatformEvents.mobGrief(this.level, this)) {
             BlockState state = level.getBlockState(this.blockPosition());
             Block.dropResources(state, level, this.blockPosition());
             level.setBlockAndUpdate(this.blockPosition(), Blocks.AIR.defaultBlockState());
