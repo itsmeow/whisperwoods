@@ -11,6 +11,7 @@ import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.util.Mth;
+import net.minecraft.util.RandomSource;
 import net.minecraft.world.Difficulty;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.effect.MobEffectInstance;
@@ -35,7 +36,6 @@ import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 
 import java.util.EnumSet;
-import java.util.Random;
 
 public class EntityZotzpyre extends EntityMonsterWithTypes implements FlyingAnimal {
 
@@ -104,7 +104,7 @@ public class EntityZotzpyre extends EntityMonsterWithTypes implements FlyingAnim
     }
 
     @SuppressWarnings("deprecation")
-    public static boolean canSpawn(EntityType<EntityZotzpyre> type, LevelAccessor world, MobSpawnType reason, BlockPos pos, Random rand) {
+    public static boolean canSpawn(EntityType<EntityZotzpyre> type, LevelAccessor world, MobSpawnType reason, BlockPos pos, RandomSource rand) {
         if (pos.getY() >= world.getSeaLevel() && !BiomeTypes.getTypes(world.getBiome(pos).unwrapKey().get()).contains(BiomeTypes.JUNGLE)) {
             return false;
         } else {

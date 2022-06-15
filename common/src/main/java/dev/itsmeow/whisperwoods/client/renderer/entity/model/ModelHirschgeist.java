@@ -490,8 +490,7 @@ public class ModelHirschgeist extends EntityModel<EntityHirschgeist> {
             bufferBuilder.vertex(matrix, -1F, 1F, 0F).uv(u1, v0).endVertex();
             bufferBuilder.vertex(matrix, 1F, 1F, 0F).uv(u0, v0).endVertex();
             bufferBuilder.vertex(matrix, 1F, -1F, 0F).uv(u0, v1).endVertex();
-            bufferBuilder.end();
-            BufferUploader.end(bufferBuilder);
+            BufferUploader.drawWithShader(bufferBuilder.end());
 
             matrix = Matrix4f.createTranslateMatrix(d.m03, d.m13, d.m23 + 0.01F);
             matrix.multiply(Matrix4f.createScaleMatrix(0.1F * scale, 0.1F * scale, 0.1F * scale));
@@ -502,8 +501,7 @@ public class ModelHirschgeist extends EntityModel<EntityHirschgeist> {
             bufferBuilder.vertex(matrix, -1F, 1F, 0F).uv(u1, v0).endVertex();
             bufferBuilder.vertex(matrix, 1F, 1F, 0F).uv(u0, v0).endVertex();
             bufferBuilder.vertex(matrix, 1F, -1F, 0F).uv(u0, v1).endVertex();
-            bufferBuilder.end();
-            BufferUploader.end(bufferBuilder);
+            BufferUploader.drawWithShader(bufferBuilder.end());
             RenderSystem.disableDepthTest();
             RenderSystem.enableCull();
         }

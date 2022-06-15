@@ -150,7 +150,7 @@ public class ItemBlockArmor extends ArmorItem {
 
     @Override
     public void fillItemCategory(CreativeModeTab group, NonNullList<ItemStack> items) {
-        if(this.allowdedIn(group)) {
+        if(this.allowedIn(group)) {
             this.getBlock().fillItemCategory(group, items);
         }
 

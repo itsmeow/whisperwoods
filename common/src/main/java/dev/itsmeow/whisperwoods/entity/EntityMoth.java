@@ -12,7 +12,6 @@ import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;
-import net.minecraft.network.chat.TextComponent;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
@@ -28,7 +27,6 @@ import net.minecraft.world.level.LightLayer;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.SupportType;
-import net.minecraft.world.level.block.TorchBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
@@ -328,7 +326,7 @@ public class EntityMoth extends EntityAnimalWithTypesAndSizeContainable {
         CompoundTag tag = stack.getTag();
         if(tag != null) {
             if(tag.contains("SizeTag")) {
-                tooltip.add(new TextComponent("Size: " + tag.getFloat("SizeTag")).setStyle(Style.EMPTY.applyFormats(ChatFormatting.ITALIC, ChatFormatting.GRAY)));
+                tooltip.add(Component.literal("Size: " + tag.getFloat("SizeTag")).setStyle(Style.EMPTY.applyFormats(ChatFormatting.ITALIC, ChatFormatting.GRAY)));
             }
         }
     }

@@ -7,12 +7,10 @@ import dev.itsmeow.whisperwoods.init.ModSounds;
 import dev.itsmeow.whisperwoods.util.IOverrideCollisions;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
-import net.minecraft.Util;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
@@ -222,7 +220,7 @@ public class EntityHirschgeist extends Monster implements Enemy, IOverrideCollis
         if(!this.level.isClientSide && source.getEntity() instanceof Player && !source.isCreativePlayer()) {
             if (this.isDaytime()) {
                 Player player = (Player) source.getEntity();
-                player.sendMessage(new TranslatableComponent("entity.whisperwoods.hirschgeist.message.invulnerable"), Util.NIL_UUID);
+                player.sendSystemMessage(Component.translatable("entity.whisperwoods.hirschgeist.message.invulnerable"));
                 return false;
             } else if (this.getRandom().nextInt(4) == 0) {
                 this.level.playSound(null, source.getEntity(), SoundEvents.BUCKET_FILL_LAVA, SoundSource.MASTER, 1F, 2F);

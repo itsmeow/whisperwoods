@@ -20,8 +20,8 @@
     "modmenu": ["dev.itsmeow.imdlib.compat.modmenu.ModMenuCompat"]
   },
   "depends": {
-    "minecraft": "1.18.2",
-    "architectury": ">=4.0.0",
+    "minecraft": "1.19.x",
+    "architectury": ">=5.0.0",
     "fabricloader": ">=0.12.0",
     "fabric": ">=0.32.0"
   },

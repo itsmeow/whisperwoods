@@ -13,7 +13,7 @@ import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.entity.LivingEntityRenderer;
 import net.minecraft.client.renderer.texture.OverlayTexture;
-import net.minecraft.network.chat.TextComponent;
+import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 
 import java.util.UUID;
@@ -46,7 +46,7 @@ public class RenderWisp extends LivingEntityRenderer<EntityWisp, EntityModel<Ent
                     head.setupAnim(0F, -entity.yHeadRot, 180F + entity.getXRot());
                     head.renderToBuffer(stack, vertex, packedLightIn, OverlayTexture.NO_OVERLAY, r / 255F, g / 255F, b / 255F, 0.6F);
                     stack.translate(0F, 0.4F, 0F);
-                    this.renderNameTag(entity, new TextComponent(name + "'s soul"), stack, bufferIn, packedLightIn);
+                    this.renderNameTag(entity, Component.literal(name + "'s soul"), stack, bufferIn, packedLightIn);
                 }
                 stack.popPose();
             }

@@ -43,7 +43,7 @@ public class ItemBlockHirschgeistSkull extends ItemBlockModeledArmor {
     @Override
     protected <A extends HumanoidModel<?>> A getBaseModelInstance() {
         if(ModelHGSkullMask.INSTANCE == null) {
-            ModelHGSkullMask.INSTANCE = new ModelHGSkullMask<>(new EntityRendererProvider.Context(Minecraft.getInstance().getEntityRenderDispatcher(), Minecraft.getInstance().getItemRenderer(), Minecraft.getInstance().getResourceManager(), Minecraft.getInstance().getEntityModels(), Minecraft.getInstance().font).bakeLayer(new ModelLayerLocation(new ResourceLocation(WhisperwoodsMod.MODID, "hirschgeist_skull_mask"), "main")));
+            ModelHGSkullMask.INSTANCE = new ModelHGSkullMask<>(new EntityRendererProvider.Context(Minecraft.getInstance().getEntityRenderDispatcher(), Minecraft.getInstance().getItemRenderer(), Minecraft.getInstance().getBlockRenderer(), Minecraft.getInstance().getEntityRenderDispatcher().getItemInHandRenderer(), Minecraft.getInstance().getResourceManager(), Minecraft.getInstance().getEntityModels(), Minecraft.getInstance().font).bakeLayer(new ModelLayerLocation(new ResourceLocation(WhisperwoodsMod.MODID, "hirschgeist_skull_mask"), "main")));
         }
         return (A) ModelHGSkullMask.INSTANCE;
     }

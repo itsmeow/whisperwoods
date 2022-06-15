@@ -12,7 +12,6 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;
-import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.Mth;
@@ -157,19 +156,19 @@ public class HandOfFateBlock extends Block implements EntityBlock {
         String tooltipPrefix = "block.whisperwoods.hand_of_fate.tooltip.";
         String recipePrefix = tooltipPrefix + "recipe.";
         if(Screen.hasShiftDown()) {
-            tooltip.add(new TranslatableComponent(tooltipPrefix + "recipehint").setStyle(gIS));
+            tooltip.add(Component.translatable(tooltipPrefix + "recipehint").setStyle(gIS));
             for (String recipeKey : HandOfFateBlockEntity.RECIPES.keySet()) {
                 HOFRecipe recipe = HandOfFateBlockEntity.RECIPES.get(recipeKey);
                 tooltip.add(
-                    new TranslatableComponent("block.whisperwoods.hand_of_fate.tooltip.recipe_format" + (I18n.exists(recipePrefix + recipeKey + ".hint") ? "_hint" : ""),
-                        new TranslatableComponent(recipePrefix + recipeKey).setStyle(Style.EMPTY.applyFormat(recipe.getColor()).withBold(recipe.isBold())),
-                        new TranslatableComponent(recipe.getFirst().getDescriptionId()).withStyle(ChatFormatting.WHITE),
-                        new TranslatableComponent(recipePrefix + recipeKey + ".hint").withStyle(ChatFormatting.GRAY)
+                    Component.translatable("block.whisperwoods.hand_of_fate.tooltip.recipe_format" + (I18n.exists(recipePrefix + recipeKey + ".hint") ? "_hint" : ""),
+                        Component.translatable(recipePrefix + recipeKey).setStyle(Style.EMPTY.applyFormat(recipe.getColor()).withBold(recipe.isBold())),
+                        Component.translatable(recipe.getFirst().getDescriptionId()).withStyle(ChatFormatting.WHITE),
+                        Component.translatable(recipePrefix + recipeKey + ".hint").withStyle(ChatFormatting.GRAY)
                     ).withStyle(ChatFormatting.GRAY)
                 );
             }
         } else {
-            tooltip.add(new TranslatableComponent(tooltipPrefix + "shiftdown").setStyle(gIS));
+            tooltip.add(Component.translatable(tooltipPrefix + "shiftdown").setStyle(gIS));
         }
     }
 
