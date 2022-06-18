@@ -112,7 +112,7 @@ public class EntityZotzpyre extends EntityMonsterWithTypes implements FlyingAnim
         if (pos.getY() >= world.getSeaLevel() && !BiomeTypes.getTypes(ResourceKey.create(Registry.BIOME_REGISTRY, ((ServerLevel)world).getServer().registryAccess().registryOrThrow(Registry.BIOME_REGISTRY).getKey(world.getBiome(pos)))).contains(BiomeTypes.JUNGLE)) {
             return false;
         } else {
-            return checkAnyLightMonsterSpawnRules(type, world, reason, pos, rand);
+            return world.getLightEmission(pos) <= 3 && checkAnyLightMonsterSpawnRules(type, world, reason, pos, rand);
         }
     }
 
