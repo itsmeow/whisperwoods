@@ -26,10 +26,10 @@ dependencies {
     shadowModImplementation("dev.itsmeow.imdlib:imdlib-fabric:${rootProject.imdlib_version}") {
         transitive = false
     }
-    modRuntimeOnly("com.terraformersmc:modmenu:4.0.0") {
+    modRuntimeOnly("com.terraformersmc:modmenu:4.0.4") {
         transitive = false
     }
-    modRuntimeOnly ("curse.maven:cloth-config-348521:3827487") {
+    modRuntimeOnly ("curse.maven:cloth-config-348521:3871534") {
         exclude(group: "net.fabricmc")
         exclude(group: "net.fabricmc.fabric-api")
     }

@@ -7,9 +7,11 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ArmorItem;
 import net.minecraft.world.item.ArmorMaterial;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.client.IItemRenderProperties;
+import net.minecraftforge.client.extensions.common.IClientItemExtensions;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
+
+import java.util.function.Consumer;
 
 @Mixin(ItemBlockModeledArmor.class)
 public abstract class ItemBlockModeledArmorMixin extends ArmorItem {
@@ -22,11 +24,11 @@ public abstract class ItemBlockModeledArmorMixin extends ArmorItem {
     public abstract <T extends LivingEntity, A extends HumanoidModel<T>> A getArmorModel(T entityLiving, ItemStack itemStack, EquipmentSlot armorSlot, A defaultModel);
 
     @Override
-    public void initializeClient(java.util.function.Consumer<net.minecraftforge.client.IItemRenderProperties> consumer) {
-        consumer.accept(new IItemRenderProperties() {
+    public void initializeClient(Consumer<IClientItemExtensions> consumer) {
+        consumer.accept(new IClientItemExtensions() {
             @Override
-            public HumanoidModel<?> getArmorModel(LivingEntity entityLiving, ItemStack itemStack, EquipmentSlot armorSlot, HumanoidModel<?> defaultModel) {
-                return ItemBlockModeledArmorMixin.this.getArmorModel(entityLiving, itemStack, armorSlot, (HumanoidModel<? super LivingEntity>) defaultModel);
+            public HumanoidModel<?> getHumanoidArmorModel(LivingEntity livingEntity, ItemStack itemStack, EquipmentSlot equipmentSlot, HumanoidModel<?> original) {
+                return ItemBlockModeledArmorMixin.this.getArmorModel(livingEntity, itemStack, equipmentSlot, (HumanoidModel<? super LivingEntity>) original);
             }
         });
     }

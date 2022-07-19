@@ -1,3 +1,7 @@
+# 2.1.1
+
+- 1.19 Forge: Fix for Forge 41.0.94 and higher
+
 # 2.1.0
 
 **Architectury is now REQUIRED for Forge and Fabric versions of the mod.**

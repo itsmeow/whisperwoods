@@ -15,12 +15,12 @@ Spooky forest stuff for spooky jam'''
 [[dependencies.whisperwoods]]
   modId="forge"
   mandatory=true
-  versionRange="[41.0.0,)"
+  versionRange="[41.0.94,)"
   ordering="NONE"
   side="BOTH"
 [[dependencies.whisperwoods]]
   modId="architectury"
   mandatory=true
-  versionRange="[5.0.0,)"
+  versionRange="[5.9.30,)"
   ordering="NONE"
   side="BOTH"
