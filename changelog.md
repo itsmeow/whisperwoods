@@ -1,3 +1,8 @@
+# 2.1.1
+
+- 1.19 Forge: Fix for Forge 41.0.94 and higher
+- 1.16 Forge: Fixes a crash with hirschgeist-spawned wisps
+
 # 2.1.0
 
 **Architectury is now REQUIRED for Forge and Fabric versions of the mod.**
