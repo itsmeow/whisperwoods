@@ -3,7 +3,6 @@ package dev.itsmeow.whisperwoods.client.renderer.entity.model;
 import com.google.common.collect.ImmutableList;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.*;
-import com.mojang.math.Matrix4f;
 import dev.itsmeow.whisperwoods.WhisperwoodsMod;
 import dev.itsmeow.whisperwoods.entity.EntityHirschgeist;
 import net.minecraft.client.Minecraft;
@@ -14,12 +13,11 @@ import net.minecraft.client.model.geom.builders.*;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
+import org.joml.Matrix4f;
 
 import java.util.List;
 
 public class ModelHirschgeist extends EntityModel<EntityHirschgeist> {
-
-    private boolean isDaytime = false;
 
     public ModelPart spine01;
     public ModelPart spine02;
@@ -447,7 +445,6 @@ public class ModelHirschgeist extends EntityModel<EntityHirschgeist> {
 
     @Override
     public void setupAnim(EntityHirschgeist entityIn, float limbSwing, float limbSwingAmount, float ageInTicks, float netHeadYaw, float headPitch) {
-        this.isDaytime = entityIn.isDaytimeClient();
         float factor = 0.8F;
         this.lArm00.xRot = Mth.cos(limbSwing * 0.6662F) * factor * limbSwingAmount - 1.1344640137963142F;
         this.rArm00.xRot = Mth.cos(limbSwing * 0.6662F + (float) Math.PI) * factor * limbSwingAmount - 1.1344640137963142F;
@@ -472,9 +469,9 @@ public class ModelHirschgeist extends EntityModel<EntityHirschgeist> {
             stack.translate(cube.minX / 16F, cube.minY / 16F, cube.minZ / 16F);
             Matrix4f d = stack.last().pose();
             float ticks = ((float) Minecraft.getInstance().player.tickCount % 30) / 30F;
-            Matrix4f matrix = Matrix4f.createTranslateMatrix(d.m03 + ((float) Math.random() - 0.5F) / 100F, d.m13 + ((float) Math.random() - 0.5F) / 100F, d.m23 + ((float) Math.random() - 0.5F) / 100F);
+            Matrix4f matrix = new Matrix4f().translation(d.m03() + ((float) Math.random() - 0.5F) / 100F, d.m13() + ((float) Math.random() - 0.5F) / 100F, d.m23() + ((float) Math.random() - 0.5F) / 100F);
             float extraScale = (1F - ticks) + (float) Math.random() / 10F;
-            matrix.multiply(Matrix4f.createScaleMatrix(0.1F * scale, 0.1F * scale, 0.1F * scale));
+            matrix.scale(0.1F * scale, 0.1F * scale, 0.1F * scale);
             RenderSystem.disableCull();
             RenderSystem.enableDepthTest();
             RenderSystem.setShader(GameRenderer::getPositionTexShader);
@@ -492,9 +489,9 @@ public class ModelHirschgeist extends EntityModel<EntityHirschgeist> {
             bufferBuilder.vertex(matrix, 1F, -1F, 0F).uv(u0, v1).endVertex();
             BufferUploader.drawWithShader(bufferBuilder.end());
 
-            matrix = Matrix4f.createTranslateMatrix(d.m03, d.m13, d.m23 + 0.01F);
-            matrix.multiply(Matrix4f.createScaleMatrix(0.1F * scale, 0.1F * scale, 0.1F * scale));
-            matrix.multiply(Matrix4f.createScaleMatrix(extraScale, extraScale, extraScale));
+            matrix = new Matrix4f().translation(d.m03(), d.m13(), d.m23() + 0.01F);
+            matrix.scale(0.1F * scale, 0.1F * scale, 0.1F * scale);
+            matrix.scale(extraScale, extraScale, extraScale);
 
             bufferBuilder.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_TEX);
             bufferBuilder.vertex(matrix, -1F, -1F, 0F).uv(u1, v1).endVertex();

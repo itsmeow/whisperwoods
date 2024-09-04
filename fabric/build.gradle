@@ -26,24 +26,24 @@ dependencies {
     shadowModImplementation("dev.itsmeow.imdlib:imdlib-fabric:${rootProject.imdlib_version}") {
         transitive = false
     }
-    modRuntimeOnly("com.terraformersmc:modmenu:4.0.4") {
+    modRuntimeOnly("com.terraformersmc:modmenu:${rootProject.mod_menu_version}") {
         transitive = false
     }
-    modRuntimeOnly ("curse.maven:cloth-config-348521:3871534") {
+    modRuntimeOnly ("curse.maven:cloth-config-348521:${rootProject.cloth_config_version}") {
         exclude(group: "net.fabricmc")
         exclude(group: "net.fabricmc.fabric-api")
     }
-    runtimeOnly("me.shedaniel.cloth:basic-math:0.6.1")
+    runtimeOnly("me.shedaniel.cloth:basic-math:${rootProject.basic_math_version}")
 }
 
 shadowJar {
     configurations = [project.configurations.shadowCommon, project.configurations.shadowModImplementation]
     relocate 'dev.itsmeow.imdlib', "${rootProject.maven_group}.imdlib"
-    classifier "dev-shadow"
+    archiveClassifier = "dev-shadow"
 }
 
 remapJar {
-    classifier "remap"
+    archiveClassifier =  "remap"
 }
 
 task fixJar(type: Jar) {
@@ -104,7 +104,7 @@ task fixJar(type: Jar) {
             line -> line.replaceAll('dev/itsmeow/imdlib/mixin/', "dev/itsmeow/${rootProject.mod_id}/imdlib/mixin/")
         }
     }
-    classifier "fabric"
+    archiveClassifier = "fabric"
 }
 
 sourcesJar.dependsOn fixJar

@@ -11,7 +11,7 @@ import dev.itsmeow.whisperwoods.WhisperwoodsMod;
 import dev.itsmeow.whisperwoods.entity.*;
 import dev.itsmeow.whisperwoods.entity.EntityHidebehind.HidebehindVariant;
 import dev.itsmeow.whisperwoods.entity.projectile.EntityHirschgeistFireball;
-import net.minecraft.core.Registry;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.Difficulty;
 import net.minecraft.world.entity.EntityType;
@@ -50,7 +50,7 @@ public class ModEntities {
     "owl",
     "vampire")
     .biomesOverworld(BiomeTypes.FOREST, BiomeTypes.SWAMP)
-    .containers("bottled_%s", ItemModEntityContainer.get(WhisperwoodsMod.TAB), "", c -> Items.GLASS_BOTTLE, EntityMoth::bottleTooltip));
+    .containers("bottled_%s", ItemModEntityContainer.get(ModCreativeTabs.WHISPERWOODS), "", c -> Items.GLASS_BOTTLE, EntityMoth::bottleTooltip));
 
     public static final EntityTypeContainer<EntityHidebehind> HIDEBEHIND = H.add(EntityHidebehind.class, EntityHidebehind::new, "hidebehind", () -> Mob.createMobAttributes().add(Attributes.MAX_HEALTH, 20D).add(Attributes.ATTACK_DAMAGE).add(Attributes.ATTACK_DAMAGE, 15D), b -> b
     .spawn(MobCategory.MONSTER, 8, 1, 1)
@@ -83,7 +83,7 @@ public class ModEntities {
     .add(Attributes.ATTACK_DAMAGE)
     .add(Attributes.ATTACK_DAMAGE, 6.0D), b -> b
     .spawn(MobCategory.CREATURE, 2, 1, 1)
-    .defaultPlacement((t, w, e, p, r) -> w.getEntitiesOfClass(EntityHirschgeist.class, new AABB(p).inflate(300D)).size() == 0)
+    .defaultPlacement((t, w, e, p, r) -> w.getEntitiesOfClass(EntityHirschgeist.class, new AABB(p).inflate(300D)).isEmpty())
     .egg(0xfffff, 0x00000)
     .size(3F, 4F)
     .biomesOverworld(BiomeTypes.FOREST));
@@ -113,6 +113,6 @@ public class ModEntities {
     }
 
     private static <T extends Projectile> RegistrySupplier<EntityType<T>> projectile(EntityType.EntityFactory<T> factory, String name, float width, float height) {
-        return IMDLib.getRegistry(Registry.ENTITY_TYPE_REGISTRY).register(new ResourceLocation(WhisperwoodsMod.MODID, name), () -> H.createEntityType(factory, name, MobCategory.MISC, 64, 1, true, width, height));
+        return IMDLib.getRegistry(Registries.ENTITY_TYPE).register(new ResourceLocation(WhisperwoodsMod.MODID, name), () -> H.createEntityType(factory, name, MobCategory.MISC, 64, 1, true, width, height));
     }
 }

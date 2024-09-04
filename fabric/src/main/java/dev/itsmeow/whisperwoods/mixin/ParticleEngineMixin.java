@@ -14,11 +14,11 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 public abstract class ParticleEngineMixin {
 
     @Shadow
-    public abstract <T extends ParticleOptions> void register(ParticleType<T> particleType, ParticleEngine.SpriteParticleRegistration<T> spriteParticleRegistration);
+    protected abstract <T extends ParticleOptions> void register(ParticleType<T> particleType, ParticleEngine.SpriteParticleRegistration<T> spriteParticleRegistration);
 
     @Inject(at = @At("RETURN"), method = "registerProviders()V")
     private void registerProviders(CallbackInfo callback) {
-        ClientLifecycleHandler.registerParticles((type, provider) -> this.register(type, (ParticleEngine.SpriteParticleRegistration) spriteSet -> provider.apply(spriteSet)));
+        ClientLifecycleHandler.registerParticles((type, provider) -> this.register(type, (ParticleEngine.SpriteParticleRegistration) provider::apply));
     }
 
 }

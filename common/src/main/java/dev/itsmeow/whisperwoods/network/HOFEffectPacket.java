@@ -1,6 +1,5 @@
 package dev.itsmeow.whisperwoods.network;
 
-import com.mojang.math.Vector3f;
 import dev.architectury.networking.NetworkManager;
 import dev.architectury.utils.Env;
 import dev.itsmeow.whisperwoods.particle.WispParticleData;
@@ -9,6 +8,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
+import org.joml.Vector3f;
 
 import java.util.function.Supplier;
 
@@ -40,7 +40,6 @@ public class HOFEffectPacket {
         return new HOFEffectPacket(HOFEffectType.values()[i], new Vector3f(buf.readFloat(), buf.readFloat(), buf.readFloat()), buf.readInt());
     }
 
-    @SuppressWarnings("resource")
     public static void handle(HOFEffectPacket msg, Supplier<NetworkManager.PacketContext> ctx) {
         if(ctx.get().getEnvironment() == Env.CLIENT) {
             ctx.get().queue(() -> {

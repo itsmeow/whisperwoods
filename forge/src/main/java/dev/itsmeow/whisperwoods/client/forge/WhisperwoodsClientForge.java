@@ -18,6 +18,6 @@ public class WhisperwoodsClientForge {
 
     @SubscribeEvent
     public static void registerParticleFactory(RegisterParticleProvidersEvent event) {
-        ClientLifecycleHandler.registerParticles((type, provider) -> event.register(type, (ParticleEngine.SpriteParticleRegistration) spriteSet -> provider.apply(spriteSet)));
+        ClientLifecycleHandler.registerParticles((type, provider) -> event.registerSpriteSet(type, (ParticleEngine.SpriteParticleRegistration) spriteSet -> provider.apply(spriteSet)));
     }
 }

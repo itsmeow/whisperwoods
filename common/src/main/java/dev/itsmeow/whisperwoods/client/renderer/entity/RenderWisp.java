@@ -33,11 +33,11 @@ public class RenderWisp extends LivingEntityRenderer<EntityWisp, EntityModel<Ent
         float r = (color >> 16) & 0xFF;
         float g = (color >> 8) & 0xFF;
         float b = color & 0xFF;
-        float scale = 1;
+        float scale;
         if(entity.hasSoul()) {
             UUID target = UUID.fromString(entity.getEntityData().get(EntityWisp.TARGET_ID));
             String name = entity.getEntityData().get(EntityWisp.TARGET_NAME);
-            if(target != null && name != null && !name.equals("")) {
+            if(target != null && name != null && !name.isEmpty()) {
                 stack.pushPose();
                 {
                     stack.translate(0F, 0.8F, 0F);
@@ -64,13 +64,13 @@ public class RenderWisp extends LivingEntityRenderer<EntityWisp, EntityModel<Ent
                     double xO = (entity.getRandom().nextFloat() * 2F - 1F) / 3.5;
                     double yO = (entity.getRandom().nextFloat() * 2F - 1F) / 6 + 0.8F;
                     double zO = (entity.getRandom().nextFloat() * 2F - 1F) / 3.5;
-                    entity.level.addParticle(new WispParticleData(r, g, b, scale),
+                    entity.level().addParticle(new WispParticleData(r, g, b, scale),
                     entity.getX() + xO,
                     entity.getY() + yO,
                     entity.getZ() + zO, 0, 0.005F, 0);
                 }
                 // spawn upper particle
-                entity.level.addParticle(new WispParticleData(r, g, b, scale),
+                entity.level().addParticle(new WispParticleData(r, g, b, scale),
                 entity.getX() + (entity.getRandom().nextFloat() * 2F - 1F) / 10,
                 entity.getY() + (entity.getRandom().nextFloat() * 2F - 1F) / 5 + 1.1F,
                 entity.getZ() + (entity.getRandom().nextFloat() * 2F - 1F) / 10, 0, 0.02F, 0);

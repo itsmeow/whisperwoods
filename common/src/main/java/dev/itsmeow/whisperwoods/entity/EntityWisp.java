@@ -5,6 +5,7 @@ import com.mojang.authlib.minecraft.MinecraftProfileTexture;
 import com.mojang.authlib.minecraft.MinecraftProfileTexture.Type;
 import dev.itsmeow.imdlib.entity.EntityTypeContainer;
 import dev.itsmeow.imdlib.entity.interfaces.IContainerEntity;
+import dev.itsmeow.whisperwoods.WhisperwoodsMod;
 import dev.itsmeow.whisperwoods.init.ModEntities;
 import dev.itsmeow.whisperwoods.item.ItemBlockHirschgeistSkull;
 import dev.itsmeow.whisperwoods.network.WWNetwork;
@@ -16,10 +17,12 @@ import net.fabricmc.api.Environment;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.resources.DefaultPlayerSkin;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerChunkCache;
 import net.minecraft.server.level.ServerLevel;
@@ -28,7 +31,8 @@ import net.minecraft.util.Mth;
 import net.minecraft.world.Difficulty;
 import net.minecraft.world.DifficultyInstance;
 import net.minecraft.world.damagesource.DamageSource;
-import net.minecraft.world.damagesource.EntityDamageSource;
+import net.minecraft.world.damagesource.DamageType;
+import net.minecraft.world.damagesource.DamageTypes;
 import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.ai.targeting.TargetingConditions;
 import net.minecraft.world.entity.animal.Animal;
@@ -48,7 +52,7 @@ import java.util.stream.Collectors;
 
 public class EntityWisp extends Animal implements IContainerEntity<EntityWisp> {
 
-    public final DamageSource WISP = new EntityDamageSource("wisp", this).bypassMagic().bypassArmor();
+    public static final ResourceKey<DamageType> WISP = ResourceKey.create(Registries.DAMAGE_TYPE, new ResourceLocation(WhisperwoodsMod.MODID, "wisp"));
     public boolean isHostile = false;
     public long lastSpawn = 0;
     private BlockPos targetPosition;
@@ -88,10 +92,10 @@ public class EntityWisp extends Animal implements IContainerEntity<EntityWisp> {
 
     public void tick() {
         super.tick();
-        if (this.isHostile && level.getDifficulty() == Difficulty.PEACEFUL) {
+        if (this.isHostile && level().getDifficulty() == Difficulty.PEACEFUL) {
             this.isHostile = false;
             this.shouldBeHostile = true;
-        } else if (this.shouldBeHostile && level.getDifficulty() != Difficulty.PEACEFUL) {
+        } else if (this.shouldBeHostile && level().getDifficulty() != Difficulty.PEACEFUL) {
             this.isHostile = true;
             this.shouldBeHostile = false;
         }
@@ -107,39 +111,39 @@ public class EntityWisp extends Animal implements IContainerEntity<EntityWisp> {
         if(this.getTarget() != null && !HOSTILE_TARGET_PREDICATE.test(this, this.getTarget())) {
             this.setTarget(null);
         }
-        if (!this.level.isClientSide && this.isHirschgeistSummon() && this.getTarget() != null) {
+        if (!this.level().isClientSide && this.isHirschgeistSummon() && this.getTarget() != null) {
             double distance = this.distanceTo(this.getTarget());
             if (this.attackCooldown <= 0) {
                 if (distance < 10D) {
-                    WWNetwork.HANDLER.sendToPlayers(((ServerChunkCache)this.level.getChunkSource()).chunkMap.entityMap.get(this.getId()).seenBy.stream().map(ServerPlayerConnection::getPlayer).collect(Collectors.toSet()), new WispAttackPacket(this.position().add(0F, this.getBbHeight(), 0F), this.getWispColor().getColor()));
-                    this.getTarget().hurt(DamageSource.MAGIC, 1F);
+                    WWNetwork.HANDLER.sendToPlayers(((ServerChunkCache)this.level().getChunkSource()).chunkMap.entityMap.get(this.getId()).seenBy.stream().map(ServerPlayerConnection::getPlayer).collect(Collectors.toSet()), new WispAttackPacket(this.position().add(0F, this.getBbHeight(), 0F), this.getWispColor().getColor()));
+                    this.getTarget().hurt(this.level().damageSources().magic(), 1F);
                     this.attackCooldown = 40 + this.getRandom().nextInt(6);
                 }
             } else {
                 this.attackCooldown--;
             }
         }
-        if (state == 400 && !level.isClientSide && level.getServer() != null) {
+        if (state == 400 && !level().isClientSide && level().getServer() != null) {
             Player soul = null;
             if (this.getTarget() instanceof Player) {
                 soul = (Player) this.getTarget();
             }
             if (soul == null) {
-                soul = level.getServer().getPlayerList().getPlayer(UUID.fromString(this.entityData.get(TARGET_ID)));
+                soul = level().getServer().getPlayerList().getPlayer(UUID.fromString(this.entityData.get(TARGET_ID)));
             }
             if (soul == null) {
-                soul = level.getServer().getPlayerList().getPlayerByName(this.entityData.get(TARGET_NAME));
+                soul = level().getServer().getPlayerList().getPlayerByName(this.entityData.get(TARGET_NAME));
             }
             resetAttackState();
             if (soul != null && HOSTILE_TARGET_PREDICATE.test(this, soul)) {
-                soul.hurt(WISP, 3000F);
+                soul.hurt(new DamageSource(this.level().registryAccess().registryOrThrow(Registries.DAMAGE_TYPE).getHolderOrThrow(WISP), this), 3000F);
             }
             this.targetPosition = null;
             this.setTarget(null);
         }
-        if (this.isPassive() && !level.isClientSide) {
-            if (level.getEntitiesOfClass(Player.class, this.getBoundingBox().inflate(10)).size() > 0) {
-                Player nearest = level.getNearestEntity(Player.class, PASSIVE_SCALE_PREDICATE, null, this.getX(), this.getY(), this.getZ(), this.getBoundingBox().inflate(10));
+        if (this.isPassive() && !level().isClientSide) {
+            if (!level().getEntitiesOfClass(Player.class, this.getBoundingBox().inflate(10)).isEmpty()) {
+                Player nearest = level().getNearestEntity(Player.class, PASSIVE_SCALE_PREDICATE, null, this.getX(), this.getY(), this.getZ(), this.getBoundingBox().inflate(10));
                 if (nearest != null) {
                     this.entityData.set(PASSIVE_SCALE, nearest.distanceTo(this) / 12F);
                 } else {
@@ -153,7 +157,7 @@ public class EntityWisp extends Animal implements IContainerEntity<EntityWisp> {
 
     @Override
     public boolean isInvulnerableTo(DamageSource source) {
-        return super.isInvulnerableTo(source) || source.getEntity() == this || source == DamageSource.MAGIC || source == DamageSource.IN_FIRE || source == DamageSource.ON_FIRE || source.getEntity() instanceof EntityHirschgeist;
+        return super.isInvulnerableTo(source) || source.getEntity() == this || source.is(DamageTypes.MAGIC) || source.is(DamageTypes.IN_FIRE) || source.is(DamageTypes.ON_FIRE) || source.getEntity() instanceof EntityHirschgeist;
     }
 
     public boolean isPassive() {
@@ -178,16 +182,16 @@ public class EntityWisp extends Animal implements IContainerEntity<EntityWisp> {
         }
         if ((this.targetPosition != null && this.blockPosition().distSqr(this.targetPosition) < 4) || this.targetPosition == null || !this.isHostile || !this.hasSoul() || this.isHirschgeistSummon()) {
             if (this.getTarget() == null && !this.isPassive()) {
-                this.setTarget(level.getNearestEntity(Player.class, HOSTILE_TARGET_PREDICATE, null, this.getX(), this.getY(), this.getZ(), this.getBoundingBox().inflate(25)));
+                this.setTarget(level().getNearestEntity(Player.class, HOSTILE_TARGET_PREDICATE, null, this.getX(), this.getY(), this.getZ(), this.getBoundingBox().inflate(25)));
             }
             if (!this.isPassive() && this.getTarget() != null) {
                 this.targetPosition = this.getTarget().blockPosition();
             } else {
-                this.targetPosition = new BlockPos(this.getX() + (double) this.random.nextInt(5) - (double) this.random.nextInt(5), this.getY() + (double) this.random.nextInt(4) - 0.1D, this.getZ() + (double) this.random.nextInt(5) - (double) this.random.nextInt(5));
+                this.targetPosition = BlockPos.containing(this.getX() + (double) this.random.nextInt(5) - (double) this.random.nextInt(5), this.getY() + (double) this.random.nextInt(4) - 0.1D, this.getZ() + (double) this.random.nextInt(5) - (double) this.random.nextInt(5));
 
             }
             if (this.hasSoul() && this.isHostile) {
-                this.targetPosition = new BlockPos(this.getX() + (double) this.random.nextInt(60) - (double) this.random.nextInt(60), this.getY() + (double) this.random.nextInt(4), this.getZ() + (double) this.random.nextInt(60) - (double) this.random.nextInt(60));
+                this.targetPosition = BlockPos.containing(this.getX() + (double) this.random.nextInt(60) - (double) this.random.nextInt(60), this.getY() + (double) this.random.nextInt(4), this.getZ() + (double) this.random.nextInt(60) - (double) this.random.nextInt(60));
             }
         }
         if (targetPosition != null) {
@@ -269,8 +273,7 @@ public class EntityWisp extends Animal implements IContainerEntity<EntityWisp> {
 
     @Override
     protected void doPush(Entity entity) {
-        if (entity == this.getTarget() && this.getTarget() != null && entity instanceof Player && HOSTILE_TARGET_PREDICATE.test(this, (Player) entity) && !this.hasSoul() && !this.isHirschgeistSummon()) {
-            Player player = (Player) entity;
+        if (entity == this.getTarget() && this.getTarget() != null && entity instanceof Player player && HOSTILE_TARGET_PREDICATE.test(this, (Player) entity) && !this.hasSoul() && !this.isHirschgeistSummon()) {
             this.entityData.set(ATTACK_STATE, 1);
             this.entityData.set(TARGET_ID, player.getGameProfile().getId().toString());
             this.entityData.set(TARGET_NAME, player.getGameProfile().getName());
@@ -308,7 +311,7 @@ public class EntityWisp extends Animal implements IContainerEntity<EntityWisp> {
     @Override
     public void die(DamageSource cause) {
         super.die(cause);
-        if (!level.isClientSide && !this.isBaby()) {
+        if (!level().isClientSide && !this.isBaby()) {
             if (this.random.nextInt(10) == 0 || this.hasSoul() || this.isHirschgeistSummon()) {
                 ItemStack stack = new ItemStack(getItemForVariant(this.getEntityData().get(COLOR_VARIANT)));
                 this.spawnAtLocation(stack, 0.5F);

@@ -20,10 +20,7 @@ import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.ArmorMaterial;
-import net.minecraft.world.item.Item;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Items;
+import net.minecraft.world.item.*;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.level.Level;
@@ -34,7 +31,7 @@ import net.minecraft.world.level.block.state.BlockState;
 public class ItemBlockHirschgeistSkull extends ItemBlockModeledArmor {
 
     public ItemBlockHirschgeistSkull(Block blockIn) {
-        super(blockIn, HGArmorMaterial.get(), EquipmentSlot.HEAD, new Item.Properties().tab(WhisperwoodsMod.TAB));
+        super(blockIn, HGArmorMaterial.get(), Type.HELMET, new Item.Properties());
         this.addToBlockToItemMap(Item.BY_BLOCK, this);
     }
 
@@ -116,7 +113,7 @@ public class ItemBlockHirschgeistSkull extends ItemBlockModeledArmor {
 
         private static HGArmorMaterial INSTANCE;
 
-        public static final HGArmorMaterial get() {
+        public static HGArmorMaterial get() {
             if(INSTANCE == null) {
                 INSTANCE = new HGArmorMaterial();
             }
@@ -127,13 +124,13 @@ public class ItemBlockHirschgeistSkull extends ItemBlockModeledArmor {
         private static final int[] DAMAGE_REDUCTION_AMOUNT_ARRAY = new int[] { 2, 5, 6, 2 };
 
         @Override
-        public int getDurabilityForSlot(EquipmentSlot slotIn) {
-            return MAX_DAMAGE_ARRAY[slotIn.getIndex()] * 15;
+        public int getDurabilityForType(Type type) {
+            return MAX_DAMAGE_ARRAY[type.getSlot().getIndex()] * 15;
         }
 
         @Override
-        public int getDefenseForSlot(EquipmentSlot slotIn) {
-            return DAMAGE_REDUCTION_AMOUNT_ARRAY[slotIn.getIndex()];
+        public int getDefenseForType(Type type) {
+            return DAMAGE_REDUCTION_AMOUNT_ARRAY[type.getSlot().getIndex()];
         }
 
         @Override

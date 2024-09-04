@@ -40,8 +40,8 @@ import java.util.EnumSet;
 public class EntityZotzpyre extends EntityMonsterWithTypes implements FlyingAnimal {
 
     private static final EntityDataAccessor<Boolean> HANGING = SynchedEntityData.defineId(EntityZotzpyre.class, EntityDataSerializers.BOOLEAN);
-    private FastFlyingMoveControl moveSwoop;
-    private FlyingMoveControl moveNormal;
+    protected FastFlyingMoveControl moveSwoop;
+    protected FlyingMoveControl moveNormal;
 
     public EntityZotzpyre(EntityType<? extends EntityZotzpyre> entityType, Level worldIn) {
         super(entityType, worldIn);
@@ -53,8 +53,8 @@ public class EntityZotzpyre extends EntityMonsterWithTypes implements FlyingAnim
 
     @Override
     protected void registerGoals() {
-        this.goalSelector.addGoal(0, new SwoopingAttackGoal(this));
-        this.goalSelector.addGoal(1, new HangFromCeilingGoal(this));
+        this.goalSelector.addGoal(0, new SwoopingAttackGoal<>(this));
+        this.goalSelector.addGoal(1, new HangFromCeilingGoal<>(this));
         this.goalSelector.addGoal(2, new WaterAvoidingRandomFlyingGoal(this, 1D));
         this.targetSelector.addGoal(0, new HurtByTargetGoal(this));
         this.targetSelector.addGoal(1, new NearestAttackableTargetGoal<>(this, Player.class, 0, false, false, e -> true));
@@ -115,16 +115,15 @@ public class EntityZotzpyre extends EntityMonsterWithTypes implements FlyingAnim
     @Override
     public boolean doHurtTarget(Entity entityIn) {
         float f = (float) this.getAttribute(Attributes.ATTACK_DAMAGE).getValue();
-        boolean flag = entityIn.hurt(DamageSource.mobAttack(this), f);
+        boolean flag = entityIn.hurt(this.level().damageSources().mobAttack(this), f);
         if (flag) {
-            if(entityIn instanceof Player) {
-                Player player = (Player) entityIn;
+            if(entityIn instanceof Player player) {
                 int slowTicks = 0;
-                if (this.level.getDifficulty() == Difficulty.EASY) {
+                if (this.level().getDifficulty() == Difficulty.EASY) {
                     slowTicks = 200; // 10s
-                } else if (this.level.getDifficulty() == Difficulty.NORMAL) {
+                } else if (this.level().getDifficulty() == Difficulty.NORMAL) {
                     slowTicks = 300; // 15s
-                } else if (this.level.getDifficulty() == Difficulty.HARD) {
+                } else if (this.level().getDifficulty() == Difficulty.HARD) {
                     slowTicks = 600; // 30s
                 }
                 if (slowTicks > 0)
@@ -162,15 +161,15 @@ public class EntityZotzpyre extends EntityMonsterWithTypes implements FlyingAnim
                 this.setDeltaMovement(this.getDeltaMovement().scale(0.5D));
             } else {
                 float f = 0.91F;
-                if (this.onGround) {
-                    f = this.level.getBlockState(new BlockPos(this.getX(), this.getY() - 1.0D, this.getZ())).getBlock().getFriction() * 0.91F;
+                if (this.onGround()) {
+                    f = this.level().getBlockState(BlockPos.containing(this.getX(), this.getY() - 1.0D, this.getZ())).getBlock().getFriction() * 0.91F;
                 }
                 float g = 0.16277137F / (f * f * f);
-                this.moveRelative(this.onGround ? 0.1F * g : 0.02F, vec3);
+                this.moveRelative(this.onGround() ? 0.1F * g : 0.02F, vec3);
                 this.move(MoverType.SELF, this.getDeltaMovement());
                 this.setDeltaMovement(this.getDeltaMovement().scale(f));
             }
-            this.calculateEntityAnimation(this, false);
+            this.calculateEntityAnimation(false);
         } else {
             super.travel(vec3);
         }
@@ -202,7 +201,7 @@ public class EntityZotzpyre extends EntityMonsterWithTypes implements FlyingAnim
 
         @Override
         public boolean canUse() {
-            return this.parentEntity.getTarget() == null && this.parentEntity.level.getBlockState(this.parentEntity.blockPosition().above()).isFaceSturdy(this.parentEntity.level, this.parentEntity.blockPosition().above(), Direction.DOWN);
+            return this.parentEntity.getTarget() == null && this.parentEntity.level().getBlockState(this.parentEntity.blockPosition().above()).isFaceSturdy(this.parentEntity.level(), this.parentEntity.blockPosition().above(), Direction.DOWN);
         }
 
         @Override
@@ -228,7 +227,7 @@ public class EntityZotzpyre extends EntityMonsterWithTypes implements FlyingAnim
         public enum MovementPhase {
             SWOOP_TO,
             HIT,
-            SWOOP_AWAY;
+            SWOOP_AWAY
         }
 
         protected MovementPhase phase;
@@ -256,8 +255,7 @@ public class EntityZotzpyre extends EntityMonsterWithTypes implements FlyingAnim
             if (this.parentEntity.getMoveControl() instanceof FastFlyingMoveControl) {
                 ((FastFlyingMoveControl) this.parentEntity.getMoveControl()).stop();
             }
-            if(this.parentEntity instanceof EntityZotzpyre) {
-                EntityZotzpyre zotzpyre = (EntityZotzpyre) this.parentEntity;
+            if(this.parentEntity instanceof EntityZotzpyre zotzpyre) {
                 zotzpyre.moveControl = zotzpyre.moveNormal;
             }
         }
@@ -269,8 +267,7 @@ public class EntityZotzpyre extends EntityMonsterWithTypes implements FlyingAnim
 
         @Override
         public void start() {
-            if(this.parentEntity instanceof EntityZotzpyre) {
-                EntityZotzpyre zotzpyre = (EntityZotzpyre) this.parentEntity;
+            if(this.parentEntity instanceof EntityZotzpyre zotzpyre) {
                 zotzpyre.moveControl = zotzpyre.moveSwoop;
             }
             this.startPos = this.parentEntity.position();
@@ -395,7 +392,7 @@ public class EntityZotzpyre extends EntityMonsterWithTypes implements FlyingAnim
             AABB box = this.mob.getBoundingBox();
             for (int j = 1; j < i; ++j) {
                 box = box.move(vec3);
-                if (this.mob.level.getBlockCollisions(this.mob, box).iterator().hasNext()) {
+                if (this.mob.level().getBlockCollisions(this.mob, box).iterator().hasNext()) {
                     return false;
                 }
             }

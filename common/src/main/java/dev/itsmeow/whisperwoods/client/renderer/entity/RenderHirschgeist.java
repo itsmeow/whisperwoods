@@ -20,7 +20,6 @@ import net.minecraft.util.Mth;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Pose;
 
-import java.util.Iterator;
 import java.util.List;
 
 public class RenderHirschgeist extends LivingEntityRenderer<EntityHirschgeist, ModelHirschgeist> {
@@ -46,9 +45,8 @@ public class RenderHirschgeist extends LivingEntityRenderer<EntityHirschgeist, M
         float j = Mth.rotLerp(g, livingEntity.yHeadRotO, livingEntity.yHeadRot);
         float k = j - h;
         float l;
-        if (livingEntity.isPassenger() && livingEntity.getVehicle() instanceof LivingEntity) {
-            LivingEntity livingEntity2 = (LivingEntity)livingEntity.getVehicle();
-            h = Mth.rotLerp(g, livingEntity2.yBodyRotO, livingEntity2.yBodyRot);
+        if (livingEntity.isPassenger() && livingEntity.getVehicle() instanceof LivingEntity mount) {
+            h = Mth.rotLerp(g, mount.yBodyRotO, mount.yBodyRot);
             k = j - h;
             l = Mth.wrapDegrees(k);
             if (l < -85.0F) {
@@ -81,8 +79,8 @@ public class RenderHirschgeist extends LivingEntityRenderer<EntityHirschgeist, M
         n = 0.0F;
         float o = 0.0F;
         if (!livingEntity.isPassenger() && livingEntity.isAlive()) {
-            n = Mth.lerp(g, livingEntity.animationSpeedOld, livingEntity.animationSpeed);
-            o = livingEntity.animationPosition - livingEntity.animationSpeed * (1.0F - g);
+            n = livingEntity.walkAnimation.speed(g);
+            o = livingEntity.walkAnimation.position(g);
             if (livingEntity.isBaby()) {
                 o *= 3.0F;
             }

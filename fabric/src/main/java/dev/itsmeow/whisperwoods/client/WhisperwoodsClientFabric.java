@@ -8,7 +8,6 @@ import dev.itsmeow.whisperwoods.init.ModItems;
 import dev.itsmeow.whisperwoods.item.ItemBlockHirschgeistSkull;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.rendering.v1.ArmorRenderer;
-import net.fabricmc.fabric.api.event.client.ClientSpriteRegistryCallback;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.HumanoidModel;
 import net.minecraft.client.particle.ParticleEngine;
@@ -22,7 +21,6 @@ import net.minecraft.util.Mth;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Pose;
-import net.minecraft.world.inventory.InventoryMenu;
 import net.minecraft.world.item.ItemStack;
 
 import java.util.ArrayList;
@@ -41,9 +39,8 @@ public class WhisperwoodsClientFabric implements ClientModInitializer {
                 float j = Mth.rotLerp(g, entity.yHeadRotO, entity.yHeadRot);
                 float k = j - h;
                 float o;
-                if (entity.isPassenger() && entity.getVehicle() instanceof LivingEntity) {
-                    LivingEntity livingEntity2 = (LivingEntity) entity.getVehicle();
-                    h = Mth.rotLerp(g, livingEntity2.yBodyRotO, livingEntity2.yBodyRot);
+                if (entity.isPassenger() && entity.getVehicle() instanceof LivingEntity mount) {
+                    h = Mth.rotLerp(g, mount.yBodyRotO, mount.yBodyRot);
                     k = j - h;
                     o = Mth.wrapDegrees(k);
                     if (o < -85.0F) {
@@ -75,8 +72,8 @@ public class WhisperwoodsClientFabric implements ClientModInitializer {
                 p = 0.0F;
                 float q = 0.0F;
                 if (!entity.isPassenger() && entity.isAlive()) {
-                    p = Mth.lerp(g, entity.animationSpeedOld, entity.animationSpeed);
-                    q = entity.animationPosition - entity.animationSpeed * (1.0F - g);
+                    p = entity.walkAnimation.speed(g);
+                    q = entity.walkAnimation.position(g);
                     if (entity.isBaby()) {
                         q *= 3.0F;
                     }
@@ -89,12 +86,15 @@ public class WhisperwoodsClientFabric implements ClientModInitializer {
             }
             model.renderToBuffer(matrices, vertexConsumers.getBuffer(RenderType.entityCutoutNoCull(tex)), light, LivingEntityRenderer.getOverlayCoords(entity, 0.0F), 1F, 1F, 1F, 1F);
         }, armor);
+
+        /*
         ClientSpriteRegistryCallback.event(InventoryMenu.BLOCK_ATLAS).register((atlasTexture, registry) -> {
             registry.register(new ResourceLocation(WhisperwoodsMod.MODID, "particle/flame"));
             for(int i = 0; i < 6; i++) {
                 registry.register(new ResourceLocation(WhisperwoodsMod.MODID, "particle/wisp_" + i));
             }
         });
+         */
         ArrayList<ParticleRenderType> types = new ArrayList<>(ParticleEngine.RENDER_ORDER);
         types.add(WispParticle.PARTICLE_SHEET_TRANSLUCENT_114);
         ParticleEngine.RENDER_ORDER = types;

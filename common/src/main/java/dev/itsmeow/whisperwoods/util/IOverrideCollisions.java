@@ -15,10 +15,10 @@ public interface IOverrideCollisions<T extends Mob> extends IContainerEntity<T> 
             return false;
         } else {
             float f = this.getImplementation().getType().getDimensions().width * 0.8F;
-            AABB aABB = AABB.ofSize(this.getImplementation().getEyePosition(), (double)f, 1.0E-6D, (double)f);
+            AABB aABB = AABB.ofSize(this.getImplementation().getEyePosition(), f, 1.0E-6D, f);
             return BlockPos.betweenClosedStream(aABB).anyMatch((blockPos) -> {
-                BlockState blockState = this.getImplementation().getLevel().getBlockState(blockPos);
-                return !blockState.isAir() && blockState.isSuffocating(this.getImplementation().getLevel(), blockPos) && !preventSuffocation(blockState) && Shapes.joinIsNotEmpty(blockState.getCollisionShape(this.getImplementation().getLevel(), blockPos).move(blockPos.getX(), blockPos.getY(), blockPos.getZ()), Shapes.create(aABB), BooleanOp.AND);
+                BlockState blockState = this.getImplementation().level().getBlockState(blockPos);
+                return !blockState.isAir() && blockState.isSuffocating(this.getImplementation().level(), blockPos) && !preventSuffocation(blockState) && Shapes.joinIsNotEmpty(blockState.getCollisionShape(this.getImplementation().level(), blockPos).move(blockPos.getX(), blockPos.getY(), blockPos.getZ()), Shapes.create(aABB), BooleanOp.AND);
             });
         }
     }

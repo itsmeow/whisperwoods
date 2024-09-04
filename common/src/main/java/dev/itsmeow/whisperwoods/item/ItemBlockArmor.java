@@ -4,14 +4,12 @@ import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.advancements.CriteriaTriggers;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionResult;
-import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.*;
 import net.minecraft.world.item.context.BlockPlaceContext;
@@ -31,8 +29,8 @@ public class ItemBlockArmor extends ArmorItem {
 
     private final Block block;
 
-    public ItemBlockArmor(Block blockIn, ArmorMaterial materialIn, EquipmentSlot slot, Item.Properties builderIn) {
-        super(materialIn, slot, builderIn);
+    public ItemBlockArmor(Block blockIn, ArmorMaterial materialIn, ArmorItem.Type type, Item.Properties builderIn) {
+        super(materialIn, type, builderIn);
         this.block = blockIn;
     }
 
@@ -146,14 +144,6 @@ public class ItemBlockArmor extends ArmorItem {
     @Override
     public String getDescriptionId() {
         return this.getBlock().getDescriptionId();
-    }
-
-    @Override
-    public void fillItemCategory(CreativeModeTab group, NonNullList<ItemStack> items) {
-        if(this.allowedIn(group)) {
-            this.getBlock().fillItemCategory(group, items);
-        }
-
     }
 
     @Environment(EnvType.CLIENT)

@@ -97,7 +97,7 @@ public class EntityMoth extends EntityAnimalWithTypesAndSizeContainable {
             if(Direction.from3DDataValue(this.getLandedInteger()) != Direction.DOWN) {
                 double x = Math.floor(this.getX()) + 0.5D;
                 double z = Math.floor(this.getZ()) + 0.5D;
-                BlockPos pos = new BlockPos(x, Math.floor(this.getY()) + 0.5D, z);
+                BlockPos pos = BlockPos.containing(x, Math.floor(this.getY()) + 0.5D, z);
                 BlockPos offset = pos.relative(Direction.from3DDataValue(this.getLandedInteger()));
                 BlockPos diff = pos.subtract(offset);
                 this.teleportTo(x - ((double) diff.getX()) / 2.778D, Math.floor(this.getY()) + 0.5D, z - ((double) diff.getZ()) / 2.778D);
@@ -119,15 +119,15 @@ public class EntityMoth extends EntityAnimalWithTypesAndSizeContainable {
         if(this.isLanded()) {
             Direction d = Direction.from3DDataValue(this.getLandedInteger());
             BlockPos offset = blockpos.relative(d);
-            if(this.level.getBlockState(offset).isFaceSturdy(this.level, offset, d.getOpposite(), SupportType.CENTER)) {
-                if(this.level.getNearestPlayer(playerPredicate, this) != null || this.getRandom().nextInt(this.isAttractedToLight() ? 500 : 1000) == 0) {
+            if(this.level().getBlockState(offset).isFaceSturdy(this.level(), offset, d.getOpposite(), SupportType.CENTER)) {
+                if(this.level().getNearestPlayer(playerPredicate, this) != null || this.getRandom().nextInt(this.isAttractedToLight() ? 500 : 1000) == 0) {
                     this.setNotLanded();
                 }
             } else {
                 this.setNotLanded();
             }
         }
-        if(this.targetPosition == null || this.random.nextInt(30) == 0 || (this.targetPosition.closerThan(this.blockPosition(), 1.0D) && !isLightBlock(level.getBlockState(this.targetPosition)))) {
+        if(this.targetPosition == null || this.random.nextInt(30) == 0 || (this.targetPosition.closerThan(this.blockPosition(), 1.0D) && !isLightBlock(level().getBlockState(this.targetPosition)))) {
             int i = 12;
             int j = 2;
             BlockPos.MutableBlockPos blockpos$mutableblockpos = new BlockPos.MutableBlockPos();
@@ -138,8 +138,8 @@ public class EntityMoth extends EntityAnimalWithTypesAndSizeContainable {
                         for(int i1 = 0; i1 <= l; i1 = i1 > 0 ? -i1 : 1 - i1) {
                             for(int j1 = i1 < l && i1 > -l ? l : 0; j1 <= l; j1 = j1 > 0 ? -j1 : 1 - j1) {
                                 blockpos$mutableblockpos.set(this.blockPosition()).move(i1, k - 1, j1);
-                                BlockState state = level.getBlockState(blockpos$mutableblockpos);
-                                if(isLightBlock(state) && (destinationBlock == null || state.getLightEmission() >= level.getBlockState(destinationBlock).getLightEmission())) {
+                                BlockState state = level().getBlockState(blockpos$mutableblockpos);
+                                if(isLightBlock(state) && (destinationBlock == null || state.getLightEmission() >= level().getBlockState(destinationBlock).getLightEmission())) {
                                     destinationBlock = blockpos$mutableblockpos.immutable();
                                 }
                             }
@@ -153,11 +153,11 @@ public class EntityMoth extends EntityAnimalWithTypesAndSizeContainable {
             } else {
                 boolean found = false;
                 if(this.isAttractedToLight()) {
-                    for(LivingEntity entity : level.getEntitiesOfClass(LivingEntity.class, this.getBoundingBox().inflate(10))) {
+                    for(LivingEntity entity : level().getEntitiesOfClass(LivingEntity.class, this.getBoundingBox().inflate(10))) {
                         for(InteractionHand hand : InteractionHand.values()) {
                             ItemStack held = entity.getItemInHand(hand);
                             if(held.is(ModTags.Items.MOTH_TARGET_HELD_LIGHT_ITEMS)) {
-                                this.targetPosition = entity.blockPosition().offset(0, 1.5, 0);
+                                this.targetPosition = entity.blockPosition().offset(0, Mth.floor(1.5), 0);
                                 found = true;
                                 this.setNotLanded();
                                 break;
@@ -168,11 +168,11 @@ public class EntityMoth extends EntityAnimalWithTypesAndSizeContainable {
                         }
                     }
                 }
-                if(!found && this.level.getNearestPlayer(playerPredicate, this) == null && this.getRandom().nextInt(this.isAttractedToLight() ? 80 : 30) == 0) {
+                if(!found && this.level().getNearestPlayer(playerPredicate, this) == null && this.getRandom().nextInt(this.isAttractedToLight() ? 80 : 30) == 0) {
                     for(Direction direction : Direction.values()) {
                         if(direction != Direction.UP) {
                             BlockPos offset = blockpos.relative(direction);
-                            if(level.getBlockState(offset).isFaceSturdy(level, offset, direction.getOpposite(), SupportType.CENTER)) {
+                            if(level().getBlockState(offset).isFaceSturdy(level(), offset, direction.getOpposite(), SupportType.CENTER)) {
                                 this.setLanded(direction);
                                 this.targetPosition = null;
                                 found = true;
@@ -182,7 +182,7 @@ public class EntityMoth extends EntityAnimalWithTypesAndSizeContainable {
                     }
                 }
                 if(!found) {
-                    this.targetPosition = new BlockPos(this.getX() + (double) this.random.nextInt(5) - (double) this.random.nextInt(5), this.getY() + (double) this.random.nextInt(4) - 1.0D, this.getZ() + (double) this.random.nextInt(5) - (double) this.random.nextInt(5));
+                    this.targetPosition = BlockPos.containing(this.getX() + (double) this.random.nextInt(5) - (double) this.random.nextInt(5), this.getY() + (double) this.random.nextInt(4) - 1.0D, this.getZ() + (double) this.random.nextInt(5) - (double) this.random.nextInt(5));
                 }
             }
         }
@@ -195,7 +195,7 @@ public class EntityMoth extends EntityAnimalWithTypesAndSizeContainable {
                     diff = diff.normalize();
                     for(int i = 1; i < length; ++i) {
                         abb = abb.move(diff);
-                        if (!this.level.noCollision(this, abb)) {
+                        if (!this.level().noCollision(this, abb)) {
                             return false;
                         }
                     }
@@ -215,10 +215,10 @@ public class EntityMoth extends EntityAnimalWithTypesAndSizeContainable {
             this.setYRot(this.getYRot() + f1);
         }
         int moths_req = getContainer().getCustomConfiguration().getInt("moths_to_destroy_torch");
-        if(moths_req != 0 && level.getEntitiesOfClass(EntityMoth.class, this.getBoundingBox()).size() >= moths_req && level.getBlockState(this.blockPosition()).is(ModTags.Blocks.MOTH_BREAKABLE) && ModPlatformEvents.mobGrief(this.level, this)) {
-            BlockState state = level.getBlockState(this.blockPosition());
-            Block.dropResources(state, level, this.blockPosition());
-            level.setBlockAndUpdate(this.blockPosition(), Blocks.AIR.defaultBlockState());
+        if(moths_req != 0 && level().getEntitiesOfClass(EntityMoth.class, this.getBoundingBox()).size() >= moths_req && level().getBlockState(this.blockPosition()).is(ModTags.Blocks.MOTH_BREAKABLE) && ModPlatformEvents.mobGrief(this.level(), this)) {
+            BlockState state = level().getBlockState(this.blockPosition());
+            Block.dropResources(state, level(), this.blockPosition());
+            level().setBlockAndUpdate(this.blockPosition(), Blocks.AIR.defaultBlockState());
         }
     }
 
@@ -246,8 +246,8 @@ public class EntityMoth extends EntityAnimalWithTypesAndSizeContainable {
     }
 
     public boolean isAttractedToLight() {
-        long time = this.level.getDayTime() % 24000L;
-        return level.getBrightness(LightLayer.SKY, this.blockPosition()) < 10 || (time >= 13000L && time <= 23000L);
+        long time = this.level().getDayTime() % 24000L;
+        return level().getBrightness(LightLayer.SKY, this.blockPosition()) < 10 || (time >= 13000L && time <= 23000L);
     }
 
     private static boolean isLightBlock(BlockState blockState) {
@@ -278,7 +278,7 @@ public class EntityMoth extends EntityAnimalWithTypesAndSizeContainable {
         if(this.isInvulnerableTo(source)) {
             return false;
         } else {
-            if(!this.level.isClientSide && this.isLanded()) {
+            if(!this.level().isClientSide && this.isLanded()) {
                 this.setNotLanded();
             }
             return super.hurt(source, amount);

@@ -4,16 +4,17 @@ import dev.architectury.registry.registries.DeferredRegister;
 import dev.architectury.registry.registries.RegistrySupplier;
 import dev.itsmeow.whisperwoods.WhisperwoodsMod;
 import dev.itsmeow.whisperwoods.item.ItemBlockHirschgeistSkull;
-import net.minecraft.core.Registry;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
 
+import java.util.*;
 import java.util.function.Supplier;
 
 public class ModItems {
 
-    private static final DeferredRegister<Item> ITEMS = DeferredRegister.create(WhisperwoodsMod.MODID, Registry.ITEM_REGISTRY);
+    private static final DeferredRegister<Item> ITEMS = DeferredRegister.create(WhisperwoodsMod.MODID, Registries.ITEM);
 
     public static RegistrySupplier<BlockItem> GHOST_LIGHT_ELECTRIC_BLUE = rIB(ModBlocks.GHOST_LIGHT_ELECTRIC_BLUE);
     public static RegistrySupplier<BlockItem> GHOST_LIGHT_FIERY_ORANGE = rIB(ModBlocks.GHOST_LIGHT_FIERY_ORANGE);
@@ -33,7 +34,11 @@ public class ModItems {
     }
 
     protected static RegistrySupplier<BlockItem> rIB(RegistrySupplier<? extends Block> parent) {
-        return ITEMS.register(parent.getId().getPath(), () -> new BlockItem(parent.get(), new Item.Properties().tab(WhisperwoodsMod.TAB)));
+        return ITEMS.register(parent.getId().getPath(), () -> new BlockItem(parent.get(), new Item.Properties()));
+    }
+
+    public static Iterator<RegistrySupplier<Item>> getTabItems() {
+        return ITEMS.iterator();
     }
 
     public static void init() {

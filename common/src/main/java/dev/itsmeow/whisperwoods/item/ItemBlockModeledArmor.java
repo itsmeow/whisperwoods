@@ -13,7 +13,7 @@ import net.minecraft.world.level.block.Block;
 
 public abstract class ItemBlockModeledArmor extends ItemBlockArmor {
 
-    public ItemBlockModeledArmor(Block block, ArmorMaterial material, EquipmentSlot slot, Item.Properties properties) {
+    public ItemBlockModeledArmor(Block block, ArmorMaterial material, ArmorItem.Type slot, Item.Properties properties) {
         super(block, material, slot, properties);
     }
 

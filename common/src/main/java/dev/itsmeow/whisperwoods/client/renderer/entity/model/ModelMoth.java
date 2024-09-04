@@ -96,7 +96,7 @@ public class ModelMoth extends EntityModel<EntityMoth> {
                 this.thorax.yRot = (float) Math.toRadians(Direction.from3DDataValue(entity.getLandedInteger()).toYRot());
                 double x = Math.floor(entity.getX()) + 0.5D;
                 double z = Math.floor(entity.getZ()) + 0.5D;
-                BlockPos pos = new BlockPos(x, entity.getY(), z);
+                BlockPos pos = BlockPos.containing(x, entity.getY(), z);
                 BlockPos offset = pos.relative(Direction.from3DDataValue(entity.getLandedInteger()));
                 BlockPos diff = pos.subtract(offset);
                 this.xOff = ((double) diff.getX()) / (13D * entity.getDimensions(Pose.STANDING).width);

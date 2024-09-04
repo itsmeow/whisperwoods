@@ -55,11 +55,9 @@ public class ClientLifecycleHandler {
     public static void clientInit() {
         ClientReloadShadersEvent.EVENT.register((resourceManager, shadersSink) -> {
             try {
-                shadersSink.registerShader(new ShaderInstance(resourceManager,"ww_rendertype_eyes_custom", DefaultVertexFormat.NEW_ENTITY), shaderInstance -> {
-                    RenderTypeAddition.eyesCustomShader = shaderInstance;
-                });
+                shadersSink.registerShader(new ShaderInstance(resourceManager,"ww_rendertype_eyes_custom", DefaultVertexFormat.NEW_ENTITY), shaderInstance -> RenderTypeAddition.eyesCustomShader = shaderInstance);
             } catch (IOException e) {
-                e.printStackTrace();
+                WhisperwoodsMod.LOGGER.error(e);
             }
         });
         BlockEntityRendererRegistry.register(ModBlockEntities.GHOST_LIGHT.get(), RenderTileGhostLight::new);
@@ -95,10 +93,10 @@ public class ClientLifecycleHandler {
                     if(System.nanoTime() - entity.lastSpawn >= 10_000_000L) {
                         entity.lastSpawn = System.nanoTime();
                         for(int j = 0; j < 5; j++) {
-                            double xO = (entity.getRandom().nextFloat() * 2F - 1F);
-                            double yO = (entity.getRandom().nextFloat() * 2F - 1F);
-                            double zO = (entity.getRandom().nextFloat() * 2F - 1F);
-                            entity.level.addParticle(ModParticles.SOUL_FLAME.get(),
+                            double xO = (entity.level().getRandom().nextFloat() * 2F - 1F);
+                            double yO = (entity.level().getRandom().nextFloat() * 2F - 1F);
+                            double zO = (entity.level().getRandom().nextFloat() * 2F - 1F);
+                            entity.level().addParticle(ModParticles.SOUL_FLAME.get(),
                                     entity.getX() + xO,
                                     entity.getY() + yO,
                                     entity.getZ() + zO, 0, 0.005F, 0);

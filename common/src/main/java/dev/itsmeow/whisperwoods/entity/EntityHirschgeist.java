@@ -21,9 +21,11 @@ import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.tags.BlockTags;
+import net.minecraft.util.Mth;
 import net.minecraft.world.BossEvent;
 import net.minecraft.world.DifficultyInstance;
 import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.world.damagesource.DamageTypes;
 import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.ai.goal.FloatGoal;
 import net.minecraft.world.entity.ai.goal.Goal;
@@ -57,7 +59,7 @@ public class EntityHirschgeist extends Monster implements Enemy, IOverrideCollis
     public EntityHirschgeist(EntityType<? extends EntityHirschgeist> entityType, Level worldIn) {
         super(entityType, worldIn);
         this.xpReward = 150;
-        this.maxUpStep = 1.5F;
+        this.setMaxUpStep(1.5F);
     }
 
     @Override
@@ -98,8 +100,8 @@ public class EntityHirschgeist extends Monster implements Enemy, IOverrideCollis
             protected PathFinder createPathFinder(int i1) {
                 this.nodeEvaluator = new WalkNodeEvaluator() {
                     @Override
-                    protected BlockPathTypes evaluateBlockPathType(BlockGetter reader, boolean b1, boolean b2, BlockPos pos, BlockPathTypes typeIn) {
-                        return typeIn == BlockPathTypes.LEAVES || reader.getBlockState(pos).is(BlockTags.LOGS) || reader.getBlockState(pos).is(BlockTags.LEAVES) ? BlockPathTypes.OPEN : super.evaluateBlockPathType(reader, b1, b2, pos, typeIn);
+                    protected BlockPathTypes evaluateBlockPathType(BlockGetter reader, BlockPos pos, BlockPathTypes typeIn) {
+                        return typeIn == BlockPathTypes.LEAVES || reader.getBlockState(pos).is(BlockTags.LOGS) || reader.getBlockState(pos).is(BlockTags.LEAVES) ? BlockPathTypes.OPEN : super.evaluateBlockPathType(reader, pos, typeIn);
                     }
                 };
                 this.nodeEvaluator.setCanPassDoors(true);
@@ -160,8 +162,7 @@ public class EntityHirschgeist extends Monster implements Enemy, IOverrideCollis
             if (entityIn instanceof LivingEntity) {
                 ((LivingEntity) entityIn).knockback(2F, this.getX() - entityIn.getX(), this.getZ() - entityIn.getZ());
                 entityIn.setSecondsOnFire(2 + this.getRandom().nextInt(2));
-                if(level instanceof ServerLevel) {
-                    ServerLevel serverLevel = (ServerLevel) level;
+                if(level() instanceof ServerLevel serverLevel) {
                     serverLevel.sendParticles(ParticleTypes.SOUL_FIRE_FLAME, this.position().x() + ((entityIn.position().x() - this.position().x()) / 2D), this.position().y() + ((entityIn.position().y() - this.position().y()) / 2D), this.position().z() + ((entityIn.position().z() - this.position().z()) / 2D), 500, Math.abs((entityIn.position().x() - this.position().x()) / 25D), 0, Math.abs((entityIn.position().z() - this.position().z()) / 25D), 0.1D);
                 }
             }
@@ -186,14 +187,14 @@ public class EntityHirschgeist extends Monster implements Enemy, IOverrideCollis
             }
         }
         this.bossInfo.setProgress(this.getHealth() / this.getMaxHealth());
-        if (!level.isClientSide) {
+        if (!level().isClientSide) {
             this.getEntityData().set(DISTANCE_TO_TARGET, this.getTarget() == null ? -1F : this.getTarget().distanceTo(this));
             this.getEntityData().set(DAYTIME, this.isDaytime());
         }
     }
 
     public boolean isDaytime() {
-        return this.level.isDay();
+        return this.level().isDay();
     }
 
     public boolean isDaytimeClient() {
@@ -212,18 +213,18 @@ public class EntityHirschgeist extends Monster implements Enemy, IOverrideCollis
 
     @Override
     public boolean isInvulnerableTo(DamageSource source) {
-        return (this.isDaytime() && source != DamageSource.OUT_OF_WORLD && !source.isCreativePlayer()) || source.getEntity() instanceof EntityHirschgeist || source == DamageSource.MAGIC || source == DamageSource.IN_FIRE || source == DamageSource.ON_FIRE || source == DamageSource.LAVA;
+        return (this.isDaytime() && !source.is(DamageTypes.FELL_OUT_OF_WORLD) && !source.is(DamageTypes.OUTSIDE_BORDER) && !source.isCreativePlayer()) || source.getEntity() instanceof EntityHirschgeist || source.is(DamageTypes.MAGIC) || source.is(DamageTypes.IN_FIRE) || source.is(DamageTypes.ON_FIRE) || source.is(DamageTypes.LAVA);
     }
 
     @Override
     public boolean hurt(DamageSource source, float amount) {
-        if(!this.level.isClientSide && source.getEntity() instanceof Player && !source.isCreativePlayer()) {
+        if(!this.level().isClientSide && source.getEntity() instanceof Player && !source.isCreativePlayer()) {
             if (this.isDaytime()) {
                 Player player = (Player) source.getEntity();
                 player.sendSystemMessage(Component.translatable("entity.whisperwoods.hirschgeist.message.invulnerable"));
                 return false;
             } else if (this.getRandom().nextInt(4) == 0) {
-                this.level.playSound(null, source.getEntity(), SoundEvents.BUCKET_FILL_LAVA, SoundSource.MASTER, 1F, 2F);
+                this.level().playSound(null, source.getEntity(), SoundEvents.BUCKET_FILL_LAVA, SoundSource.MASTER, 1F, 2F);
                 return false;
             }
         }
@@ -314,11 +315,11 @@ public class EntityHirschgeist extends Monster implements Enemy, IOverrideCollis
             double d1 = target.getY() - this.attacker.getEyeY() - 0.1D;
             double d2 = target.getZ() - this.attacker.getZ();
             double d3 = Math.sqrt(d0 * d0 + d2 * d2);
-            EntityHirschgeistFireball ball = new EntityHirschgeistFireball(ModEntities.PROJECTILE_HIRSCHGEIST_FIREBALL.get(), this.attacker.level, this.attacker);
+            EntityHirschgeistFireball ball = new EntityHirschgeistFireball(ModEntities.PROJECTILE_HIRSCHGEIST_FIREBALL.get(), this.attacker.level(), this.attacker);
             ball.setPos(target.getX(), target.getEyeY() - 0.1D, target.getZ());
             ball.shoot(d0, d1 + d3 * 0.2D, d2, 0.5F, 2);
-            this.attacker.level.playSound(null, this.attacker, SoundEvents.EVOKER_CAST_SPELL, SoundSource.HOSTILE, 1F, 1F);
-            this.attacker.level.addFreshEntity(ball);
+            this.attacker.level().playSound(null, this.attacker, SoundEvents.EVOKER_CAST_SPELL, SoundSource.HOSTILE, 1F, 1F);
+            this.attacker.level().addFreshEntity(ball);
         }
 
     }
@@ -332,20 +333,20 @@ public class EntityHirschgeist extends Monster implements Enemy, IOverrideCollis
 
         @Override
         public boolean canUse() {
-            return this.parent.getTarget() != null && this.parent.getRandom().nextInt(500) == 0 && this.parent.level.getEntitiesOfClass(EntityWisp.class, this.parent.getBoundingBox().inflate(10D), wisp -> wisp.isHirschgeistSummon()).size() == 0;
+            return this.parent.getTarget() != null && this.parent.getRandom().nextInt(500) == 0 && this.parent.level().getEntitiesOfClass(EntityWisp.class, this.parent.getBoundingBox().inflate(10D), EntityWisp::isHirschgeistSummon).isEmpty();
         }
 
         @Override
         public void start() {
-            if(parent.level instanceof ServerLevel) {
-                this.parent.level.playSound(null, this.parent, SoundEvents.EVOKER_CAST_SPELL, SoundSource.HOSTILE, 1F, 1F);
+            if(parent.level() instanceof ServerLevel) {
+                this.parent.level().playSound(null, this.parent, SoundEvents.EVOKER_CAST_SPELL, SoundSource.HOSTILE, 1F, 1F);
                 for(int i = 0; i < 3; i++) {
-                    EntityWisp wisp = ModEntities.WISP.getEntityType().create((ServerLevel) parent.level, null, null, null, parent.blockPosition().offset(parent.getRandom().nextInt(8) - 4 + 0.5D, parent.getRandom().nextInt(4) + 1 + 0.5D, parent.getRandom().nextInt(8) - 4 + 0.5D), MobSpawnType.REINFORCEMENT, false, false);
+                    EntityWisp wisp = ModEntities.WISP.getEntityType().create((ServerLevel) parent.level(), null, null, parent.blockPosition().offset(Mth.floor(parent.getRandom().nextInt(8) - 4 + 0.5D), Mth.floor(parent.getRandom().nextInt(4) + 1 + 0.5D), Mth.floor(parent.getRandom().nextInt(8) - 4 + 0.5D)), MobSpawnType.REINFORCEMENT, false, false);
                     wisp.setHirschgeistSummon(true);
                     if (parent.getTarget() != null) {
                         wisp.setTarget(parent.getTarget());
                     }
-                    parent.level.addFreshEntity(wisp);
+                    parent.level().addFreshEntity(wisp);
                 }
             }
         }

@@ -37,8 +37,8 @@
     }
   },
   "textures": {
-    "particle": "whisperwoods:blocks/wisp_lantern",
-    "lens": "whisperwoods:blocks/wisp_lantern_lens_orange"
+    "particle": "whisperwoods:block/wisp_lantern",
+    "lens": "whisperwoods:block/wisp_lantern_lens_orange"
   },
   "elements": [
     {

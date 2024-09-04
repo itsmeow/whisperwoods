@@ -2,9 +2,6 @@ package dev.itsmeow.whisperwoods.blockentity;
 
 import com.google.common.collect.ImmutableBiMap;
 import com.google.common.collect.ImmutableList;
-import com.mojang.math.Vector3f;
-import dev.architectury.registry.registries.Registries;
-import dev.itsmeow.whisperwoods.WhisperwoodsMod;
 import dev.itsmeow.whisperwoods.block.GhostLightBlock;
 import dev.itsmeow.whisperwoods.block.HandOfFateBlock;
 import dev.itsmeow.whisperwoods.entity.EntityWisp;
@@ -19,7 +16,7 @@ import dev.itsmeow.whisperwoods.util.WispColors.WispColor;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.core.Registry;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.StringTag;
@@ -52,6 +49,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.shapes.Shapes;
+import org.joml.Vector3f;
 
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -94,8 +92,7 @@ public class HandOfFateBlockEntity extends BlockEntity {
 
     public boolean isLit() {
         Block b = this.getBlockState().getBlock();
-        if (b instanceof HandOfFateBlock && this.hasLevel()) {
-            HandOfFateBlock block = (HandOfFateBlock) b;
+        if (b instanceof HandOfFateBlock block && this.hasLevel()) {
             return block.isLit(this.getLevel(), this.getBlockPos());
         }
         return false;
@@ -138,12 +135,11 @@ public class HandOfFateBlockEntity extends BlockEntity {
                             }
                             blockEntity.setChanged();
                             break;
-                        } else if (stack.getItem() instanceof BlockItem && level.isEmptyBlock(pos.above())) {
-                            BlockItem i = (BlockItem) stack.getItem();
-                            if (i.getBlock() instanceof GhostLightBlock) {
+                        } else if (stack.getItem() instanceof BlockItem blockItem && level.isEmptyBlock(pos.above())) {
+                            if (blockItem.getBlock() instanceof GhostLightBlock) {
                                 item.getItem().shrink(1);
                                 blockEntity.playSound(SoundEvents.END_PORTAL_FRAME_FILL, 1F, 1F);
-                                level.setBlockAndUpdate(pos.above(), i.getBlock().defaultBlockState());
+                                level.setBlockAndUpdate(pos.above(), blockItem.getBlock().defaultBlockState());
                             }
                             if (item.getItem().getCount() == 0) {
                                 item.discard();
@@ -192,15 +188,14 @@ public class HandOfFateBlockEntity extends BlockEntity {
     }
 
     public void onRecipeComplete(HOFRecipe recipe, BlockState state, Level worldIn, BlockPos pos) {
-        if (worldIn instanceof ServerLevel && !worldIn.isClientSide) {
-            ServerLevel world = (ServerLevel) worldIn;
+        if (worldIn instanceof ServerLevel world && !worldIn.isClientSide) {
             switch (recipe.getName()) {
                 case "hirschgeist":
                     HOFEffectPacket hgpk = new HOFEffectPacket(HOFEffectType.HIRSCHGEIST, new Vector3f(pos.getX() + 0.5F, pos.getY() + 1F, pos.getZ() + 0.5F), WispColors.BLUE.getColor());
                     this.sendToTrackers(hgpk);
                     this.playSound(SoundEvents.EVOKER_CAST_SPELL, 1F, 1F);
                     this.playSound(SoundEvents.BELL_RESONATE, 1F, 1F);
-                    TaskQueue.QUEUE_SERVER.schedule(50, () -> ModEntities.HIRSCHGEIST.getEntityType().spawn((ServerLevel) worldIn, null, null, pos.above(), MobSpawnType.EVENT, false, false));
+                    TaskQueue.QUEUE_SERVER.schedule(50, () -> ModEntities.HIRSCHGEIST.getEntityType().spawn((ServerLevel) worldIn, (CompoundTag) null, null, pos.above(), MobSpawnType.EVENT, false, false));
                     break;
                 case "wisp":
                     EntityWisp wisp = ModEntities.WISP.getEntityType().create(world);
@@ -267,7 +262,7 @@ public class HandOfFateBlockEntity extends BlockEntity {
         if (worldIn != null && this.getRecipeContainer().hasRecipe() && this.getRecipeContainer().data != null) {
             this.getRecipeContainer().data.getItemData().forEach((i, v) -> {
                 if (v) {
-                    Item toDrop = Registries.get(WhisperwoodsMod.MODID).get(Registry.ITEM_REGISTRY).get(new ResourceLocation(i));
+                    Item toDrop = BuiltInRegistries.ITEM.get(new ResourceLocation(i));
                     if (toDrop != null) {
                         Containers.dropItemStack(worldIn, pos.getX(), pos.getY(), pos.getZ(), new ItemStack(toDrop));
                     }
@@ -318,7 +313,7 @@ public class HandOfFateBlockEntity extends BlockEntity {
             if (this.hasRecipe() && data != null) {
                 String next = data.getNextNonContainedItem();
                 if (next != null) {
-                    return next.equals(Registries.get(WhisperwoodsMod.MODID).get(Registry.ITEM_REGISTRY).getId(item).toString());
+                    return next.equals(BuiltInRegistries.ITEM.getKey(item).toString());
                 }
             }
             return false;
@@ -332,7 +327,7 @@ public class HandOfFateBlockEntity extends BlockEntity {
             if (this.hasRecipe() && data != null) {
                 String itemName = data.getNextNonContainedItem();
                 if (itemName != null) {
-                    return Registries.get(WhisperwoodsMod.MODID).get(Registry.ITEM_REGISTRY).get(new ResourceLocation(itemName));
+                    return BuiltInRegistries.ITEM.get(new ResourceLocation(itemName));
                 }
             }
             return null;
@@ -367,12 +362,12 @@ public class HandOfFateBlockEntity extends BlockEntity {
         private final Map<String, Boolean> data = new LinkedHashMap<>();
 
         public RecipeItemData(HOFRecipe recipe) {
-            recipe.items.forEach(item -> data.put(Registries.get(WhisperwoodsMod.MODID).get(Registry.ITEM_REGISTRY).getId(item).toString(), false));
+            recipe.items.forEach(item -> data.put(BuiltInRegistries.ITEM.getKey(item).toString(), false));
         }
 
         public RecipeItemData(HOFRecipe recipe, Set<String> items) {
             recipe.items.forEach(item -> {
-                String key = Registries.get(WhisperwoodsMod.MODID).get(Registry.ITEM_REGISTRY).getId(item).toString();
+                String key = BuiltInRegistries.ITEM.getKey(item).toString();
                 data.put(key, items.contains(key));
             });
         }
@@ -387,7 +382,7 @@ public class HandOfFateBlockEntity extends BlockEntity {
         }
 
         public boolean addItem(Item item) {
-            String key = Registries.get(WhisperwoodsMod.MODID).get(Registry.ITEM_REGISTRY).getId(item).toString();
+            String key = BuiltInRegistries.ITEM.getKey(item).toString();
             if (data.containsKey(key)) {
                 data.put(key, true);
                 return true;
@@ -396,7 +391,7 @@ public class HandOfFateBlockEntity extends BlockEntity {
         }
 
         public boolean hasItem(Item item) {
-            return data.getOrDefault(Registries.get(WhisperwoodsMod.MODID).get(Registry.ITEM_REGISTRY).getId(item).toString(), false);
+            return data.getOrDefault(BuiltInRegistries.ITEM.getKey(item).toString(), false);
         }
 
         public void read(CompoundTag nbt) {

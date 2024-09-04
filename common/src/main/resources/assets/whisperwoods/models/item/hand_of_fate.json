@@ -1,6 +1,6 @@
 {
   "parent": "minecraft:item/generated",
   "textures": {
-    "layer0": "whisperwoods:items/hand_of_fate"
+    "layer0": "whisperwoods:item/hand_of_fate"
   }
 }

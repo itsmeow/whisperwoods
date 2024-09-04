@@ -6,9 +6,9 @@ configurations {
 }
 
 loom {
-    launches {
-        all {
-            arg "-mixin.config", "mixin.imdlib.json"
+    runs {
+        configureEach {
+            programArg("-mixin.config=mixin.imdlib.json")
         }
     }
     forge {
@@ -26,13 +26,13 @@ dependencies {
 shadowJar {
     configurations = [project.configurations.shadowCommon, project.configurations.shadowModImplementation]
     relocate 'dev.itsmeow.imdlib', "${rootProject.maven_group}.imdlib"
-    classifier "dev-shadow"
+    archiveClassifier = "dev-shadow"
     exclude "mixin.imdlib-${rootProject.mod_id}.json"
     exclude "architectury-common.accessWidener"
 }
 
 remapJar {
-    classifier "remap"
+    archiveClassifier = "remap"
 }
 
 task fixJar(type: Jar) {
@@ -61,7 +61,7 @@ task fixJar(type: Jar) {
             line -> line.replaceAll('dev/itsmeow/imdlib/mixin/', "dev/itsmeow/${rootProject.mod_id}/imdlib/mixin/")
         }
     }
-    classifier "forge"
+    archiveClassifier = "forge"
 }
 
 sourcesJar.dependsOn fixJar

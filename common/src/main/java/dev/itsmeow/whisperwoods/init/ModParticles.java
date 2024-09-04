@@ -5,18 +5,18 @@ import dev.architectury.registry.registries.DeferredRegister;
 import dev.architectury.registry.registries.RegistrySupplier;
 import dev.itsmeow.whisperwoods.WhisperwoodsMod;
 import dev.itsmeow.whisperwoods.particle.WispParticleData;
-import net.minecraft.core.Registry;
 import net.minecraft.core.particles.ParticleOptions;
 import net.minecraft.core.particles.ParticleType;
 import net.minecraft.core.particles.SimpleParticleType;
+import net.minecraft.core.registries.Registries;
 
 import java.util.function.Supplier;
 
 public class ModParticles {
 
-    private static final DeferredRegister<ParticleType<?>> PARTICLES = DeferredRegister.create(WhisperwoodsMod.MODID, Registry.PARTICLE_TYPE_REGISTRY);
+    private static final DeferredRegister<ParticleType<?>> PARTICLES = DeferredRegister.create(WhisperwoodsMod.MODID, Registries.PARTICLE_TYPE);
 
-    public static final RegistrySupplier<ParticleType<WispParticleData>> WISP = r("wisp", () -> new ParticleType<WispParticleData>(false, WispParticleData.DESERIALIZER) {
+    public static final RegistrySupplier<ParticleType<WispParticleData>> WISP = r("wisp", () -> new ParticleType<>(false, WispParticleData.DESERIALIZER) {
         @Override
         public Codec<WispParticleData> codec() {
             return WispParticleData.CODEC;

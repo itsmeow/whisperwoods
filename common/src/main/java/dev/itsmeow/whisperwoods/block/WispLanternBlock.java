@@ -21,7 +21,6 @@ import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.level.block.state.properties.DirectionProperty;
 import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.level.material.Fluids;
-import net.minecraft.world.level.material.PushReaction;
 import net.minecraft.world.level.pathfinder.PathComputationType;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.Shapes;
@@ -29,7 +28,7 @@ import net.minecraft.world.phys.shapes.VoxelShape;
 
 public class WispLanternBlock extends Block implements EntityBlock, SimpleWaterloggedBlock, IHaveColor {
 
-    private static VoxelShape[] SHAPES = new VoxelShape[Direction.values().length];
+    private static final VoxelShape[] SHAPES = new VoxelShape[Direction.values().length];
     static {
         for(Direction facing : Direction.values()) {
             final double d = 0.0625D * 4;
@@ -47,7 +46,7 @@ public class WispLanternBlock extends Block implements EntityBlock, SimpleWaterl
     public static final BooleanProperty WATERLOGGED = BlockStateProperties.WATERLOGGED;
     public static final DirectionProperty FACING = BlockStateProperties.FACING;
     public static final DirectionProperty HORIZONTAL_FACING = DirectionProperty.create("horizontal", Direction.Plane.HORIZONTAL);
-    private int color = 0;
+    private int color;
 
     public WispLanternBlock(int color, Properties properties) {
         super(properties);
@@ -79,7 +78,7 @@ public class WispLanternBlock extends Block implements EntityBlock, SimpleWaterl
                 if(direction.getAxis() == Axis.Y) {
                     blockstate = blockstate.setValue(HORIZONTAL_FACING, context.getPlayer().getMotionDirection().getOpposite());
                 }
-                return blockstate.setValue(WATERLOGGED, Boolean.valueOf(fluidstate.getType() == Fluids.WATER));
+                return blockstate.setValue(WATERLOGGED, fluidstate.getType() == Fluids.WATER);
             }
         }
 
@@ -95,11 +94,6 @@ public class WispLanternBlock extends Block implements EntityBlock, SimpleWaterl
     public boolean canSurvive(BlockState state, LevelReader worldIn, BlockPos pos) {
         Direction direction = state.getValue(FACING);
         return Block.canSupportCenter(worldIn, pos.relative(direction), direction.getOpposite());
-    }
-
-    @Override
-    public PushReaction getPistonPushReaction(BlockState state) {
-        return PushReaction.DESTROY;
     }
 
     @SuppressWarnings("deprecation")

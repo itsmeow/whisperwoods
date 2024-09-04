@@ -16,7 +16,7 @@ import java.util.function.Consumer;
 @Mixin(ItemBlockModeledArmor.class)
 public abstract class ItemBlockModeledArmorMixin extends ArmorItem {
 
-    public ItemBlockModeledArmorMixin(ArmorMaterial arg, EquipmentSlot arg2, Properties arg3) {
+    public ItemBlockModeledArmorMixin(ArmorMaterial arg, ArmorItem.Type arg2, Properties arg3) {
         super(arg, arg2, arg3);
     }
 

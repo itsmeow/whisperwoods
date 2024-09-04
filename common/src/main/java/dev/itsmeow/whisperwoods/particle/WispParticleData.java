@@ -7,27 +7,21 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 import dev.itsmeow.whisperwoods.init.ModParticles;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
-import net.minecraft.core.Registry;
 import net.minecraft.core.particles.ParticleOptions;
 import net.minecraft.core.particles.ParticleType;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.FriendlyByteBuf;
 
 import java.util.Locale;
 
 public class WispParticleData implements ParticleOptions {
-    public static final Codec<WispParticleData> CODEC = RecordCodecBuilder.create((group) -> {
-        return group.group(Codec.FLOAT.fieldOf("r").forGetter((in) -> {
-            return in.getRed();
-        }), Codec.FLOAT.fieldOf("g").forGetter((in) -> {
-            return in.getGreen();
-        }), Codec.FLOAT.fieldOf("b").forGetter((in) -> {
-            return in.getBlue();
-        }), Codec.FLOAT.fieldOf("scale").forGetter((in) -> {
-            return in.getScale();
-        })).apply(group, WispParticleData::new);
-    });
+    public static final Codec<WispParticleData> CODEC = RecordCodecBuilder.create((group) -> group.group(
+            Codec.FLOAT.fieldOf("r").forGetter(WispParticleData::getRed),
+            Codec.FLOAT.fieldOf("g").forGetter(WispParticleData::getGreen),
+            Codec.FLOAT.fieldOf("b").forGetter(WispParticleData::getBlue),
+            Codec.FLOAT.fieldOf("scale").forGetter(WispParticleData::getScale)).apply(group, WispParticleData::new));
     @SuppressWarnings("deprecation")
-    public static final ParticleOptions.Deserializer<WispParticleData> DESERIALIZER = new ParticleOptions.Deserializer<WispParticleData>() {
+    public static final ParticleOptions.Deserializer<WispParticleData> DESERIALIZER = new ParticleOptions.Deserializer<>() {
         public WispParticleData fromCommand(ParticleType<WispParticleData> particleTypeIn, StringReader reader) throws CommandSyntaxException {
             reader.expect(' ');
             float f = (float) reader.readDouble();
@@ -63,9 +57,8 @@ public class WispParticleData implements ParticleOptions {
         buffer.writeFloat(this.scale);
     }
 
-    @SuppressWarnings("deprecation")
     public String writeToString() {
-        return String.format(Locale.ROOT, "%s %.2f %.2f %.2f %.2f", Registry.PARTICLE_TYPE.getKey(this.getType()), this.red, this.green, this.blue, this.scale);
+        return String.format(Locale.ROOT, "%s %.2f %.2f %.2f %.2f", BuiltInRegistries.PARTICLE_TYPE.getKey(this.getType()), this.red, this.green, this.blue, this.scale);
     }
 
     public ParticleType<WispParticleData> getType() {

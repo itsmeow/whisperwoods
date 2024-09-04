@@ -12,6 +12,7 @@ import dev.itsmeow.whisperwoods.util.IOverrideCollisions;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
@@ -23,7 +24,7 @@ import net.minecraft.tags.BlockTags;
 import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.damagesource.DamageSource;
-import net.minecraft.world.damagesource.EntityDamageSource;
+import net.minecraft.world.damagesource.DamageType;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.*;
@@ -57,8 +58,7 @@ import java.util.UUID;
 import java.util.function.Supplier;
 
 public class EntityHidebehind extends EntityCreatureWithSelectiveTypes implements IOverrideCollisions<EntityCreatureWithTypes> {
-
-    public final DamageSource HIDEBEHIND = new EntityDamageSource("hidebehind", this).bypassMagic().bypassArmor();
+    public static final ResourceKey<DamageType> HIDEBEHIND = ResourceKey.create(Registries.DAMAGE_TYPE, new ResourceLocation(WhisperwoodsMod.MODID, "hidebehind"));
     protected static final EntityDataAccessor<Integer> HIDING = SynchedEntityData.defineId(EntityHidebehind.class, EntityDataSerializers.INT);
     protected static final EntityDataAccessor<Boolean> OPEN = SynchedEntityData.defineId(EntityHidebehind.class, EntityDataSerializers.BOOLEAN);
     protected static final EntityDataAccessor<Integer> ATTACK_SEQUENCE_TICKS = SynchedEntityData.defineId(EntityHidebehind.class, EntityDataSerializers.INT);
@@ -66,7 +66,7 @@ public class EntityHidebehind extends EntityCreatureWithSelectiveTypes implement
 
     public EntityHidebehind(EntityType<? extends EntityHidebehind> type, Level world) {
         super(type, world);
-        this.maxUpStep = 2F;
+        this.setMaxUpStep(2F);
     }
 
     @Override
@@ -125,7 +125,7 @@ public class EntityHidebehind extends EntityCreatureWithSelectiveTypes implement
         if(source.getEntity() == this.getTarget() && this.attackSequenceTicks() > 0) {
             this.setAttackSequenceTicks(0);
         }
-        if (!level.isClientSide()) {
+        if (!level().isClientSide()) {
             boolean isImmediate = source.getDirectEntity() instanceof Player;
             Player player = isImmediate ? (Player) source.getDirectEntity() : (source.getEntity() instanceof Player ? (Player) source.getEntity() : null);
             if (player != null) {
@@ -136,7 +136,7 @@ public class EntityHidebehind extends EntityCreatureWithSelectiveTypes implement
                     if (!player.isCreative()) {
                         player.addEffect(new MobEffectInstance(MobEffects.BLINDNESS, 15 * (hiding == 1 ? 5 : 20), 0));
                         if (player.distanceTo(this) < 3)
-                            player.hurt(HIDEBEHIND, 1F);
+                            player.hurt(hideBehindDamageSource(), 1F);
                     }
                     HideFromTargetGoal.doTreeTick(this);
                     return super.hurt(source, amount * (hiding == 1 ? 0.5F : 0.25F));
@@ -144,6 +144,10 @@ public class EntityHidebehind extends EntityCreatureWithSelectiveTypes implement
             }
         }
         return super.hurt(source, amount);
+    }
+
+    private  DamageSource hideBehindDamageSource() {
+        return new DamageSource(this.level().registryAccess().registryOrThrow(Registries.DAMAGE_TYPE).getHolderOrThrow(HIDEBEHIND), this);
     }
 
     @Override
@@ -162,7 +166,7 @@ public class EntityHidebehind extends EntityCreatureWithSelectiveTypes implement
                     for(int i1 = 0; i1 <= l; i1 = i1 > 0 ? -i1 : 1 - i1) {
                         for(int j1 = i1 < l && i1 > -l ? l : 0; j1 <= l; j1 = j1 > 0 ? -j1 : 1 - j1) {
                             bp.set(this.blockPosition()).move(i1, k - 1, j1);
-                            if(this.level.getBlockState(bp).is(BlockTags.LOGS)) {
+                            if(this.level().getBlockState(bp).is(BlockTags.LOGS)) {
                                 destinationBlock = bp.immutable();
                             }
                         }
@@ -173,7 +177,7 @@ public class EntityHidebehind extends EntityCreatureWithSelectiveTypes implement
             if(destinationBlock != null) {
                 for(Direction dir : Direction.values()) {
                     if(!fixed) {
-                        if(this.level.isEmptyBlock(destinationBlock.relative(dir)) || this.level.getBlockState(destinationBlock.relative(dir)).is(BlockTags.LEAVES)) {
+                        if(this.level().isEmptyBlock(destinationBlock.relative(dir)) || this.level().getBlockState(destinationBlock.relative(dir)).is(BlockTags.LEAVES)) {
                             destinationBlock = destinationBlock.relative(dir);
                             fixed = true;
                         }
@@ -184,8 +188,8 @@ public class EntityHidebehind extends EntityCreatureWithSelectiveTypes implement
                 this.teleportTo(destinationBlock.getX(), destinationBlock.getY(), destinationBlock.getZ());
             }
         }
-        if(!level.isClientSide()) {
-            if (level.isDay() && level.getBrightness(LightLayer.SKY, this.blockPosition()) > 10) {
+        if(!level().isClientSide()) {
+            if (level().isDay() && level().getBrightness(LightLayer.SKY, this.blockPosition()) > 10) {
                 this.setHiding(2);
             } else if (this.getHidingInt() == 2) {
                 this.setHiding(1);
@@ -196,9 +200,8 @@ public class EntityHidebehind extends EntityCreatureWithSelectiveTypes implement
         }
         float atkTicks = attackSequenceTicks();
         if(this.getTarget() != null && this.getTarget().distanceToSqr(this) < 5D && atkTicks == 0 && !this.getHiding() && this.isEntityAttackable(this.getTarget())) {
-            if(this.getTarget() instanceof Player) {
-                Player player = (Player) this.getTarget();
-                if(!this.level.isClientSide && this.getRandom().nextInt(20) == 0) {
+            if(this.getTarget() instanceof Player player) {
+                if(!this.level().isClientSide && this.getRandom().nextInt(20) == 0) {
                     if(player.getHealth() > this.getAttribute(Attributes.ATTACK_DAMAGE).getValue()) {
                         this.doHurtTarget(player);
                     } else {
@@ -238,7 +241,7 @@ public class EntityHidebehind extends EntityCreatureWithSelectiveTypes implement
                 this.getLookControl().setLookAt(target, 360F, 360F);
             }
             this.attackSequenceTicksDecrement();
-            if(atkTicks - 1 == 0 && !level.isClientSide()) {
+            if(atkTicks - 1 == 0 && !level().isClientSide()) {
                 this.setOpen(false);
                 if(this.getTarget() != null) {
                     this.doHurtTarget(target);
@@ -261,7 +264,7 @@ public class EntityHidebehind extends EntityCreatureWithSelectiveTypes implement
     public boolean isEntityAttackable(LivingEntity target) {
         Item mainItem = target.getItemInHand(InteractionHand.MAIN_HAND).getItem();
         Item offItem = target.getItemInHand(InteractionHand.OFF_HAND).getItem();
-        return level.getMaxLocalRawBrightness(target.blockPosition()) < 8 && !(mainItem instanceof BlockItem && ((BlockItem)mainItem).getBlock() instanceof TorchBlock) && !(offItem instanceof BlockItem && ((BlockItem)offItem).getBlock() instanceof TorchBlock);
+        return level().getMaxLocalRawBrightness(target.blockPosition()) < 8 && !(mainItem instanceof BlockItem && ((BlockItem)mainItem).getBlock() instanceof TorchBlock) && !(offItem instanceof BlockItem && ((BlockItem)offItem).getBlock() instanceof TorchBlock);
     }
 
     @Override
@@ -340,7 +343,7 @@ public class EntityHidebehind extends EntityCreatureWithSelectiveTypes implement
             entity.setSecondsOnFire(i * 4);
         }
 
-        boolean flag = entity.hurt(HIDEBEHIND, f);
+        boolean flag = entity.hurt(hideBehindDamageSource(), f);
         if (flag) {
             if (f1 > 0.0F && entity instanceof LivingEntity) {
                 ((LivingEntity)entity).knockback(f1 * 0.5F, (double)Mth.sin(this.getYRot() * 0.017453292F), (double)(-Mth.cos(this.getYRot() * 0.017453292F)));
@@ -409,10 +412,10 @@ public class EntityHidebehind extends EntityCreatureWithSelectiveTypes implement
             boolean nearTree = false;
             for(Direction dir : Direction.values()) {
                 if(!nearTree) {
-                    if(hidebehind.level.getBlockState(hidebehind.blockPosition().relative(dir)).is(BlockTags.LOGS)) {
+                    if(hidebehind.level().getBlockState(hidebehind.blockPosition().relative(dir)).is(BlockTags.LOGS)) {
                         nearTree = true;
                     }
-                    if(hidebehind.level.getBlockState(hidebehind.blockPosition().above(3).relative(dir)).is(BlockTags.LEAVES)) {
+                    if(hidebehind.level().getBlockState(hidebehind.blockPosition().above(3).relative(dir)).is(BlockTags.LEAVES)) {
                         nearTree = true;
                     }
                 }
@@ -427,7 +430,7 @@ public class EntityHidebehind extends EntityCreatureWithSelectiveTypes implement
                         for(int i1 = 0; i1 <= l; i1 = i1 > 0 ? -i1 : 1 - i1) {
                             for(int j1 = i1 < l && i1 > -l ? l : 0; j1 <= l; j1 = j1 > 0 ? -j1 : 1 - j1) {
                                 blockpos$mutableblockpos.set(hidebehind.blockPosition()).move(i1, k - 1, j1);
-                                if(hidebehind.level.getBlockState(blockpos$mutableblockpos).is(BlockTags.LOGS)) {
+                                if(hidebehind.level().getBlockState(blockpos$mutableblockpos).is(BlockTags.LOGS)) {
                                     destinationBlock = blockpos$mutableblockpos.immutable();
                                 }
                             }
@@ -438,7 +441,7 @@ public class EntityHidebehind extends EntityCreatureWithSelectiveTypes implement
                 if(destinationBlock != null) {
                     for(Direction dir : Direction.values()) {
                         if(!fixed) {
-                            if(hidebehind.level.isEmptyBlock(destinationBlock.relative(dir)) || hidebehind.level.getBlockState(destinationBlock.relative(dir)).is(BlockTags.LEAVES)) {
+                            if(hidebehind.level().isEmptyBlock(destinationBlock.relative(dir)) || hidebehind.level().getBlockState(destinationBlock.relative(dir)).is(BlockTags.LEAVES)) {
                                 destinationBlock = destinationBlock.relative(dir);
                                 fixed = true;
                             }
@@ -463,7 +466,7 @@ public class EntityHidebehind extends EntityCreatureWithSelectiveTypes implement
 
     @Override
     public boolean removeWhenFarAway(double range) {
-        return level.isDay() && super.removeWhenFarAway(range);
+        return level().isDay() && super.removeWhenFarAway(range);
     }
 
     @Override
@@ -486,8 +489,8 @@ public class EntityHidebehind extends EntityCreatureWithSelectiveTypes implement
 
         public static class HidebehindNodeProcessor extends WalkNodeEvaluator {
             @Override
-            protected BlockPathTypes evaluateBlockPathType(BlockGetter reader, boolean b1, boolean b2, BlockPos pos, BlockPathTypes typeIn) {
-                return typeIn == BlockPathTypes.LEAVES ? BlockPathTypes.OPEN : super.evaluateBlockPathType(reader, b1, b2, pos, typeIn);
+            protected BlockPathTypes evaluateBlockPathType(BlockGetter reader, BlockPos pos, BlockPathTypes typeIn) {
+                return typeIn == BlockPathTypes.LEAVES ? BlockPathTypes.OPEN : super.evaluateBlockPathType(reader, pos, typeIn);
             }
         }
 
@@ -542,7 +545,7 @@ public class EntityHidebehind extends EntityCreatureWithSelectiveTypes implement
 
     @Override
     public String[] getTypesFor(ResourceKey<Biome> biomeKey, Biome biome, Set<BiomeTypes.Type> types, MobSpawnType reason) {
-        if(biomeKey == Biomes.OLD_GROWTH_SPRUCE_TAIGA || biomeKey == Biomes.OLD_GROWTH_SPRUCE_TAIGA) {
+        if(biomeKey == Biomes.OLD_GROWTH_SPRUCE_TAIGA) {
             return new String[] { "mega_taiga", "mega_taiga", "mega_taiga", "darkforest" };
         }
         if(types.contains(BiomeTypes.CONIFEROUS)) {

@@ -31,7 +31,6 @@ public class WispAttackPacket {
         return new WispAttackPacket(new Vec3(buf.readDouble(), buf.readDouble(), buf.readDouble()), buf.readInt());
     }
 
-    @SuppressWarnings("resource")
     public static void handle(WispAttackPacket msg, Supplier<NetworkManager.PacketContext> ctx) {
         if(ctx.get().getEnvironment() == Env.CLIENT) {
             ctx.get().queue(() -> {
@@ -53,7 +52,7 @@ public class WispAttackPacket {
                             Vec3 posOff = dir.scale(i).add(pos);
                             double sin = Math.sin((i / stops) * (Math.PI * 2D)) / 4D;
                             double cos = Math.cos((i / stops) * (Math.PI * 2D)) / 4D;
-                            player.level.addParticle(new WispParticleData(r, g, b, 0.5F), posOff.x() + sin, posOff.y() + sin, posOff.z() - cos, 0F, 0F, 0F);
+                            player.level().addParticle(new WispParticleData(r, g, b, 0.5F), posOff.x() + sin, posOff.y() + sin, posOff.z() - cos, 0F, 0F, 0F);
                         }
                     }
                 }

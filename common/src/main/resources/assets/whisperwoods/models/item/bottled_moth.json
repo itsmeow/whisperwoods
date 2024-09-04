@@ -1,6 +1,6 @@
 {
     "parent": "minecraft:item/generated",
     "textures": {
-        "layer0": "whisperwoods:items/bottled_moth"
+        "layer0": "whisperwoods:item/bottled_moth"
     }
 }

@@ -1,6 +1,6 @@
 {
   "parent": "minecraft:item/generated",
   "textures": {
-    "layer0": "whisperwoods:items/hirschgeist_skull"
+    "layer0": "whisperwoods:item/hirschgeist_skull"
   }
 }
