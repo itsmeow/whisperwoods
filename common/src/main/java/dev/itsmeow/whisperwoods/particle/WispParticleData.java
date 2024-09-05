@@ -65,22 +65,18 @@ public class WispParticleData implements ParticleOptions {
         return ModParticles.WISP.get();
     }
 
-    @Environment(EnvType.CLIENT)
     public float getRed() {
         return this.red;
     }
 
-    @Environment(EnvType.CLIENT)
     public float getGreen() {
         return this.green;
     }
 
-    @Environment(EnvType.CLIENT)
     public float getBlue() {
         return this.blue;
     }
 
-    @Environment(EnvType.CLIENT)
     public float getScale() {
         return this.scale;
     }
